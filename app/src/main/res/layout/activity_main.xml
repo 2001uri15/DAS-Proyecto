@@ -3,12 +3,13 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     android:background="@color/white">
 
     <!-- Barra Superior Fija -->
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="69dp"
         android:layout_alignParentTop="true"
         android:background="#E0E0E0"
         android:padding="10dp">
@@ -22,7 +23,7 @@
                 android:id="@+id/btnBack"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:background="@android:color/transparent"
+                android:background="@drawable/conf"
                 android:contentDescription="Configuración"
                 android:minWidth="48dp"
                 android:minHeight="48dp" />
@@ -102,16 +103,16 @@
                 android:layout_width="120dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="10dp"
-                android:background="#6A5ACD"
+                android:background="@drawable/rounded_button"
                 android:text="@string/entrar"
-                android:textColor="@android:color/white"
+                android:textColor="@color/white"
                 android:textSize="12sp" />
 
             <Button
                 android:id="@+id/btnEntrarSinIniciar"
                 android:layout_width="120dp"
                 android:layout_height="wrap_content"
-                android:background="#6A5ACD"
+                android:background="@drawable/rounded_button"
                 android:text="@string/sinIniciar"
                 android:textColor="@android:color/white"
                 android:textSize="12sp" />

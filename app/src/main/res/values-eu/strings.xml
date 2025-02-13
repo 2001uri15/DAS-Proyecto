@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Garatu</string>
     <string name="usuario">Erabiltzailea</string>
     <string name="contrasena">Pasahitza</string>
     <string name="entrar">Sartu</string>
     <string name="sinIniciar">Sartu hasi gabe</string>
     <string name="sesionIni">Gorde saioa</string>
+    <string name="idioma">Hizkuntza</string>
+    <string name="guardar">Gorde</string>
+    <string name="histEntrena">Prestakuntza Historia</string>
 </resources>

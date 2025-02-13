@@ -13,6 +13,11 @@
         android:theme="@style/Theme.DAS_APP"
         tools:targetApi="31">
         <activity
+            android:name=".Home"
+            android:exported="false"
+            android:label="a"
+            android:theme="@style/Theme.DAS_APP.NoActionBar" />
+        <activity
             android:name=".Preferencias"
             android:exported="false" />
         <activity
@@ -25,5 +30,8 @@
             </intent-filter>
         </activity>
     </application>
+    <!-- Con esta línea la app puede poner notificaciones en la barra -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
 
 </manifest>

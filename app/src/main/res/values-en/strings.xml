@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Garatu</string>
     <string name="usuario">Username</string>
     <string name="contrasena">Password</string>
     <string name="entrar">Login</string>
     <string name="sinIniciar">Enter without logging in</string>
     <string name="sesionIni">Save session</string>
+    <string name="idioma">Language</string>
+    <string name="guardar">Save</string>
+    <string name="histEntrena">Training History</string>
 </resources>
