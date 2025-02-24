@@ -28,8 +28,6 @@ public class Home extends AppCompatActivity {
         setContentView(R.layout.activity_home);
         Button btnCorrer = findViewById(R.id.btnCorrer);
         btnCorrer.setOnClickListener(v -> {
-            Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), "Entrenamiento de Correr", Snackbar.LENGTH_SHORT);
-            snackbar.show();
             Intent intent = new Intent(Home.this, Entrenamiento.class);
             startActivity(intent);
         });

@@ -1,13 +1,18 @@
 package com.asierla.das_app;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Looper;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,16 +26,22 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.material.snackbar.Snackbar;
 
 public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private TextView tvCuentaAtras, tvTiempo, tvDistancia;
     private Button btnParar, btnReanudar, btnFinalizar;
+    private LinearLayout layoutBotones;
+    private ImageView btnMusica;
     private MapView mapView;
     private GoogleMap googleMap;
     private FusedLocationProviderClient fusedLocationClient;
@@ -39,6 +50,7 @@ public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallba
     private long startTime, elapsedTime;
     private float totalDistance = 0;
     private Location lastLocation;
+    private Polyline routePolyline;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +63,9 @@ public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallba
         btnParar = findViewById(R.id.btnParar);
         btnReanudar = findViewById(R.id.btnReanudar);
         btnFinalizar = findViewById(R.id.btnFinalizar);
+        btnMusica = findViewById(R.id.btnMusica);
         mapView = findViewById(R.id.mapView);
+        layoutBotones = findViewById(R.id.layoutBotones);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
@@ -74,15 +88,16 @@ public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallba
         btnParar.setOnClickListener(v -> pauseTraining());
         btnReanudar.setOnClickListener(v -> resumeTraining());
         btnFinalizar.setOnClickListener(v -> stopTraining());
+
+        // Abrir el reproductor de música al pulsar btnMusica
+        btnMusica.setOnClickListener(v -> openMusica());
     }
 
     private void checkLocationPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-            // Permisos concedidos, habilitar la ubicación en el mapa y solicitar actualizaciones de ubicación
             setupLocationUpdates();
         } else {
-            // Solicitar permisos si no están concedidos
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     LOCATION_PERMISSION_REQUEST_CODE);
@@ -102,7 +117,19 @@ public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallba
                 for (Location location : locationResult.getLocations()) {
                     if (isRunning && lastLocation != null) {
                         totalDistance += lastLocation.distanceTo(location);
-                        tvDistancia.setText(String.format("Distancia: %.2f km", totalDistance / 1000)); // Distancia en kilómetros
+                        tvDistancia.setText(String.format("%.2f km", totalDistance / 1000));
+
+                        // Actualizamos la ruta con el nuevo punto
+                        if (googleMap != null) {
+                            LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                            if (routePolyline == null) {
+                                routePolyline = googleMap.addPolyline(new PolylineOptions().add(currentLocation));
+                            } else {
+                                // Añadimos el punto a la ruta
+                                routePolyline.getPoints().add(currentLocation);
+                            }
+                            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
+                        }
                     }
                     lastLocation = location;
                 }
@@ -123,16 +150,18 @@ public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallba
 
     private void pauseTraining() {
         isRunning = false;
+        elapsedTime = (System.currentTimeMillis() - startTime) / 1000; // Guardamos el tiempo cuando se pausa
+        lastLocation = null; // Opcional: puedes guardar la última localización si lo necesitas
         btnParar.setVisibility(View.GONE);
-        btnReanudar.setVisibility(View.VISIBLE);
-        btnFinalizar.setVisibility(View.VISIBLE);
+        layoutBotones.setVisibility(View.VISIBLE);
     }
 
     private void resumeTraining() {
         isRunning = true;
+        startTime = System.currentTimeMillis() - (elapsedTime * 1000); // Restauramos el tiempo desde el punto de pausa
+        updateTimer(); // Reanudar cronómetro
         btnParar.setVisibility(View.VISIBLE);
-        btnReanudar.setVisibility(View.GONE);
-        btnFinalizar.setVisibility(View.GONE);
+        layoutBotones.setVisibility(View.GONE);
     }
 
     private void stopTraining() {
@@ -146,7 +175,7 @@ public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallba
             while (isRunning) {
                 runOnUiThread(() -> {
                     elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
-                    tvTiempo.setText(formatTime(elapsedTime)); // Mostrar tiempo en formato HH:MM:SS
+                    tvTiempo.setText(formatTime(elapsedTime));
                 });
                 try {
                     Thread.sleep(1000);
@@ -163,33 +192,18 @@ public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallba
         long secs = seconds % 60;
 
         if (hours > 0) {
-            return String.format("%02d:%02d:%02d", hours, minutes, secs); // Formato HH:MM:SS
+            return String.format("%02d:%02d:%02d", hours, minutes, secs);
         } else {
-            return String.format("%02d:%02d", minutes, secs); // Formato MM:SS
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permiso concedido, habilitar ubicación en el mapa y actualizar ubicación
-                setupLocationUpdates();
-            } else {
-                // Permiso denegado, mostrar un mensaje o manejar la falta de permisos
-                Toast.makeText(this, "Permiso de ubicación denegado", Toast.LENGTH_SHORT).show();
-            }
+            return String.format("%02d:%02d", minutes, secs);
         }
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
-        // Asegurarse de que la ubicación se habilite en el mapa si el permiso está concedido
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-            googleMap.setMyLocationEnabled(true); // Habilitar la ubicación del usuario
+            googleMap.setMyLocationEnabled(true);
         }
     }
 
@@ -216,4 +230,25 @@ public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallba
         super.onLowMemory();
         mapView.onLowMemory();
     }
+
+    private void openMusica() {
+        Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), "Abriendo música...", Snackbar.LENGTH_SHORT);
+        snackbar.show();
+
+        String spotifyPackage = "com.spotify.music";
+        Intent launchIntent = getPackageManager().getLaunchIntentForPackage(spotifyPackage);
+
+        if (launchIntent != null) {
+            startActivity(launchIntent);
+        } else {
+            try {
+                Intent intent = new Intent(MediaStore.INTENT_ACTION_MUSIC_PLAYER);
+                startActivity(intent);
+            } catch (Exception e) {
+                Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://open.spotify.com"));
+                startActivity(webIntent);
+            }
+        }
+    }
 }
+

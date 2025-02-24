@@ -48,7 +48,7 @@
             android:id="@+id/btnCorrer"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:background="@drawable/circle_outline"
+            android:background="@drawable/circle_correr"
             android:contentDescription="Correr" />
 
         <Button
