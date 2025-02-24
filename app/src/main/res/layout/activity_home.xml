@@ -45,14 +45,7 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <Button
-            android:id="@+id/button_remo"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:background="@drawable/circle_outline"
-            android:contentDescription="Remo" />
-
-        <Button
-            android:id="@+id/button_correr"
+            android:id="@+id/btnCorrer"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:background="@drawable/circle_outline"
@@ -64,6 +57,13 @@
             android:layout_height="80dp"
             android:background="@drawable/circle_outline"
             android:contentDescription="Bici" />
+
+        <Button
+            android:id="@+id/button_remo"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:background="@drawable/circle_outline"
+            android:contentDescription="Remo" />
 
         <Button
             android:id="@+id/button_add"
