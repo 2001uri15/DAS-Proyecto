@@ -8,4 +8,11 @@
     <string name="guardar">Guardar</string>
     <string name="histEntrena">Historial de Entrenamientos</string>
     <string name="app_name" translatable="false">Garatu</string>
+    <string name="general">General</string>
+    <string name="privacidad">Privacidad</string>
+    <string name="uniMetri">Unidades Metricas</string>
+    <string name="notifi">Notificaciones</string>
+    <string name="avisoPriva">Aviso de Privacidad</string>
+    <string name="permiso">Permisos</string>
+    <string name="borrarDatos">Borrar Datos</string>
 </resources>

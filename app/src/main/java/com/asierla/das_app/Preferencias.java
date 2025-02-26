@@ -44,7 +44,7 @@ public class Preferencias extends AppCompatActivity {
         // Obtener botón de guardar
         Button btnGuardar = findViewById(R.id.btnGuardar);
         // Idiomas disponibles
-        String[] idiomas = {"Euskara", "Inglés", "Castellano"};
+        String[] idiomas = {"Euskara", "English", "Castellano"};
 
         // Crear el Adapter usando el layout simple_list_item_single_choice
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
@@ -76,7 +76,7 @@ public class Preferencias extends AppCompatActivity {
                     case "Euskara":
                         valor2 = "eu";
                         break;
-                    case "Inglés":
+                    case "English":
                         valor2 = "en";
                         break;
                 }

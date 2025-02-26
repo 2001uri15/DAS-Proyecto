@@ -53,14 +53,14 @@
 
     <TextView
         android:id="@+id/textView"
-        android:layout_width="110dp"
+        android:layout_width="377dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/relativeLayout"
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true"
         android:layout_marginStart="15dp"
         android:layout_marginTop="13dp"
-        android:layout_marginEnd="286dp"
+        android:layout_marginEnd="19dp"
         android:text="@string/idioma" />
 
     <ListView
@@ -68,15 +68,112 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/textView"
+        android:layout_marginLeft="12dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginRight="12dp"
+        android:background="@drawable/rounded_background"
         android:choiceMode="singleChoice">
 
     </ListView>
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="437dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/listIdioma"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="13dp"
+        android:layout_marginEnd="21dp"
+        android:text="@string/general" />
+
+    <LinearLayout
+        android:id="@+id/layoutButtons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView2"
+        android:layout_marginLeft="12dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginRight="12dp"
+        android:background="@drawable/rounded_background"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/btnOpcion1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#00FAF7F7"
+            android:text="@string/uniMetri"
+            android:textAlignment="textStart"
+            android:textColor="@color/black" />
+
+        <Button
+            android:id="@+id/btnOpcion2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#00FAF7F7"
+            android:textColor="@color/black"
+            android:textAlignment="textStart"
+            android:text="@string/notifi" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="442dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/layoutButtons"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="13dp"
+        android:layout_marginEnd="16dp"
+        android:text="@string/privacidad" />
+
+    <LinearLayout
+        android:id="@+id/layoutButtons2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView3"
+        android:layout_marginLeft="12dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginRight="12dp"
+        android:background="@drawable/rounded_background"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/btnOpcion3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#00FAF7F7"
+            android:text="@string/avisoPriva"
+            android:textAlignment="textStart"
+            android:textColor="@color/black" />
+
+        <Button
+            android:id="@+id/btnOpcion4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#00FAF7F7"
+            android:textColor="@color/black"
+            android:textAlignment="textStart"
+            android:text="@string/permiso" />
+
+        <Button
+            android:id="@+id/btnOpcion5"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#00FAF7F7"
+            android:textColor="@color/black"
+            android:textAlignment="textStart"
+            android:text="@string/borrarDatos" />
+    </LinearLayout>
 
     <Button
         android:id="@+id/btnGuardar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/listIdioma"
+        android:layout_below="@+id/layoutButtons2"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="21dp"
         android:text="@string/guardar" />

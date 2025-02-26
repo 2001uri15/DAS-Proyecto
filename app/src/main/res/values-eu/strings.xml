@@ -8,4 +8,11 @@
     <string name="idioma">Hizkuntza</string>
     <string name="guardar">Gorde</string>
     <string name="histEntrena">Prestakuntza Historia</string>
+    <string name="general">Orokorra</string>
+    <string name="privacidad">Pribatutasuna</string>
+    <string name="uniMetri">Unitate metrikoak</string>
+    <string name="notifi">Jakinarazpenak</string>
+    <string name="avisoPriva">Pribatutasun-oharra</string>
+    <string name="permiso">Baimenak</string>
+    <string name="borrarDatos">Datuak ezabatu</string>
 </resources>

@@ -8,4 +8,11 @@
     <string name="idioma">Language</string>
     <string name="guardar">Save</string>
     <string name="histEntrena">Training History</string>
+    <string name="general">General</string>
+    <string name="privacidad">Privacy</string>
+    <string name="uniMetri">Metric Units</string>
+    <string name="notifi">Notifications</string>
+    <string name="avisoPriva">Privacy Notice</string>
+    <string name="permiso">Permissions</string>
+    <string name="borrarDatos">Erase data</string>
 </resources>
