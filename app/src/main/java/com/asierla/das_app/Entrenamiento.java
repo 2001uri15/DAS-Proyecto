@@ -38,7 +38,7 @@ import com.google.android.material.snackbar.Snackbar;
 public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
-    private TextView tvCuentaAtras, tvTiempo, tvDistancia;
+    private TextView tvCuentaAtras, tvTiempo, tvDistancia, tvVelocidad, tvRitmo;
     private Button btnParar, btnReanudar, btnFinalizar;
     private LinearLayout layoutBotones;
     private ImageView btnMusica;
@@ -60,6 +60,8 @@ public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallba
         tvCuentaAtras = findViewById(R.id.tvCuentaAtras);
         tvTiempo = findViewById(R.id.tvTiempo);
         tvDistancia = findViewById(R.id.tvDistancia);
+        tvVelocidad = findViewById(R.id.tvVelocidad);
+        tvRitmo = findViewById(R.id.tvRitmo);
         btnParar = findViewById(R.id.btnParar);
         btnReanudar = findViewById(R.id.btnReanudar);
         btnFinalizar = findViewById(R.id.btnFinalizar);
@@ -74,16 +76,40 @@ public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallba
 
         checkLocationPermission();
 
-        new CountDownTimer(4000, 1000) {
-            public void onTick(long millisUntilFinished) {
-                tvCuentaAtras.setText(String.valueOf(millisUntilFinished / 1000));
-            }
+        // Restaurar el estado guardado
+        if (savedInstanceState != null) {
+            startTime = savedInstanceState.getLong("startTime");
+            elapsedTime = savedInstanceState.getLong("elapsedTime");
+            totalDistance = savedInstanceState.getFloat("totalDistance");
+            isRunning = savedInstanceState.getBoolean("isRunning");
 
-            public void onFinish() {
-                tvCuentaAtras.setVisibility(View.GONE);
-                startTraining();
+            // Restaurar ubicación anterior
+            if (savedInstanceState.containsKey("lastLatitude") && savedInstanceState.containsKey("lastLongitude")) {
+                double latitude = savedInstanceState.getDouble("lastLatitude");
+                double longitude = savedInstanceState.getDouble("lastLongitude");
+                lastLocation = new Location("");
+                lastLocation.setLatitude(latitude);
+                lastLocation.setLongitude(longitude);
             }
-        }.start();
+        }
+
+        // Iniciar la cuenta atrás solo si no estamos restaurando el estado
+        if (!isRunning) {
+            new CountDownTimer(4000, 1000) {
+                public void onTick(long millisUntilFinished) {
+                    tvCuentaAtras.setText(String.valueOf(millisUntilFinished / 1000));
+                }
+
+                public void onFinish() {
+                    tvCuentaAtras.setVisibility(View.GONE);
+                    startTraining();
+                }
+            }.start();
+        } else {
+            // Si la actividad ya estaba corriendo, reiniciar el cronómetro y actualizar la distancia
+            updateTimer();
+            tvDistancia.setText(String.format("%.2f km", totalDistance / 1000));
+        }
 
         btnParar.setOnClickListener(v -> pauseTraining());
         btnReanudar.setOnClickListener(v -> resumeTraining());
@@ -106,8 +132,8 @@ public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallba
 
     private void setupLocationUpdates() {
         LocationRequest locationRequest = LocationRequest.create()
-                .setInterval(2000)
-                .setFastestInterval(1000)
+                .setInterval(1000)
+                .setFastestInterval(500)
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
         locationCallback = new LocationCallback() {
@@ -116,16 +142,28 @@ public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallba
                 if (locationResult == null) return;
                 for (Location location : locationResult.getLocations()) {
                     if (isRunning && lastLocation != null) {
-                        totalDistance += lastLocation.distanceTo(location);
+                        float distance = lastLocation.distanceTo(location);
+                        totalDistance += distance;
                         tvDistancia.setText(String.format("%.2f km", totalDistance / 1000));
 
-                        // Actualizamos la ruta con el nuevo punto
+                        // Calcular velocidad (km/h)
+                        elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
+                        float speedKmh = (totalDistance / elapsedTime) * 3.6f; // Convertir m/s a km/h
+                        tvVelocidad.setText(String.format("%.2f km/h", speedKmh));
+
+                        // Calcular ritmo (min/km)
+                        if (totalDistance > 0) {
+                            float pace = (elapsedTime / 60f) / (totalDistance / 1000);
+                            int min = (int) pace;
+                            int sec = (int) ((pace - min) * 60);
+                            tvRitmo.setText(String.format("%02d:%02d /km", min, sec));
+                        }
+
                         if (googleMap != null) {
                             LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
                             if (routePolyline == null) {
-                                routePolyline = googleMap.addPolyline(new PolylineOptions().add(currentLocation));
+                                routePolyline = googleMap.addPolyline(new PolylineOptions().add(currentLocation).color(0xFF00FF00));
                             } else {
-                                // Añadimos el punto a la ruta
                                 routePolyline.getPoints().add(currentLocation);
                             }
                             googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
@@ -136,8 +174,7 @@ public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallba
             }
         };
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
         }
     }
@@ -250,5 +287,24 @@ public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallba
             }
         }
     }
-}
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        // Guardar el estado actual
+        outState.putLong("startTime", startTime);
+        outState.putLong("elapsedTime", elapsedTime);
+        outState.putFloat("totalDistance", totalDistance);
+        outState.putBoolean("isRunning", isRunning);
+
+        // Guardar si la cuenta atrás está en curso
+        outState.putBoolean("isCountingDown", tvCuentaAtras.getVisibility() == View.VISIBLE);
+
+        // Guardar ubicación si es necesario
+        if (lastLocation != null) {
+            outState.putDouble("lastLatitude", lastLocation.getLatitude());
+            outState.putDouble("lastLongitude", lastLocation.getLongitude());
+        }
+    }
+}

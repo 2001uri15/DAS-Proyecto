@@ -100,7 +100,7 @@
         android:orientation="vertical">
 
         <Button
-            android:id="@+id/btnOpcion1"
+            android:id="@+id/btnMetricas"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:backgroundTint="#00FAF7F7"
@@ -108,8 +108,12 @@
             android:textAlignment="textStart"
             android:textColor="@color/black" />
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@drawable/divider" />
         <Button
-            android:id="@+id/btnOpcion2"
+            android:id="@+id/btnNotificaciones"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:backgroundTint="#00FAF7F7"
@@ -142,7 +146,7 @@
         android:orientation="vertical">
 
         <Button
-            android:id="@+id/btnOpcion3"
+            android:id="@+id/btnPrivacidad"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:backgroundTint="#00FAF7F7"
@@ -150,8 +154,13 @@
             android:textAlignment="textStart"
             android:textColor="@color/black" />
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@drawable/divider" />
+
         <Button
-            android:id="@+id/btnOpcion4"
+            android:id="@+id/btnPermisos"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:backgroundTint="#00FAF7F7"
@@ -159,8 +168,13 @@
             android:textAlignment="textStart"
             android:text="@string/permiso" />
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@drawable/divider" />
+
         <Button
-            android:id="@+id/btnOpcion5"
+            android:id="@+id/btnBorrarDatos"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:backgroundTint="#00FAF7F7"

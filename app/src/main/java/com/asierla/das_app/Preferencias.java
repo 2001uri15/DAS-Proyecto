@@ -1,19 +1,17 @@
 package com.asierla.das_app;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ListView;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.snackbar.Snackbar;
@@ -23,6 +21,7 @@ import java.util.Locale;
 public class Preferencias extends AppCompatActivity {
 
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Obtener idioma guardado en SharedPreferences
@@ -102,5 +101,25 @@ public class Preferencias extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+
+
+        // Para abrir la hoja de ajustes
+        Button btnNotificaciones = findViewById(R.id.btnNotificaciones);
+        btnNotificaciones.setOnClickListener(v -> {
+            Intent intent = new Intent();
+            intent.setAction(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+            intent.putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, getPackageName());
+            startActivity(intent);
+        });
+
+        // Permisos que tiene la aplicación
+        Button btnPermisos = findViewById(R.id.btnPermisos);
+        btnPermisos.setOnClickListener(v -> {
+            Intent intent = new Intent();
+            intent.setAction(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(android.net.Uri.fromParts("package", getPackageName(), null));
+            startActivity(intent);
+        });
+
     }
 }
