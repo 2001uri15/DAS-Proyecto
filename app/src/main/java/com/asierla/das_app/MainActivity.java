@@ -47,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
         btnBack.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, Preferencias.class);
             startActivity(intent);
-            finish();
         });
 
         Button btnEntrar = findViewById(R.id.btnEntrar);

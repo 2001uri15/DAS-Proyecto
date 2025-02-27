@@ -52,14 +52,14 @@
             android:contentDescription="Correr" />
 
         <Button
-            android:id="@+id/button_bici"
+            android:id="@+id/btnBici"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:background="@drawable/circle_outline"
             android:contentDescription="Bici" />
 
         <Button
-            android:id="@+id/button_remo"
+            android:id="@+id/btnAndar"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:background="@drawable/circle_outline"
@@ -80,7 +80,7 @@
         android:layout_marginTop="128dp"
         android:background="@drawable/rounded_background"
         android:elevation="4dp"
-        android:gravity="center"
+        android:gravity="center|center_horizontal|left"
         android:orientation="horizontal"
         android:padding="8dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -92,21 +92,21 @@
             android:id="@+id/circle_button"
             android:layout_width="50dp"
             android:layout_height="50dp"
+            android:layout_marginEnd="8dp"
             android:background="@drawable/circle_outline"
             android:gravity="center"
             android:text="00:00"
             android:textColor="@android:color/white"
-            android:textSize="12sp"
-            android:layout_marginEnd="8dp" />
+            android:textSize="12sp" />
 
         <!-- Texto "Historias de entrenamientos" -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
             android:text="@string/histEntrena"
-            android:textSize="16sp"
             android:textColor="@android:color/black"
-            android:layout_marginStart="8dp"/>
+            android:textSize="16sp" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

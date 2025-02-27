@@ -27,7 +27,7 @@
         android:theme="@style/Theme.DAS_APP"
         tools:targetApi="31">
         <activity
-            android:name=".Entrenamiento"
+            android:name=".v_Entrenamiento"
             android:exported="false" />
         <activity
             android:name=".Home"

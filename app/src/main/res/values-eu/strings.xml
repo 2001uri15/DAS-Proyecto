@@ -15,4 +15,7 @@
     <string name="avisoPriva">Pribatutasun-oharra</string>
     <string name="permiso">Baimenak</string>
     <string name="borrarDatos">Datuak ezabatu</string>
+    <string name="correr">Korrika</string>
+    <string name="bici">Bizikleta</string>
+    <string name="andar">Ibili</string>
 </resources>

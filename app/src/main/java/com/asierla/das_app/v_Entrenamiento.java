@@ -1,12 +1,17 @@
 package com.asierla.das_app;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
 import android.view.View;
@@ -16,7 +21,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -35,10 +39,12 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.snackbar.Snackbar;
 
-public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallback {
+import java.util.Locale;
+
+public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
-    private TextView tvCuentaAtras, tvTiempo, tvDistancia, tvVelocidad, tvRitmo;
+    private TextView tvCuentaAtras, tvTiempo, tvDistancia, tvVelocidad, tvRitmo, tvEntrenamiento;
     private Button btnParar, btnReanudar, btnFinalizar;
     private LinearLayout layoutBotones;
     private ImageView btnMusica;
@@ -51,11 +57,24 @@ public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallba
     private float totalDistance = 0;
     private Location lastLocation;
     private Polyline routePolyline;
+    private EntrenamientoNotifi entrenamientoNotifi;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_entrenamiento);
+
+        // Obtener idioma guardado en SharedPreferences
+        SharedPreferences prefs = getSharedPreferences("Ajustes", MODE_PRIVATE);
+        String idioma = prefs.getString("idioma", "es"); // Por defecto español
+
+        // Aplicar idioma antes de cargar el contenido
+        Locale nuevaloc = new Locale(idioma);
+        Locale.setDefault(nuevaloc);
+        Configuration config = getBaseContext().getResources().getConfiguration();
+        config.setLocale(nuevaloc);
+        getBaseContext().getResources().updateConfiguration(config, getBaseContext().getResources().getDisplayMetrics());
+
 
         tvCuentaAtras = findViewById(R.id.tvCuentaAtras);
         tvTiempo = findViewById(R.id.tvTiempo);
@@ -68,6 +87,29 @@ public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallba
         btnMusica = findViewById(R.id.btnMusica);
         mapView = findViewById(R.id.mapView);
         layoutBotones = findViewById(R.id.layoutBotones);
+        tvEntrenamiento = findViewById(R.id.tvEntrenamiento);
+
+        // Obtener el tipo de entrenamiento pasado desde Home
+        String tipoEntrenamiento = getIntent().getStringExtra("tipo_entrenamiento");
+        // Seleccionar el recurso de string según el tipo de entrenamiento
+        int stringResId;
+        switch (tipoEntrenamiento) {
+            case "correr":
+                stringResId = R.string.correr;
+                break;
+            case "bici":
+                stringResId = R.string.bici;
+                break;
+            case "andar":
+                stringResId = R.string.andar;
+                break;
+            default:
+                stringResId = R.string.app_name; // En caso de error, muestra el nombre de la app
+                break;
+        }
+
+        // Establecer el nombre en el TextView
+        tvEntrenamiento.setText(getString(stringResId));
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
@@ -82,6 +124,10 @@ public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallba
             elapsedTime = savedInstanceState.getLong("elapsedTime");
             totalDistance = savedInstanceState.getFloat("totalDistance");
             isRunning = savedInstanceState.getBoolean("isRunning");
+
+            if(elapsedTime>0){
+                tvCuentaAtras.setVisibility(View.GONE);
+            }
 
             // Restaurar ubicación anterior
             if (savedInstanceState.containsKey("lastLatitude") && savedInstanceState.containsKey("lastLongitude")) {
@@ -110,6 +156,11 @@ public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallba
             updateTimer();
             tvDistancia.setText(String.format("%.2f km", totalDistance / 1000));
         }
+
+        // Que en la barra de navegación aparezca el entrenamiento
+        entrenamientoNotifi = new EntrenamientoNotifi(this);
+        // Inicializa el servicio de notificación
+        iniciarNotificacion();
 
         btnParar.setOnClickListener(v -> pauseTraining());
         btnReanudar.setOnClickListener(v -> resumeTraining());
@@ -158,6 +209,7 @@ public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallba
                             int sec = (int) ((pace - min) * 60);
                             tvRitmo.setText(String.format("%02d:%02d /km", min, sec));
                         }
+
 
                         if (googleMap != null) {
                             LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
@@ -213,6 +265,8 @@ public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallba
                 runOnUiThread(() -> {
                     elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
                     tvTiempo.setText(formatTime(elapsedTime));
+                    entrenamientoNotifi.actualizarNotificacion(v_Entrenamiento.this, "Distancia: "+String.format("%.2f km", totalDistance / 1000) +
+                            " Tiempo: "+ formatTime(elapsedTime));
                 });
                 try {
                     Thread.sleep(1000);
@@ -307,4 +361,34 @@ public class Entrenamiento extends AppCompatActivity implements OnMapReadyCallba
             outState.putDouble("lastLongitude", lastLocation.getLongitude());
         }
     }
+
+    /*
+     * Para sobreescribir el metodo de ir para atrás
+     * Preguntar si quiere:
+     *     * Salir sin guardar
+     *     * Salir guardando
+     *     * Cancelar
+     */
+    @Override
+    public void onBackPressed() {
+        // Aquí puedes poner el código que quieres que se ejecute cuando el usuario presione el botón de atrás
+        // Por ejemplo, mostrar un mensaje de confirmación antes de salir
+        new AlertDialog.Builder(this)
+                .setMessage("¿Estás seguro de que quieres salir?")
+                .setCancelable(false)
+                .setPositiveButton("Sí", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // Si se confirma, se llama al comportamiento original de "Atrás"
+                        v_Entrenamiento.super.onBackPressed();
+                        finish();
+                    }
+                })
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+    private void iniciarNotificacion() {
+        entrenamientoNotifi.actualizarNotificacion(this, "Iniciando entrenamiento...");
+    }
+
 }

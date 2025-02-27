@@ -99,7 +99,6 @@ public class Preferencias extends AppCompatActivity {
         btnBack.setOnClickListener(v -> {
             Intent intent = new Intent(Preferencias.this, MainActivity.class);
             startActivity(intent);
-            finish();
         });
 
 

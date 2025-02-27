@@ -15,4 +15,7 @@
     <string name="avisoPriva">Privacy Notice</string>
     <string name="permiso">Permissions</string>
     <string name="borrarDatos">Erase data</string>
+    <string name="correr">Run</string>
+    <string name="bici">Bicycle</string>
+    <string name="andar">Walk</string>
 </resources>

@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Entrenamiento">
+    tools:context=".v_Entrenamiento">
 
     <!-- Barra superior con botón de retroceso y música -->
     <RelativeLayout
@@ -21,10 +21,10 @@
             android:id="@+id/tvEntrenamiento"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Carrera"
+            android:layout_centerInParent="true"
+            android:text="Entrena?"
             android:textSize="18sp"
-            android:textStyle="bold"
-            android:layout_centerInParent="true"/>
+            android:textStyle="bold" />
 
         <ImageView
             android:id="@+id/btnMusica"
@@ -44,7 +44,7 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
-        android:background="@drawable/radio_button_background"
+        android:background="@drawable/rounded_background"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/topBar">
@@ -53,6 +53,7 @@
             android:id="@+id/mapView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="@drawable/rounded_background"
             android:contentDescription="Mapa del recorrido"
             android:padding="6dp" />
     </FrameLayout>
@@ -89,10 +90,11 @@
         <TextView
             android:id="@+id/tvDistancia"
             android:layout_width="0dp"
-            android:layout_height="50dp"
+            android:layout_height="70dp"
             android:layout_marginRight="2dp"
             android:layout_weight="1"
             android:background="@drawable/rounded_background"
+            android:gravity="center_horizontal|center_vertical"
             android:text="0,00 km"
             android:textAlignment="center"
             android:textSize="26sp" />
@@ -100,10 +102,11 @@
         <TextView
             android:id="@+id/tvTiempo"
             android:layout_width="0dp"
-            android:layout_height="50dp"
+            android:layout_height="70dp"
             android:layout_marginLeft="2dp"
             android:layout_weight="1"
             android:background="@drawable/rounded_background"
+            android:gravity="center_horizontal|center_vertical"
             android:text="00:00"
             android:textAlignment="center"
             android:textSize="26sp" />
@@ -125,10 +128,11 @@
         <TextView
             android:id="@+id/tvVelocidad"
             android:layout_width="0dp"
-            android:layout_height="50dp"
+            android:layout_height="70dp"
             android:layout_marginRight="2dp"
             android:layout_weight="1"
             android:background="@drawable/rounded_background"
+            android:gravity="center_horizontal|center_vertical"
             android:text="0,00 km/h"
             android:textAlignment="center"
             android:textSize="26sp" />
@@ -136,10 +140,11 @@
         <TextView
             android:id="@+id/tvRitmo"
             android:layout_width="0dp"
-            android:layout_height="50dp"
+            android:layout_height="70dp"
             android:layout_marginLeft="2dp"
             android:layout_weight="1"
             android:background="@drawable/rounded_background"
+            android:gravity="center_horizontal|center_vertical"
             android:text="00:00 /km"
             android:textAlignment="center"
             android:textSize="26sp" />
