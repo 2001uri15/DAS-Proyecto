@@ -18,4 +18,8 @@
     <string name="correr">Run</string>
     <string name="bici">Bicycle</string>
     <string name="andar">Walk</string>
+    <string name="remo">Row</string>
+    <string name="actividad_desconocida">Unknown</string>
+    <string name="si">Yes</string>
+    <string name="no">No</string>
 </resources>

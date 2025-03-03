@@ -25,8 +25,17 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Obtener idioma guardado en SharedPreferences
         SharedPreferences prefs = getSharedPreferences("Ajustes", MODE_PRIVATE);
+        // Si ya ha iniciado que valla a home
+        Boolean iniciado = prefs.getBoolean("iniciado", false);
+        if(iniciado){
+            Intent intent = new Intent(MainActivity.this, Home.class);
+            startActivity(intent);
+            finish();
+        }
+
+
+        // Obtener idioma guardado en SharedPreferences
         String idioma = prefs.getString("idioma", "es"); // Por defecto español
 
         // Aplicar idioma antes de cargar el contenido
@@ -47,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
         btnBack.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, Preferencias.class);
             startActivity(intent);
+            finish();
         });
 
         Button btnEntrar = findViewById(R.id.btnEntrar);
@@ -57,8 +67,13 @@ public class MainActivity extends AppCompatActivity {
 
         Button btnEntrarSinIniciar = findViewById(R.id.btnEntrarSinIniciar);
         btnEntrarSinIniciar.setOnClickListener(v -> {
+            SharedPreferences prefs2 = getSharedPreferences("Ajustes", MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs2.edit();
+            editor.putBoolean("iniciado", true);
+            editor.apply();
             Intent intent = new Intent(MainActivity.this, Home.class);
             startActivity(intent);
+            finish();
         });
     }
 }

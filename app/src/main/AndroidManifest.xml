@@ -2,19 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
     <!-- Con esta línea la app puede poner notificaciones en la barra -->
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-
-    <!-- Permisos para utilizar el gps cuando la app este activa-->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-
-    <!-- Permisos para utilizar el gps cuando la app este inactiva -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
-
-    <!-- Permisos para habrir otras aplicaciones-->
-    <uses-permission android:name="android.permission.INTERNET"/>
-
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> <!-- Permisos para utilizar el gps cuando la app este activa -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /> <!-- Permisos para utilizar el gps cuando la app este inactiva -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" /> <!-- Permisos para habrir otras aplicaciones -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -27,6 +20,12 @@
         android:theme="@style/Theme.DAS_APP"
         tools:targetApi="31">
         <activity
+            android:name=".HistorialEntrenamiento"
+            android:exported="false" />
+        <activity
+            android:name=".Entrena_Remo"
+            android:exported="false" />
+        <activity
             android:name=".v_Entrenamiento"
             android:exported="false" />
         <activity
@@ -37,7 +36,7 @@
         <activity
             android:name=".Preferencias"
             android:exported="false"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -47,11 +46,10 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-        <!-- Corrige la clave de la API de Google Maps -->
+        </activity> <!-- Corrige la clave de la API de Google Maps -->
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
-            android:value="AIzaSyBwSROT6QsxrNzDeEJ5XqD5xC-5oJvhSDY"/>
+            android:value="AIzaSyBwSROT6QsxrNzDeEJ5XqD5xC-5oJvhSDY" />
     </application>
 
 </manifest>

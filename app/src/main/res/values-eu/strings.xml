@@ -18,4 +18,8 @@
     <string name="correr">Korrika</string>
     <string name="bici">Bizikleta</string>
     <string name="andar">Ibili</string>
+    <string name="remo">Arrauna</string>
+    <string name="actividad_desconocida">Ezezaguna</string>
+    <string name="si">Bai</string>
+    <string name="no">Ez</string>
 </resources>

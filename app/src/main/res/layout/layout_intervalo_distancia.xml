@@ -1,0 +1,27 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/tvDistanciaIntervalo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Distancia: 0m"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/tvRepeticion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Repetición: 1"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/tvTiempoDescanso"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Descanso: 00:00"
+        android:textSize="18sp" />
+</LinearLayout>

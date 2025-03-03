@@ -48,32 +48,41 @@
             android:id="@+id/btnCorrer"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:background="@drawable/circle_correr"
+            android:layout_marginLeft="3dp"
+            android:layout_marginRight="3dp"
+            android:background="@drawable/icon_correr"
             android:contentDescription="Correr" />
 
         <Button
             android:id="@+id/btnBici"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:background="@drawable/circle_outline"
+            android:layout_marginLeft="3dp"
+            android:layout_marginRight="3dp"
+            android:background="@drawable/icon_bicicleta"
             android:contentDescription="Bici" />
 
         <Button
             android:id="@+id/btnAndar"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:background="@drawable/circle_outline"
+            android:layout_marginLeft="3dp"
+            android:layout_marginRight="3dp"
+            android:background="@drawable/icon_andar"
             android:contentDescription="Remo" />
 
         <Button
-            android:id="@+id/button_add"
+            android:id="@+id/btnRemo"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:background="@drawable/circle_plus"
+            android:layout_marginLeft="3dp"
+            android:layout_marginRight="3dp"
+            android:background="@drawable/icon_remo"
             android:contentDescription="Añadir" />
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/btnHistorial"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
@@ -93,7 +102,7 @@
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_marginEnd="8dp"
-            android:background="@drawable/circle_outline"
+            android:background="@drawable/icon_cronometro"
             android:gravity="center"
             android:text="00:00"
             android:textColor="@android:color/white"
@@ -106,7 +115,7 @@
             android:layout_marginStart="8dp"
             android:text="@string/histEntrena"
             android:textColor="@android:color/black"
-            android:textSize="16sp" />
+            android:textSize="18sp" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

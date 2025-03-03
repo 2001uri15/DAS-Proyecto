@@ -2,6 +2,7 @@ package com.asierla.das_app;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.NotificationManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -21,6 +22,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -39,6 +41,8 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
 
 public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCallback {
@@ -57,7 +61,6 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
     private float totalDistance = 0;
     private Location lastLocation;
     private Polyline routePolyline;
-    private EntrenamientoNotifi entrenamientoNotifi;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -157,17 +160,30 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
             tvDistancia.setText(String.format("%.2f km", totalDistance / 1000));
         }
 
-        // Que en la barra de navegación aparezca el entrenamiento
-        entrenamientoNotifi = new EntrenamientoNotifi(this);
-        // Inicializa el servicio de notificación
-        iniciarNotificacion();
-
         btnParar.setOnClickListener(v -> pauseTraining());
         btnReanudar.setOnClickListener(v -> resumeTraining());
         btnFinalizar.setOnClickListener(v -> stopTraining());
 
         // Abrir el reproductor de música al pulsar btnMusica
         btnMusica.setOnClickListener(v -> openMusica());
+
+        // Si presionas el botón de atrás del mobil
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                new AlertDialog.Builder(v_Entrenamiento.this)
+                        .setMessage("¿Estás seguro de que quieres salir?")
+                        .setCancelable(false)
+                        .setPositiveButton("Sí", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                // Cancelar notificación activa antes de salir
+                                finish();
+                            }
+                        })
+                        .setNegativeButton("No", null)
+                        .show();
+            }
+        });
     }
 
     private void checkLocationPermission() {
@@ -256,8 +272,13 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
     private void stopTraining() {
         isRunning = false;
         fusedLocationClient.removeLocationUpdates(locationCallback);
-        Toast.makeText(this, "Entrenamiento finalizado", Toast.LENGTH_SHORT).show();
+        guardarEntrenamientoEnBD();
+        Toast.makeText(this, "Entrenamiento finalizado y guardado", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(v_Entrenamiento.this, HistorialEntrenamiento.class);
+        startActivity(intent);
+        finish();
     }
+
 
     private void updateTimer() {
         new Thread(() -> {
@@ -265,8 +286,6 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
                 runOnUiThread(() -> {
                     elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
                     tvTiempo.setText(formatTime(elapsedTime));
-                    entrenamientoNotifi.actualizarNotificacion(v_Entrenamiento.this, "Distancia: "+String.format("%.2f km", totalDistance / 1000) +
-                            " Tiempo: "+ formatTime(elapsedTime));
                 });
                 try {
                     Thread.sleep(1000);
@@ -362,33 +381,16 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
         }
     }
 
-    /*
-     * Para sobreescribir el metodo de ir para atrás
-     * Preguntar si quiere:
-     *     * Salir sin guardar
-     *     * Salir guardando
-     *     * Cancelar
-     */
-    @Override
-    public void onBackPressed() {
-        // Aquí puedes poner el código que quieres que se ejecute cuando el usuario presione el botón de atrás
-        // Por ejemplo, mostrar un mensaje de confirmación antes de salir
-        new AlertDialog.Builder(this)
-                .setMessage("¿Estás seguro de que quieres salir?")
-                .setCancelable(false)
-                .setPositiveButton("Sí", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        // Si se confirma, se llama al comportamiento original de "Atrás"
-                        v_Entrenamiento.super.onBackPressed();
-                        finish();
-                    }
-                })
-                .setNegativeButton("No", null)
-                .show();
-    }
+    private void guardarEntrenamientoEnBD() {
+        DBHelper dbHelper = new DBHelper(this);
 
-    private void iniciarNotificacion() {
-        entrenamientoNotifi.actualizarNotificacion(this, "Iniciando entrenamiento...");
+        String actividad = tvEntrenamiento.getText().toString();
+        String fechaHora = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+        float distanciaKm = totalDistance / 1000; // Convertir a km
+        long tiempoSegundos = elapsedTime;
+
+        dbHelper.guardarEntrenamiento(actividad, fechaHora, distanciaKm, tiempoSegundos);
+        Toast.makeText(this, "Entrenamiento guardado", Toast.LENGTH_SHORT).show();
     }
 
 }

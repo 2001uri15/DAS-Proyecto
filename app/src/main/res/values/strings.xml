@@ -17,5 +17,11 @@
     <string name="borrarDatos">Borrar Datos</string>
     <string name="correr">Correr</string>
     <string name="bici">Bicicleta</string>
-    <string name="andar">Andar</string>
+    <string name="andar">Caminata</string>
+    <string name="remo">Remo</string>
+    <string name="actividad_desconocida">Desconocido</string>
+    <string name="confirmar_eliminacion" translatable="false">Confirmar eliminación</string>
+    <string name="deseas_borrar_entrenamiento" translatable="false">¿Estás seguro de que deseas borrar este entrenamiento?</string>
+    <string name="si">Sí</string>
+    <string name="no">No</string>
 </resources>

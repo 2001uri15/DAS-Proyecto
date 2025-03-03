@@ -1,0 +1,9 @@
+<resources>
+    <string-array name="tipos_entrenamiento">
+        <item>Solo Remar</item>
+        <item>Distancia Simple</item>
+        <item>Tiempo Simple</item>
+        <item>Intervalos de Distancia</item>
+        <item>Intervalos de Tiempo</item>
+    </string-array>
+</resources>

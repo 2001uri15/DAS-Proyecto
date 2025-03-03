@@ -1,10 +1,17 @@
 package com.asierla.das_app;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -57,6 +64,112 @@ public class Home extends AppCompatActivity {
             Intent intent = new Intent(Home.this, v_Entrenamiento.class);
             intent.putExtra("tipo_entrenamiento", "andar");
             startActivity(intent);
+        });
+
+        LinearLayout btnHistorial = findViewById(R.id.btnHistorial);
+        btnHistorial.setOnClickListener(view -> {
+            Intent intent = new Intent(Home.this, HistorialEntrenamiento.class);
+            startActivity(intent);
+        });
+
+        Button btnRemo = findViewById(R.id.btnRemo);
+        btnRemo.setOnClickListener(v -> {
+            // Inflar el diseño del diálogo
+            View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_entrenamiento, null);
+
+            // Crear el diálogo
+            AlertDialog dialog = new AlertDialog.Builder(this)
+                    .setView(dialogView)
+                    .setTitle("Selecciona el tipo de entrenamiento")
+                    .create();
+
+            // Obtener referencias a las vistas
+            Spinner spinnerTipoEntrenamiento = dialogView.findViewById(R.id.spinnerTipoEntrenamiento);
+            LinearLayout containerDistanciaSimple = dialogView.findViewById(R.id.containerDistanciaSimple);
+            EditText etTiempoSimple = dialogView.findViewById(R.id.etTiempoSimple);
+            LinearLayout containerIntervalosDistancia = dialogView.findViewById(R.id.containerIntervalosDistancia);
+            LinearLayout containerIntervalosTiempo = dialogView.findViewById(R.id.containerIntervalosTiempo);
+            Button btnComenzar = dialogView.findViewById(R.id.btnComenzar);
+            Button btnCancelar = dialogView.findViewById(R.id.btnCancelar);
+
+            // Configurar el Spinner
+            spinnerTipoEntrenamiento.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    // Ocultar todos los contenedores
+                    containerDistanciaSimple.setVisibility(View.GONE);
+                    etTiempoSimple.setVisibility(View.GONE);
+                    containerIntervalosDistancia.setVisibility(View.GONE);
+                    containerIntervalosTiempo.setVisibility(View.GONE);
+
+                    // Mostrar el contenedor correspondiente según la opción seleccionada
+                    switch (position) {
+                        case 1: // Distancia Simple
+                            containerDistanciaSimple.setVisibility(View.VISIBLE);
+                            break;
+                        case 2: // Tiempo Simple
+                            etTiempoSimple.setVisibility(View.VISIBLE);
+                            break;
+                        case 3: // Intervalos de Distancia
+                            containerIntervalosDistancia.setVisibility(View.VISIBLE);
+                            break;
+                        case 4: // Intervalos de Tiempo
+                            containerIntervalosTiempo.setVisibility(View.VISIBLE);
+                            break;
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+                    // No hacer nada
+                }
+            });
+
+            // Configurar el botón Comenzar
+            btnComenzar.setOnClickListener(v1 -> {
+                // Obtener los datos ingresados por el usuario
+                int selectedPosition = spinnerTipoEntrenamiento.getSelectedItemPosition();
+                String tipoEntrenamiento = spinnerTipoEntrenamiento.getSelectedItem().toString(); // Nombre del tipo de entrenamiento
+                String distancia = "";
+                String tiempo = "";
+                String descanso = "";
+
+                switch (selectedPosition) {
+                    case 1: // Distancia Simple
+                        distancia = ((EditText) dialogView.findViewById(R.id.etDistancia)).getText().toString();
+                        break;
+                    case 2: // Tiempo Simple
+                        tiempo = etTiempoSimple.getText().toString();
+                        break;
+                    case 3: // Intervalos de Distancia
+                        distancia = ((EditText) dialogView.findViewById(R.id.etDistanciaIntervalos)).getText().toString();
+                        descanso = ((EditText) dialogView.findViewById(R.id.etDescansoDistancia)).getText().toString();
+                        break;
+                    case 4: // Intervalos de Tiempo
+                        tiempo = ((EditText) dialogView.findViewById(R.id.etTiempoIntervalos)).getText().toString();
+                        descanso = ((EditText) dialogView.findViewById(R.id.etDescansoTiempo)).getText().toString();
+                        break;
+                }
+
+                // Crear un Intent para iniciar la actividad Entrena_Remo
+                Intent intent = new Intent(Home.this, Entrena_Remo.class);
+                intent.putExtra("tipoEntrenamiento", tipoEntrenamiento); // Pasar el tipo de entrenamiento
+                intent.putExtra("distancia", distancia); // Pasar la distancia (si aplica)
+                intent.putExtra("tiempo", tiempo); // Pasar el tiempo (si aplica)
+                intent.putExtra("descanso", descanso); // Pasar el descanso (si aplica)
+
+                // Iniciar la actividad
+                startActivity(intent);
+
+                // Cerrar el diálogo
+                dialog.dismiss();
+            });
+
+            // Configurar el botón Cancelar
+            btnCancelar.setOnClickListener(v1 -> dialog.dismiss());
+
+            // Mostrar el diálogo
+            dialog.show();
         });
 
     }

@@ -11,8 +11,10 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.snackbar.Snackbar;
 
@@ -99,6 +101,16 @@ public class Preferencias extends AppCompatActivity {
         btnBack.setOnClickListener(v -> {
             Intent intent = new Intent(Preferencias.this, MainActivity.class);
             startActivity(intent);
+            finish();
+        });
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                Intent intent = new Intent(Preferencias.this, MainActivity.class);
+                startActivity(intent);
+                finish();
+            }
         });
 
 
