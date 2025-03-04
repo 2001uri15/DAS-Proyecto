@@ -103,6 +103,13 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         LinearLayout btnPesas = findViewById(R.id.btnPesas);
         btnPesas.setOnClickListener(view -> Toast.makeText(this, "No está disponible", Toast.LENGTH_SHORT).show());
 
+        LinearLayout btnErgo = findViewById(R.id.btnErgo);
+        btnErgo.setOnClickListener(view -> {
+            Toast.makeText(this, "No está disponible", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(Home.this, Entrena_Ergo.class);
+            startActivity(intent);
+        });
+
         Button btnRemo = findViewById(R.id.btnRemo);
         btnRemo.setOnClickListener(v -> {
             // Inflar el diseño del diálogo

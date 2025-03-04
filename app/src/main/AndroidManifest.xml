@@ -20,6 +20,9 @@
         android:theme="@style/Theme.DAS_APP"
         tools:targetApi="31">
         <activity
+            android:name=".Entrena_Ergo"
+            android:exported="false" />
+        <activity
             android:name=".HistorialEntrenamiento"
             android:exported="false" />
         <activity
