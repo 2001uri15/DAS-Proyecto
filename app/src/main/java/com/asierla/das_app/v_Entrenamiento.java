@@ -1,19 +1,16 @@
 package com.asierla.das_app;
 
-import android.Manifest;
-import android.app.AlertDialog;
-import android.app.NotificationManager;
-import android.content.DialogInterface;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
+import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Handler;
-import android.os.Looper;
 import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
@@ -22,16 +19,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -42,43 +32,33 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
 public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCallback {
 
-    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private TextView tvCuentaAtras, tvTiempo, tvDistancia, tvVelocidad, tvRitmo, tvEntrenamiento;
     private Button btnParar, btnReanudar, btnFinalizar;
     private LinearLayout layoutBotones;
     private ImageView btnMusica;
     private MapView mapView;
     private GoogleMap googleMap;
-    private FusedLocationProviderClient fusedLocationClient;
-    private LocationCallback locationCallback;
     private boolean isRunning = false;
     private long startTime, elapsedTime;
     private float totalDistance = 0;
     private Location lastLocation;
     private Polyline routePolyline;
+    private PolylineOptions polyline;
+
+    private BroadcastReceiver locationReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_entrenamiento);
 
-        // Obtener idioma guardado en SharedPreferences
-        SharedPreferences prefs = getSharedPreferences("Ajustes", MODE_PRIVATE);
-        String idioma = prefs.getString("idioma", "es"); // Por defecto español
-
-        // Aplicar idioma antes de cargar el contenido
-        Locale nuevaloc = new Locale(idioma);
-        Locale.setDefault(nuevaloc);
-        Configuration config = getBaseContext().getResources().getConfiguration();
-        config.setLocale(nuevaloc);
-        getBaseContext().getResources().updateConfiguration(config, getBaseContext().getResources().getDisplayMetrics());
-
-
+        // Inicialización de vistas y otros componentes
         tvCuentaAtras = findViewById(R.id.tvCuentaAtras);
         tvTiempo = findViewById(R.id.tvTiempo);
         tvDistancia = findViewById(R.id.tvDistancia);
@@ -110,16 +90,17 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
                 stringResId = R.string.app_name; // En caso de error, muestra el nombre de la app
                 break;
         }
-
         // Establecer el nombre en el TextView
         tvEntrenamiento.setText(getString(stringResId));
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
+        // Inicializar el MapView
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
 
-        checkLocationPermission();
+        // Verificar permisos de ubicación
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        }
 
         // Restaurar el estado guardado
         if (savedInstanceState != null) {
@@ -128,7 +109,7 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
             totalDistance = savedInstanceState.getFloat("totalDistance");
             isRunning = savedInstanceState.getBoolean("isRunning");
 
-            if(elapsedTime>0){
+            if (elapsedTime > 0) {
                 tvCuentaAtras.setVisibility(View.GONE);
             }
 
@@ -139,6 +120,20 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
                 lastLocation = new Location("");
                 lastLocation.setLatitude(latitude);
                 lastLocation.setLongitude(longitude);
+            }
+
+            // Restaurar los puntos de la Polyline
+            if (savedInstanceState.containsKey("polylinePoints")) {
+                ArrayList<LatLng> points = savedInstanceState.getParcelableArrayList("polylinePoints");
+                if (points != null && !points.isEmpty()) {
+                    polyline = new PolylineOptions()
+                            .addAll(points)
+                            .color(Color.RED)
+                            .width(10);
+                    if (googleMap != null) {
+                        routePolyline = googleMap.addPolyline(polyline);
+                    }
+                }
             }
         }
 
@@ -160,6 +155,7 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
             tvDistancia.setText(String.format("%.2f km", totalDistance / 1000));
         }
 
+        // Configurar listeners de botones
         btnParar.setOnClickListener(v -> pauseTraining());
         btnReanudar.setOnClickListener(v -> resumeTraining());
         btnFinalizar.setOnClickListener(v -> stopTraining());
@@ -167,86 +163,75 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
         // Abrir el reproductor de música al pulsar btnMusica
         btnMusica.setOnClickListener(v -> openMusica());
 
-        // Si presionas el botón de atrás del mobil
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+        // Iniciar el servicio de ubicación
+        Intent serviceIntent = new Intent(this, LocationService.class);
+        startService(serviceIntent);
+
+        // Registrar el BroadcastReceiver para recibir actualizaciones de ubicación
+        locationReceiver = new BroadcastReceiver() {
             @Override
-            public void handleOnBackPressed() {
-                new AlertDialog.Builder(v_Entrenamiento.this)
-                        .setMessage("¿Estás seguro de que quieres salir?")
-                        .setCancelable(false)
-                        .setPositiveButton("Sí", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                // Cancelar notificación activa antes de salir
-                                finish();
-                            }
-                        })
-                        .setNegativeButton("No", null)
-                        .show();
-            }
-        });
-    }
+            public void onReceive(Context context, Intent intent) {
+                double latitude = intent.getDoubleExtra("latitude", 0);
+                double longitude = intent.getDoubleExtra("longitude", 0);
 
-    private void checkLocationPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            setupLocationUpdates();
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    LOCATION_PERMISSION_REQUEST_CODE);
-        }
-    }
-
-    private void setupLocationUpdates() {
-        LocationRequest locationRequest = LocationRequest.create()
-                .setInterval(1000)
-                .setFastestInterval(500)
-                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
-        locationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                if (locationResult == null) return;
-                for (Location location : locationResult.getLocations()) {
-                    if (isRunning && lastLocation != null) {
-                        // Filtro para ignorar ubicaciones con baja precisión o velocidad muy baja
-                        if (location.getAccuracy() < 10 && location.getSpeed() > 0.5) {
-                            float distance = lastLocation.distanceTo(location);
-                            totalDistance += distance;
-                            tvDistancia.setText(String.format("%.2f km", totalDistance / 1000));
-
-                            // Calcular velocidad (km/h)
-                            elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
-                            float speedKmh = (totalDistance / elapsedTime) * 3.6f; // Convertir m/s a km/h
-                            tvVelocidad.setText(String.format("%.2f km/h", speedKmh));
-
-                            // Calcular ritmo (min/km)
-                            if (totalDistance > 0) {
-                                float pace = (elapsedTime / 60f) / (totalDistance / 1000);
-                                int min = (int) pace;
-                                int sec = (int) ((pace - min) * 60);
-                                tvRitmo.setText(String.format("%02d:%02d /km", min, sec));
-                            }
-
-                            if (googleMap != null) {
-                                LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                                if (routePolyline == null) {
-                                    routePolyline = googleMap.addPolyline(new PolylineOptions().add(currentLocation).color(0xFF00FF00));
-                                } else {
-                                    routePolyline.getPoints().add(currentLocation);
-                                }
-                                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
-                            }
-                        }
-                    }
-                    lastLocation = location;
-                }
+                // Actualizar la ubicación en la actividad
+                updateLocation(new Location("") {{
+                    setLatitude(latitude);
+                    setLongitude(longitude);
+                }});
             }
         };
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            registerReceiver(locationReceiver, new IntentFilter("LOCATION_UPDATE"), Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(locationReceiver, new IntentFilter("LOCATION_UPDATE"));
         }
+    }
+
+    private void updateLocation(Location location) {
+        if (isRunning && lastLocation != null) {
+            // Filtro para ignorar ubicaciones con baja precisión o velocidad muy baja
+            if (location.getAccuracy() < 10 && location.getSpeed() > 0.5) {
+                float distance = lastLocation.distanceTo(location);
+                totalDistance += distance;
+                tvDistancia.setText(String.format("%.2f km", totalDistance / 1000));
+
+                // Calcular velocidad (km/h)
+                elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
+                float speedKmh = (totalDistance / elapsedTime) * 3.6f; // Convertir m/s a km/h
+                tvVelocidad.setText(String.format("%.2f km/h", speedKmh));
+
+                // Calcular ritmo (min/km)
+                if (totalDistance > 0) {
+                    float pace = (elapsedTime / 60f) / (totalDistance / 1000);
+                    int min = (int) pace;
+                    int sec = (int) ((pace - min) * 60);
+                    tvRitmo.setText(String.format("%02d:%02d /km", min, sec));
+                }
+
+                if (googleMap != null) {
+                    LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+
+                    // Inicializar PolylineOptions si es la primera vez
+                    if (polyline == null) {
+                        polyline = new PolylineOptions()
+                                .add(currentLocation)
+                                .color(Color.RED) // Color de la línea
+                                .width(14); // Grosor de la línea
+                        routePolyline = googleMap.addPolyline(polyline);
+                    } else {
+                        // Agregar el nuevo punto a la Polyline existente
+                        polyline.add(currentLocation);
+                        routePolyline.setPoints(polyline.getPoints());
+                    }
+
+                    // Mover la cámara al nuevo punto
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 17));
+                }
+            }
+        }
+        lastLocation = location;
     }
 
     private void startTraining() {
@@ -273,14 +258,14 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
 
     private void stopTraining() {
         isRunning = false;
-        fusedLocationClient.removeLocationUpdates(locationCallback);
+        Intent serviceIntent = new Intent(this, LocationService.class);
+        stopService(serviceIntent);
         guardarEntrenamientoEnBD();
         Toast.makeText(this, "Entrenamiento finalizado y guardado", Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(v_Entrenamiento.this, HistorialEntrenamiento.class);
         startActivity(intent);
         finish();
     }
-
 
     private void updateTimer() {
         new Thread(() -> {
@@ -313,10 +298,12 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
+        // Habilitar la capa de ubicación
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             googleMap.setMyLocationEnabled(true);
         }
+        // Cambiar a vista satelital
+        googleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
     }
 
     @Override
@@ -335,6 +322,10 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
     protected void onDestroy() {
         super.onDestroy();
         mapView.onDestroy();
+        // Detener el servicio y desregistrar el receptor
+        Intent serviceIntent = new Intent(this, LocationService.class);
+        stopService(serviceIntent);
+        unregisterReceiver(locationReceiver);
     }
 
     @Override
@@ -381,6 +372,11 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
             outState.putDouble("lastLatitude", lastLocation.getLatitude());
             outState.putDouble("lastLongitude", lastLocation.getLongitude());
         }
+
+        // Guardar los puntos de la Polyline
+        if (polyline != null) {
+            outState.putParcelableArrayList("polylinePoints", new ArrayList<>(polyline.getPoints()));
+        }
     }
 
     private void guardarEntrenamientoEnBD() {
@@ -394,5 +390,4 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
         dbHelper.guardarEntrenamiento(actividad, fechaHora, distanciaKm, tiempoSegundos);
         Toast.makeText(this, "Entrenamiento guardado", Toast.LENGTH_SHORT).show();
     }
-
 }

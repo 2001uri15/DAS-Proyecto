@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -19,6 +20,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.graphics.Insets;
 import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
@@ -49,7 +51,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_home);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.drawer_layout), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
@@ -71,6 +73,18 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setHomeButtonEnabled(true);
         }
+
+        ImageView btnNav = findViewById(R.id.btnNav);
+
+        // Configurar el clic del botón para abrir el Navigation Drawer
+        btnNav.setOnClickListener(v -> {
+            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                drawerLayout.closeDrawer(GravityCompat.START); // Cerrar el Drawer si está abierto
+            } else {
+                drawerLayout.openDrawer(GravityCompat.START); // Abrir el Drawer si está cerrado
+            }
+        });
+
 
         // Configurar los botones de la actividad
         Button btnCorrer = findViewById(R.id.btnCorrer);
@@ -105,7 +119,6 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
 
         LinearLayout btnErgo = findViewById(R.id.btnErgo);
         btnErgo.setOnClickListener(view -> {
-            Toast.makeText(this, "No está disponible", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(Home.this, Entrena_Ergo.class);
             startActivity(intent);
         });

@@ -23,7 +23,7 @@
                 android:id="@+id/btnBack"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:background="@drawable/conf"
+                android:background="@drawable/icon_ajustes"
                 android:contentDescription="Configuración"
                 android:minWidth="48dp"
                 android:minHeight="48dp" />

@@ -22,8 +22,9 @@ public class DBHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         String CREATE_TRAININGS_TABLE = "CREATE TABLE entrenamientos (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "actividad TEXT, " +
-                "fechaHora TEXT, " +
+                "actividad INTEGER, " +
+                "nombre TEXT, " +
+                "fechaHora DATETIME, " +
                 "distancia REAL, " +
                 "tiempo INTEGER, " +
                 "valoracion INTEGER, " +
@@ -110,4 +111,10 @@ public class DBHelper extends SQLiteOpenHelper {
         db.close();
     }
 
+    public void borrarTodosLosDatosDB(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete("entrenamientos", null, null);
+        db.delete("kilometros", null, null);
+        db.close();
+    }
 }

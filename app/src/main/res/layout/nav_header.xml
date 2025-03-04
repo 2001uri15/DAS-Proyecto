@@ -5,6 +5,7 @@
     android:background="@drawable/getxo_atardecer"
     android:orientation="vertical"
     android:padding="16dp"
+    android:fitsSystemWindows="false"
     android:gravity="bottom">
 
     <ImageView

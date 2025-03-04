@@ -9,6 +9,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
@@ -18,6 +19,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.snackbar.Snackbar;
 
+import java.io.IOException;
 import java.util.Locale;
 
 public class Preferencias extends AppCompatActivity {
@@ -97,13 +99,6 @@ public class Preferencias extends AppCompatActivity {
             }
         });
 
-        ImageButton btnBack = findViewById(R.id.btnBackHome);
-        btnBack.setOnClickListener(v -> {
-            Intent intent = new Intent(Preferencias.this, MainActivity.class);
-            startActivity(intent);
-            finish();
-        });
-
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -130,6 +125,13 @@ public class Preferencias extends AppCompatActivity {
             intent.setAction(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
             intent.setData(android.net.Uri.fromParts("package", getPackageName(), null));
             startActivity(intent);
+        });
+        
+        Button btnBorrarDatos = findViewById(R.id.btnBorrarDatos);
+        btnBorrarDatos.setOnClickListener(v->{
+            DBHelper db = new DBHelper(this);
+            db.borrarTodosLosDatosDB();
+            Toast.makeText(this, "Se han borrado todos los datos locales.", Toast.LENGTH_SHORT).show();
         });
 
     }
