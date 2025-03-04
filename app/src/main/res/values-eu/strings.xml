@@ -7,7 +7,7 @@
     <string name="sesionIni">Gorde saioa</string>
     <string name="idioma">Hizkuntza</string>
     <string name="guardar">Gorde</string>
-    <string name="histEntrena">Prestakuntza Historia</string>
+    <string name="histEntrena">Entrenamenduen historia</string>
     <string name="general">Orokorra</string>
     <string name="privacidad">Pribatutasuna</string>
     <string name="uniMetri">Unitate metrikoak</string>
@@ -22,4 +22,7 @@
     <string name="actividad_desconocida">Ezezaguna</string>
     <string name="si">Bai</string>
     <string name="no">Ez</string>
+    <string name="regPesas">Pisua erregistratzea</string>
+    <string name="ajustes">Ezarpenak</string>
+    <string name="salir">Irten</string>
 </resources>

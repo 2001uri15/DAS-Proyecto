@@ -6,22 +6,32 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
+import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+
+import com.google.android.material.navigation.NavigationView;
 
 import java.util.Locale;
 
-public class Home extends AppCompatActivity {
+public class Home extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+
+    private DrawerLayout drawerLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +55,24 @@ public class Home extends AppCompatActivity {
             return insets;
         });
 
+        // Configurar el Navigation Drawer
+        drawerLayout = findViewById(R.id.drawer_layout);
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        // Configurar el botón de hamburguesa (toggle)
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
+
+        // Mostrar el botón de hamburguesa en la barra de acción
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setHomeButtonEnabled(true);
+        }
+
+        // Configurar los botones de la actividad
         Button btnCorrer = findViewById(R.id.btnCorrer);
         btnCorrer.setOnClickListener(v -> {
             Intent intent = new Intent(Home.this, v_Entrenamiento.class);
@@ -59,7 +87,7 @@ public class Home extends AppCompatActivity {
             startActivity(intent);
         });
 
-        Button btnAndar = findViewById(R.id.btnAndar); // Si es para andar, cambia el id si es necesario
+        Button btnAndar = findViewById(R.id.btnAndar);
         btnAndar.setOnClickListener(v -> {
             Intent intent = new Intent(Home.this, v_Entrenamiento.class);
             intent.putExtra("tipo_entrenamiento", "andar");
@@ -71,6 +99,9 @@ public class Home extends AppCompatActivity {
             Intent intent = new Intent(Home.this, HistorialEntrenamiento.class);
             startActivity(intent);
         });
+
+        LinearLayout btnPesas = findViewById(R.id.btnPesas);
+        btnPesas.setOnClickListener(view -> Toast.makeText(this, "No está disponible", Toast.LENGTH_SHORT).show());
 
         Button btnRemo = findViewById(R.id.btnRemo);
         btnRemo.setOnClickListener(v -> {
@@ -171,6 +202,47 @@ public class Home extends AppCompatActivity {
             // Mostrar el diálogo
             dialog.show();
         });
+    }
 
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        // Manejar las selecciones del menú
+        int id = item.getItemId();
+        if (id == R.id.nav_home) {
+            // Acción para "Inicio"
+            Toast.makeText(this, "Inicio seleccionado", Toast.LENGTH_SHORT).show();
+        } else if (id == R.id.nav_ajustes) {
+            // Acción para "Ajustes"
+            //Toast.makeText(this, "Ajustes seleccionado", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(Home.this, Preferencias.class);
+            startActivity(intent);
+            finish();
+        } else if (id == R.id.nav_salir) {
+            // Acción para cerrar sesión e ir a la página de Inicio de sesión
+            // Decimos que no ha iniciado.
+            SharedPreferences prefs2 = getSharedPreferences("Ajustes", MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs2.edit();
+            editor.putBoolean("iniciado", false);
+            editor.apply();
+
+            // Ir a la página de Inicio de sesión
+            Intent intent = new Intent(Home.this, MainActivity.class);
+            startActivity(intent);
+            finish();
+        }
+
+        // Cerrar el Navigation Drawer después de la selección
+        drawerLayout.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
+    @Override
+    public void onBackPressed() {
+        // Cerrar el Navigation Drawer si está abierto
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
     }
 }

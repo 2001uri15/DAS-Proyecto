@@ -22,4 +22,7 @@
     <string name="actividad_desconocida">Unknown</string>
     <string name="si">Yes</string>
     <string name="no">No</string>
+    <string name="regPesas">Weight Record</string>
+    <string name="ajustes">Settings</string>
+    <string name="salir">Log out</string>
 </resources>

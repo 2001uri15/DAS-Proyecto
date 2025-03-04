@@ -209,32 +209,34 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
                 if (locationResult == null) return;
                 for (Location location : locationResult.getLocations()) {
                     if (isRunning && lastLocation != null) {
-                        float distance = lastLocation.distanceTo(location);
-                        totalDistance += distance;
-                        tvDistancia.setText(String.format("%.2f km", totalDistance / 1000));
+                        // Filtro para ignorar ubicaciones con baja precisión o velocidad muy baja
+                        if (location.getAccuracy() < 10 && location.getSpeed() > 0.5) {
+                            float distance = lastLocation.distanceTo(location);
+                            totalDistance += distance;
+                            tvDistancia.setText(String.format("%.2f km", totalDistance / 1000));
 
-                        // Calcular velocidad (km/h)
-                        elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
-                        float speedKmh = (totalDistance / elapsedTime) * 3.6f; // Convertir m/s a km/h
-                        tvVelocidad.setText(String.format("%.2f km/h", speedKmh));
+                            // Calcular velocidad (km/h)
+                            elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
+                            float speedKmh = (totalDistance / elapsedTime) * 3.6f; // Convertir m/s a km/h
+                            tvVelocidad.setText(String.format("%.2f km/h", speedKmh));
 
-                        // Calcular ritmo (min/km)
-                        if (totalDistance > 0) {
-                            float pace = (elapsedTime / 60f) / (totalDistance / 1000);
-                            int min = (int) pace;
-                            int sec = (int) ((pace - min) * 60);
-                            tvRitmo.setText(String.format("%02d:%02d /km", min, sec));
-                        }
-
-
-                        if (googleMap != null) {
-                            LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                            if (routePolyline == null) {
-                                routePolyline = googleMap.addPolyline(new PolylineOptions().add(currentLocation).color(0xFF00FF00));
-                            } else {
-                                routePolyline.getPoints().add(currentLocation);
+                            // Calcular ritmo (min/km)
+                            if (totalDistance > 0) {
+                                float pace = (elapsedTime / 60f) / (totalDistance / 1000);
+                                int min = (int) pace;
+                                int sec = (int) ((pace - min) * 60);
+                                tvRitmo.setText(String.format("%02d:%02d /km", min, sec));
                             }
-                            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
+
+                            if (googleMap != null) {
+                                LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                                if (routePolyline == null) {
+                                    routePolyline = googleMap.addPolyline(new PolylineOptions().add(currentLocation).color(0xFF00FF00));
+                                } else {
+                                    routePolyline.getPoints().add(currentLocation);
+                                }
+                                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
+                            }
                         }
                     }
                     lastLocation = location;

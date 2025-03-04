@@ -24,4 +24,9 @@
     <string name="deseas_borrar_entrenamiento" translatable="false">¿Estás seguro de que deseas borrar este entrenamiento?</string>
     <string name="si">Sí</string>
     <string name="no">No</string>
+    <string name="regPesas">Registro de Pesas</string>
+    <string name="navigation_drawer_open" translatable="false">Abrir menú</string>
+    <string name="navigation_drawer_close" translatable="false">Cerrar menú</string>
+    <string name="ajustes">Ajustes</string>
+    <string name="salir">Salir</string>
 </resources>
