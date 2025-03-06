@@ -98,7 +98,7 @@
             android:layout_weight="1"
             android:background="@drawable/rounded_background"
             android:gravity="center_horizontal|center_vertical"
-            android:text="0,00 km"
+            android:text="0,0 km"
             android:textAlignment="center"
             android:textSize="26sp" />
 
