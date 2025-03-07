@@ -1,5 +1,6 @@
 package com.asierla.das_app;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -56,9 +57,8 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_entrenamiento);
 
-        // Inicialización de vistas y otros componentes
+
         tvCuentaAtras = findViewById(R.id.tvCuentaAtras);
         tvTiempo = findViewById(R.id.tvTiempo);
         tvDistancia = findViewById(R.id.tvDistancia);
@@ -98,8 +98,16 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
         mapView.getMapAsync(this);
 
         // Verificar permisos de ubicación
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        } else {
+            // Permiso concedido, iniciar el servicio
+            /*Intent serviceIntent = new Intent(this, LocationService.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(serviceIntent);
+            }else{
+                startService(serviceIntent);
+            }*/
         }
 
         // Restaurar el estado guardado
@@ -163,22 +171,12 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
         // Abrir el reproductor de música al pulsar btnMusica
         btnMusica.setOnClickListener(v -> openMusica());
 
-        // Iniciar el servicio de ubicación
-        Intent serviceIntent = new Intent(this, LocationService.class);
-        startService(serviceIntent);
-
         // Registrar el BroadcastReceiver para recibir actualizaciones de ubicación
         locationReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 double latitude = intent.getDoubleExtra("latitude", 0);
                 double longitude = intent.getDoubleExtra("longitude", 0);
-
-                // Actualizar la ubicación en la actividad
-                updateLocation(new Location("") {{
-                    setLatitude(latitude);
-                    setLongitude(longitude);
-                }});
             }
         };
 
@@ -190,48 +188,50 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
     }
 
     private void updateLocation(Location location) {
-        if (isRunning && lastLocation != null) {
-            // Filtro para ignorar ubicaciones con baja precisión o velocidad muy baja
-            if (location.getAccuracy() < 10 && location.getSpeed() > 0.5) {
-                float distance = lastLocation.distanceTo(location);
-                totalDistance += distance;
-                tvDistancia.setText(String.format("%.2f km", totalDistance / 1000));
+        if (isRunning) {
+            if (lastLocation != null) {
+                // Filtro para ignorar ubicaciones con baja precisión o velocidad muy baja
+                if (location.getAccuracy() < 10 && location.getSpeed() > 0.5) {
+                    float distance = lastLocation.distanceTo(location);
+                    totalDistance += distance;
+                    tvDistancia.setText(String.format("%.2f km", totalDistance / 1000));
 
-                // Calcular velocidad (km/h)
-                elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
-                float speedKmh = (totalDistance / elapsedTime) * 3.6f; // Convertir m/s a km/h
-                tvVelocidad.setText(String.format("%.2f km/h", speedKmh));
+                    // Calcular velocidad (km/h)
+                    elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
+                    float speedKmh = (totalDistance / elapsedTime) * 3.6f; // Convertir m/s a km/h
+                    tvVelocidad.setText(String.format("%.2f km/h", speedKmh));
 
-                // Calcular ritmo (min/km)
-                if (totalDistance > 0) {
-                    float pace = (elapsedTime / 60f) / (totalDistance / 1000);
-                    int min = (int) pace;
-                    int sec = (int) ((pace - min) * 60);
-                    tvRitmo.setText(String.format("%02d:%02d /km", min, sec));
-                }
-
-                if (googleMap != null) {
-                    LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
-
-                    // Inicializar PolylineOptions si es la primera vez
-                    if (polyline == null) {
-                        polyline = new PolylineOptions()
-                                .add(currentLocation)
-                                .color(Color.RED) // Color de la línea
-                                .width(14); // Grosor de la línea
-                        routePolyline = googleMap.addPolyline(polyline);
-                    } else {
-                        // Agregar el nuevo punto a la Polyline existente
-                        polyline.add(currentLocation);
-                        routePolyline.setPoints(polyline.getPoints());
+                    // Calcular ritmo (min/km)
+                    if (totalDistance > 0) {
+                        float pace = (elapsedTime / 60f) / (totalDistance / 1000);
+                        int min = (int) pace;
+                        int sec = (int) ((pace - min) * 60);
+                        tvRitmo.setText(String.format("%02d:%02d /km", min, sec));
                     }
 
-                    // Mover la cámara al nuevo punto
-                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 17));
+                    if (googleMap != null) {
+                        LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+
+                        // Inicializar PolylineOptions si es la primera vez
+                        if (polyline == null) {
+                            polyline = new PolylineOptions()
+                                    .add(currentLocation)
+                                    .color(Color.RED) // Color de la línea
+                                    .width(14); // Grosor de la línea
+                            routePolyline = googleMap.addPolyline(polyline);
+                        } else {
+                            // Agregar el nuevo punto a la Polyline existente
+                            polyline.add(currentLocation);
+                            routePolyline.setPoints(polyline.getPoints());
+                        }
+
+                        // Mover la cámara al nuevo punto
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 17));
+                    }
                 }
             }
+            lastLocation = location; // Actualizar lastLocation
         }
-        lastLocation = location;
     }
 
     private void startTraining() {
@@ -258,8 +258,8 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
 
     private void stopTraining() {
         isRunning = false;
-        Intent serviceIntent = new Intent(this, LocationService.class);
-        stopService(serviceIntent);
+        /*Intent serviceIntent = new Intent(this, LocationService.class);
+        stopService(serviceIntent);*/
         guardarEntrenamientoEnBD();
         Toast.makeText(this, "Entrenamiento finalizado y guardado", Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(v_Entrenamiento.this, HistorialEntrenamiento.class);
@@ -323,9 +323,9 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
         super.onDestroy();
         mapView.onDestroy();
         // Detener el servicio y desregistrar el receptor
-        Intent serviceIntent = new Intent(this, LocationService.class);
+        /*Intent serviceIntent = new Intent(this, LocationService.class);
         stopService(serviceIntent);
-        unregisterReceiver(locationReceiver);
+        unregisterReceiver(locationReceiver);*/
     }
 
     @Override
@@ -379,6 +379,20 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
         }
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permiso concedido, iniciar el servicio
+                /*Intent serviceIntent = new Intent(this, LocationService.class);
+                startService(serviceIntent);*/
+            } else {
+                Toast.makeText(this, "Permiso de ubicación denegado", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
     private void guardarEntrenamientoEnBD() {
         DBHelper dbHelper = new DBHelper(this);
 
@@ -387,7 +401,7 @@ public class v_Entrenamiento extends AppCompatActivity implements OnMapReadyCall
         float distanciaKm = totalDistance / 1000; // Convertir a km
         long tiempoSegundos = elapsedTime;
 
-        dbHelper.guardarEntrenamiento(actividad, fechaHora, distanciaKm, tiempoSegundos);
+        dbHelper.guardarEntrenamientoAuto(0, fechaHora, distanciaKm, tiempoSegundos);
         Toast.makeText(this, "Entrenamiento guardado", Toast.LENGTH_SHORT).show();
     }
 }

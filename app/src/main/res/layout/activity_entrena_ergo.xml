@@ -226,6 +226,20 @@
 
                 <!-- Label "Comentarios" -->
                 <TextView
+                    android:id="@+id/textValo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Valoracion"
+                    android:textStyle="bold" />
+
+                <RatingBar
+                    android:id="@+id/ipValoracion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:numStars="5"
+                    android:stepSize="1" />
+
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="4dp"

@@ -8,6 +8,7 @@
     app:cardElevation="4dp">
 
     <RelativeLayout
+        android:id="@+id/itemHis"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="12dp">
@@ -24,10 +25,11 @@
         <!-- Información de la actividad -->
         <LinearLayout
             android:id="@+id/linearLayout2"
-            android:layout_width="194dp"
-            android:layout_height="wrap_content"
+            android:layout_width="121dp"
+            android:layout_height="63dp"
             android:layout_marginStart="16dp"
             android:layout_toEndOf="@id/iconoActividad"
+            android:gravity="center|left"
             android:orientation="vertical">
 
             <TextView
@@ -39,11 +41,39 @@
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/textView5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="d"
+                android:textColor="#FFFFFF" />
+
+            <TextView
                 android:id="@+id/textTiempo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="30 min"
                 android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Información de la actividad -->
+        <LinearLayout
+            android:id="@+id/linearLayout3"
+            android:layout_width="125dp"
+            android:layout_height="59dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="1dp"
+            android:layout_marginEnd="23dp"
+            android:gravity="center|left"
+            android:orientation="vertical">
+
+
+            <TextView
+                android:id="@+id/textView6"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="e"
+                android:textColor="#FFFFFF" />
 
             <TextView
                 android:id="@+id/textDistancia"
@@ -51,7 +81,8 @@
                 android:layout_height="wrap_content"
                 android:text="5 km"
                 android:textColor="#FF9800"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/textFecha"
@@ -60,18 +91,6 @@
                 android:text="2023-10-01"
                 android:textSize="14sp" />
         </LinearLayout>
-
-        <ImageView
-            android:id="@+id/btnBorrar"
-            android:layout_width="63dp"
-            android:layout_height="80dp"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentEnd="true"
-            android:layout_marginStart="20dp"
-            android:layout_marginTop="2dp"
-            android:layout_marginEnd="7dp"
-            android:layout_toEndOf="@+id/linearLayout2"
-            app:srcCompat="@drawable/borrar" />
 
     </RelativeLayout>
 

@@ -6,4 +6,12 @@
         <item>Intervalos de Distancia</item>
         <item>Intervalos de Tiempo</item>
     </string-array>
+    <string-array name="entrenamientos">
+        <item>Todos</item>
+        <item>@string/correr</item>
+        <item>@string/bici</item>
+        <item>@string/andar</item>
+        <item>@string/remo</item>
+        <item>Ergometro</item>
+    </string-array>
 </resources>

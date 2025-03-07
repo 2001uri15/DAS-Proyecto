@@ -5,9 +5,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Locale;
 
 public class DBHelper extends SQLiteOpenHelper {
 
@@ -20,101 +20,161 @@ public class DBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+        // Crear la tabla de entrenamientos con la nueva estructura
         String CREATE_TRAININGS_TABLE = "CREATE TABLE entrenamientos (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "actividad INTEGER, " +
-                "nombre TEXT, " +
+                "idActividad INTEGER, " +
                 "fechaHora DATETIME, " +
-                "distancia REAL, " +
-                "tiempo INTEGER, " +
+                "tiempo INTEGER, " +  // tiempo como INTEGER para representar la duración en milisegundos
+                "distancia DOUBLE, " +
+                "velocidad DOUBLE, " +  // Usado para la velocidad/paladas
                 "valoracion INTEGER, " +
                 "comentarios TEXT)";
 
-        String CREATE_KILOMETERS_TABLE = "CREATE TABLE kilometros (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "idEntrenamiento INTEGER, " +
-                "kilometro INTEGER, " +
-                "tiempoKm INTEGER, " +
-                "velocidad REAL, " +
-                "FOREIGN KEY(idEntrenamiento) REFERENCES entrenamientos(id))";
-
         db.execSQL(CREATE_TRAININGS_TABLE);
-        db.execSQL(CREATE_KILOMETERS_TABLE);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS kilometros");
+        // Eliminar la tabla si ya existe para actualizar la estructura
         db.execSQL("DROP TABLE IF EXISTS entrenamientos");
         onCreate(db);
     }
 
-    public void guardarEntrenamiento(String actividad, String fechaHora, float distancia, long tiempo) {
+    // Función para guardar un entrenamiento con parámetros simples
+    public long guardarEntrenamientosSimplesErgo(int idActividad, String fechaHora, double distancia, long tiempo, double velocidad, int valoracion, String comentarios) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put("actividad", actividad);
-        values.put("fechaHora", fechaHora);
-        values.put("distancia", distancia);
-        values.put("tiempo", tiempo);
+        values.put("idActividad", idActividad);  // id de la actividad
+        values.put("fechaHora", fechaHora);  // fecha y hora del entrenamiento
+        values.put("distancia", distancia);  // distancia recorrida
+        values.put("tiempo", tiempo);  // tiempo en milisegundos
+        values.put("velocidad", velocidad);  // velocidad o paladas
+        values.put("valoracion", valoracion);  // valoración del entrenamiento
+        values.put("comentarios", comentarios);  // comentarios opcionales
 
-        db.insert("entrenamientos", null, values);
+        // Insertar los datos en la base de datos
+        long result = db.insert("entrenamientos", null, values);
+
+        if (result == -1) {
+            Log.e("DB_ERROR", "Error al insertar el entrenamiento");
+        } else {
+            Log.d("DB_SUCCESS", "Entrenamiento insertado con ID: " + result);
+        }
+
+        db.close();
+
+        return result;
+    }
+
+    public void guardarEntrenamientoAuto(int tipoEntrenamiento,String fecha, double distancia, long tiempoSegundos){
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("idActividad", tipoEntrenamiento);  // id de la actividad
+        values.put("fechaHora", fecha);  // fecha y hora del entrenamiento
+        values.put("distancia", distancia);  // distancia recorrida
+        values.put("tiempo", tiempoSegundos);  // tiempo en milisegundos
+        values.put("velocidad", 0);  // velocidad o paladas
+        values.put("valoracion", 0);  // valoración del entrenamiento
+        values.put("comentarios", "");  // comentarios opcionales
+
+        // Insertar los datos en la base de datos
+        long result = db.insert("entrenamientos", null, values);
+
+        if (result == -1) {
+            Log.e("DB_ERROR", "Error al insertar el entrenamiento");
+        } else {
+            Log.d("DB_SUCCESS", "Entrenamiento insertado con ID: " + result);
+        }
+
         db.close();
     }
 
-    public List<Entrenamiento> obtenerTodosLosEntrenamientos() {
-        List<Entrenamiento> entrenamientos = new ArrayList<>();
+    public Entrenamiento obtenerEntrenaById(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM entrenamientos ORDER BY fechaHora DESC", null);
+        Cursor cursor = db.rawQuery("SELECT id, idActividad, tiempo, distancia, fechaHora, valoracion, velocidad FROM entrenamientos WHERE id = ?", new String[]{String.valueOf(id)});
+
+        Entrenamiento entrenamiento = null;
 
         if (cursor.moveToFirst()) {
-            do {
-                int id = cursor.getInt(0);
-                String actividad = cursor.getString(1);
-                String fecha = cursor.getString(2);
-                String distancia = cursor.getString(3);
-                String tiempo = cursor.getString(4);
+            int id2 = cursor.getInt(0);
+            int idActividad = cursor.getInt(1);
+            long tiempo = cursor.getLong(2);
+            double distancia = cursor.getDouble(3);
+            String fecha = cursor.getString(4);
+            int valoracion = cursor.getInt(5);
+            double velocidad = cursor.getDouble(6);
 
-                int icono = obtenerIconoActividad(actividad); // Método para obtener icono
-                int nombreActividadId = obtenerNombreActividadId(actividad); // Método para obtener ID de string
+            int icono = obtenerIconoActividad(idActividad);
+            int nombreActividadId = obtenerNombreActividad(idActividad);
+            String tiempoFormateado = formatearTiempo(tiempo);
 
-                entrenamientos.add(new Entrenamiento(id, icono, nombreActividadId, tiempo, distancia, fecha));
-            } while (cursor.moveToNext());
+            entrenamiento = new Entrenamiento(id2, idActividad, nombreActividadId, icono, tiempoFormateado, distancia, fecha, velocidad, valoracion, "");
         }
+
         cursor.close();
         db.close();
-        return entrenamientos;
+        return entrenamiento;
     }
 
-    private int obtenerIconoActividad(String actividad) {
-        switch (actividad.toLowerCase()) {
-            case "correr": return R.drawable.icon_correr;
-            case "bici": return R.drawable.icon_bicicleta;
-            case "andar": return R.drawable.icon_andar;
-            case "remo": return R.drawable.icon_remo;
-            default: return R.drawable.circle_outline; // Icono por defecto si no coincide
-        }
-    }
-
-    private int obtenerNombreActividadId(String actividad) {
-        switch (actividad.toLowerCase()) {
-            case "correr": return R.string.correr;
-            case "bici": return R.string.bici;
-            case "andar": return R.string.andar;
-            case "remo": return R.string.remo;
-            default: return R.string.actividad_desconocida;
-        }
-    }
-
+    // Función para eliminar un entrenamiento por su ID
     public void eliminarEntrenamiento(int id) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete("entrenamientos", "id = ?", new String[]{String.valueOf(id)});
         db.close();
     }
 
-    public void borrarTodosLosDatosDB(){
+    // Función para borrar todos los datos de la base de datos (puedes omitir "kilometros" si no la necesitas)
+    public void borrarTodosLosDatosDB() {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete("entrenamientos", null, null);
-        db.delete("kilometros", null, null);
         db.close();
+    }
+
+
+    private int obtenerIconoActividad(int actividad) {
+        switch (actividad) {
+            case 0:
+                return R.drawable.icon_correr;
+            case 1:
+                return R.drawable.icon_bicicleta;
+            case 2:
+                return R.drawable.icon_andar;
+            case 3:
+                return R.drawable.icon_remo;
+            case 4:
+                return R.drawable.icon_ergo;
+            default: return R.drawable.circle_outline;
+        }
+    }
+
+    private int obtenerNombreActividad(int actividad) {
+        switch (actividad) {
+            case 0:
+                return R.string.correr;
+            case 1:
+                return R.string.bici;
+            case 2:
+                return R.string.andar;
+            case 3:
+                return R.string.remo;
+            case 4:
+                return R.string.ergo;
+            default: return R.drawable.circle_outline;
+        }
+    }
+
+    // Ajusté la función para formatear el tiempo en milisegundos (long)
+    private String formatearTiempo(long tiempo) {
+        tiempo = tiempo/1000;
+        long horas = tiempo / 3600;
+        long minutos = (tiempo % 3600) / 60;
+        long seg = tiempo % 60;
+
+        if (horas > 0) {
+            return String.format(Locale.getDefault(), "%02d:%02d:%02d", horas, minutos, seg);
+        } else {
+            return String.format(Locale.getDefault(), "%02d:%02d", minutos, seg);
+        }
     }
 }

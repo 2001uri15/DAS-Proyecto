@@ -25,4 +25,8 @@
     <string name="regPesas">Pisua erregistratzea</string>
     <string name="ajustes">Ezarpenak</string>
     <string name="salir">Irten</string>
+    <string name="inicio">Hasiera</string>
+    <string name="duracion">Dembora</string>
+    <string name="distancia">Distantzia</string>
+    <string name="velocidad">Abiadura</string>
 </resources>

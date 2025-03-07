@@ -90,6 +90,9 @@
             android:backgroundTint="#00FAF7F7"
             android:text="@string/uniMetri"
             android:textAlignment="textStart"
+            android:background="@drawable/boton_transparente"
+            android:paddingLeft="10dp"
+            android:textAllCaps="false"
             android:textColor="@color/black" />
 
         <View
@@ -103,6 +106,9 @@
             android:backgroundTint="#00FAF7F7"
             android:textColor="@color/black"
             android:textAlignment="textStart"
+            android:background="@drawable/boton_transparente"
+            android:paddingLeft="10dp"
+            android:textAllCaps="false"
             android:text="@string/notifi" />
     </LinearLayout>
 
@@ -136,6 +142,9 @@
             android:backgroundTint="#00FAF7F7"
             android:text="@string/avisoPriva"
             android:textAlignment="textStart"
+            android:background="@drawable/boton_transparente"
+            android:paddingLeft="10dp"
+            android:textAllCaps="false"
             android:textColor="@color/black" />
 
         <View
@@ -150,6 +159,9 @@
             android:backgroundTint="#00FAF7F7"
             android:textColor="@color/black"
             android:textAlignment="textStart"
+            android:background="@drawable/boton_transparente"
+            android:paddingLeft="10dp"
+            android:textAllCaps="false"
             android:text="@string/permiso" />
 
         <View
@@ -164,6 +176,9 @@
             android:backgroundTint="#00FAF7F7"
             android:textColor="@color/black"
             android:textAlignment="textStart"
+            android:paddingLeft="10dp"
+            android:background="@drawable/boton_transparente"
+            android:textAllCaps="false"
             android:text="@string/borrarDatos" />
     </LinearLayout>
 
@@ -174,6 +189,8 @@
         android:layout_below="@+id/layoutButtons2"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="21dp"
+        android:textAllCaps="false"
+        android:background="@drawable/rounded_background"
         android:text="@string/guardar" />
 
 </RelativeLayout>

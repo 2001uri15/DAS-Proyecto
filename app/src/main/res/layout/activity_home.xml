@@ -126,7 +126,6 @@
                 android:background="@drawable/icon_ergo"
                 android:gravity="center"
                 android:text="00:00"
-                android:textColor="@android:color/white"
                 android:textSize="12sp" />
 
             <!-- Texto "Historias de entrenamientos" -->

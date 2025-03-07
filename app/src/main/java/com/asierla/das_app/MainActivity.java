@@ -3,6 +3,7 @@ package com.asierla.das_app;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
@@ -25,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         SharedPreferences prefs = getSharedPreferences("Ajustes", MODE_PRIVATE);
         // Si ya ha iniciado que valla a home
         Boolean iniciado = prefs.getBoolean("iniciado", false);

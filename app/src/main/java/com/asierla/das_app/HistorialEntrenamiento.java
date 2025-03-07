@@ -1,8 +1,12 @@
 package com.asierla.das_app;
 
+import android.app.AlertDialog;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -30,92 +34,84 @@ public class HistorialEntrenamiento extends AppCompatActivity {
 
         adapter = new EntrenamientoAdapter(entrenamientos);
         recyclerView.setAdapter(adapter);
+
+
     }
+
 
     private List<Entrenamiento> cargarEntrenamientosDesdeDB() {
         List<Entrenamiento> lista = new ArrayList<>();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT id, actividad, tiempo, distancia, fechaHora FROM entrenamientos ORDER BY fechaHora DESC", null);
+        // Ajusté la consulta para obtener los campos correctos
+        Cursor cursor = db.rawQuery("SELECT id, idActividad, tiempo, distancia, fechaHora, valoracion FROM entrenamientos ORDER BY fechaHora DESC", null);
 
         if (cursor.moveToFirst()) {
             do {
                 int id = cursor.getInt(0);
-                String actividad = cursor.getString(1);
-                long tiempo = cursor.getLong(2); // Tiempo en segundos
+                int actividad = cursor.getInt(1);
+                long tiempo = cursor.getLong(2); // Tiempo en milisegundos
                 double distancia = cursor.getDouble(3);
                 String fecha = cursor.getString(4);
+                int valoracion = cursor.getInt(5);
 
                 int icono = obtenerIconoActividad(actividad);
                 int nombreActividadId = obtenerNombreActividad(actividad);
                 String tiempoFormateado = formatearTiempo(tiempo);
-                String distanciaFormateada = formatearDistancia(distancia);
 
-                lista.add(new Entrenamiento(id, icono, nombreActividadId, tiempoFormateado, distanciaFormateada, fecha));
+                lista.add(new Entrenamiento(id, actividad, nombreActividadId, icono, tiempoFormateado, distancia, fecha, 0, valoracion, null));
             } while (cursor.moveToNext());
         }
+
         cursor.close();
         db.close();
+
         return lista;
     }
 
-    private int obtenerIconoActividad(String actividad) {
-        switch (actividad.toLowerCase()) {
-            case "correr": return R.drawable.icon_correr;
-            case "korrika": return R.drawable.icon_correr;
-            case "run": return R.drawable.icon_correr;
-            case "bici": return R.drawable.icon_bicicleta;
-            case "bizikleta": return R.drawable.icon_bicicleta;
-            case "bicycle": return R.drawable.icon_bicicleta;
-            case "andar": return R.drawable.icon_andar;
-            case "ibili": return R.drawable.icon_andar;
-            case "walk": return R.drawable.icon_andar;
-            case "remo": return R.drawable.icon_remo;
-            case "arrauna": return R.drawable.icon_remo;
-            case "row": return R.drawable.icon_remo;
+    private int obtenerIconoActividad(int actividad) {
+        switch (actividad) {
+            case 0:
+                return R.drawable.icon_correr;
+            case 1:
+                return R.drawable.icon_bicicleta;
+            case 2:
+                return R.drawable.icon_andar;
+            case 3:
+                return R.drawable.icon_remo;
+            case 4:
+                return R.drawable.icon_ergo;
             default: return R.drawable.circle_outline;
         }
     }
 
-    private int obtenerNombreActividad(String actividad) {
-        switch (actividad.toLowerCase()) {
-            case "correr": return R.string.correr;
-            case "korrika": return R.string.correr;
-            case "run": return R.string.correr;
-            case "bici": return R.string.bici;
-            case "bizikleta": return R.string.bici;
-            case "bicycle": return R.string.bici;
-            case "andar": return R.string.andar;
-            case "ibili": return R.string.andar;
-            case "walk": return R.string.andar;
-            case "remo": return R.string.remo;
-            case "arrauna": return R.string.remo;
-            default: return R.string.actividad_desconocida;
+    private int obtenerNombreActividad(int actividad) {
+        switch (actividad) {
+            case 0:
+                return R.string.correr;
+            case 1:
+                return R.string.bici;
+            case 2:
+                return R.string.andar;
+            case 3:
+                return R.string.remo;
+            case 4:
+                return R.string.ergo;
+            default: return R.drawable.circle_outline;
         }
     }
 
-    private String formatearTiempo(long segundos) {
-        long horas = segundos / 3600;
-        long minutos = (segundos % 3600) / 60;
-        long seg = segundos % 60;
+    // Ajusté la función para formatear el tiempo en milisegundos (long)
+    private String formatearTiempo(long tiempo) {
+        tiempo = tiempo / 1000;
+        long horas = tiempo / 3600;
+        long minutos = (tiempo % 3600) / 60;
+        long seg = tiempo % 60;
 
         if (horas > 0) {
             return String.format(Locale.getDefault(), "%02d:%02d:%02d", horas, minutos, seg);
         } else {
             return String.format(Locale.getDefault(), "%02d:%02d", minutos, seg);
         }
-    }
-
-    private String formatearDistancia(double distancia) {
-        return String.format(Locale.getDefault(), "%.2f km", distancia);
-    }
-
-    public void eliminarEntrenamiento(int id, int position) {
-        // Eliminar del DB
-        dbHelper.eliminarEntrenamiento(id);
-
-        // Eliminar de la lista y notificar al adaptador
-        entrenamientos.remove(position);
-        adapter.notifyItemRemoved(position);
     }
 
 }

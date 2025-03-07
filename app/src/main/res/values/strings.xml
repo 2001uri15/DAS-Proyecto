@@ -2,7 +2,7 @@
     <string name="usuario">Usuario</string>
     <string name="contrasena">Contraseña</string>
     <string name="entrar">Entrar</string>
-    <string name="sinIniciar">Entrar sin iniciar</string>
+    <string name="sinIniciar">Usar en local</string>
     <string name="sesionIni">Guardar sesión</string>
     <string name="idioma">Idioma</string>
     <string name="guardar">Guardar</string>
@@ -26,7 +26,12 @@
     <string name="no">No</string>
     <string name="regPesas">Registro de Pesas</string>
     <string name="navigation_drawer_open" translatable="false">Abrir menú</string>
-    <string name="navigation_drawer_close" translatable="false">Cerrar menú</string>
     <string name="ajustes">Ajustes</string>
     <string name="salir">Salir</string>
+    <string name="ergo" translatable="false">Ergometro</string>
+    <string name="navigation_drawer_close">k</string>
+    <string name="inicio">Inicio</string>
+    <string name="duracion">Duración</string>
+    <string name="distancia">Distancia</string>
+    <string name="velocidad">Velocidad</string>
 </resources>

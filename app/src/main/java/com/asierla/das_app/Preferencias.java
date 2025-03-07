@@ -1,7 +1,12 @@
 package com.asierla.das_app;
 
+import static android.app.PendingIntent.getActivity;
+
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
@@ -23,11 +28,17 @@ import java.io.IOException;
 import java.util.Locale;
 
 public class Preferencias extends AppCompatActivity {
+    private ListView listViewIdiomas;
+    private Button btnGuardar, btnNotificaciones, btnPermisos, btnBorrarDatos;
 
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Cargamos el layout de la vista
+        setContentView(R.layout.activity_preferencias);
+
+        // Inicialización de vistas y otros componentes
+        listViewIdiomas = findViewById(R.id.listIdioma);
+        btnGuardar = findViewById(R.id.btnGuardar);
+
         // Obtener idioma guardado en SharedPreferences
         SharedPreferences prefs = getSharedPreferences("Ajustes", MODE_PRIVATE);
         String idioma = prefs.getString("idioma", "es"); // Por defecto español
@@ -42,22 +53,18 @@ public class Preferencias extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_preferencias);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        // Obtener botón de guardar
-        Button btnGuardar = findViewById(R.id.btnGuardar);
+
         // Idiomas disponibles
         String[] idiomas = {"Euskara", "English", "Castellano"};
-
         // Crear el Adapter usando el layout simple_list_item_single_choice
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_list_item_single_choice,
                 idiomas
         );
-
         // Obtener el ListView del layout y asignar el Adapter
-        ListView listViewIdiomas = findViewById(R.id.listIdioma);
         listViewIdiomas.setAdapter(adapter);
 
 
@@ -110,7 +117,7 @@ public class Preferencias extends AppCompatActivity {
 
 
         // Para abrir la hoja de ajustes
-        Button btnNotificaciones = findViewById(R.id.btnNotificaciones);
+        btnNotificaciones = findViewById(R.id.btnNotificaciones);
         btnNotificaciones.setOnClickListener(v -> {
             Intent intent = new Intent();
             intent.setAction(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS);
@@ -119,7 +126,7 @@ public class Preferencias extends AppCompatActivity {
         });
 
         // Permisos que tiene la aplicación
-        Button btnPermisos = findViewById(R.id.btnPermisos);
+        btnPermisos = findViewById(R.id.btnPermisos);
         btnPermisos.setOnClickListener(v -> {
             Intent intent = new Intent();
             intent.setAction(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
@@ -127,7 +134,7 @@ public class Preferencias extends AppCompatActivity {
             startActivity(intent);
         });
         
-        Button btnBorrarDatos = findViewById(R.id.btnBorrarDatos);
+        btnBorrarDatos = findViewById(R.id.btnBorrarDatos);
         btnBorrarDatos.setOnClickListener(v->{
             DBHelper db = new DBHelper(this);
             db.borrarTodosLosDatosDB();

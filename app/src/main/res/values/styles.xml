@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="CustomRatingBar" parent="Widget.AppCompat.RatingBar">
+        <!-- Color de las estrellas seleccionadas (activas) -->
+        <item name="colorControlActivated">#FFD700</item> <!-- Dorado -->
+        <!-- Color de las estrellas no seleccionadas (inactivas) -->
+        <item name="colorControlNormal">#CCCCCC</item>    <!-- Gris claro -->
+        <!-- Color del borde de las estrellas -->
+        <item name="colorControlHighlight">#FFA500</item> <!-- Naranja -->
+    </style>
+</resources>

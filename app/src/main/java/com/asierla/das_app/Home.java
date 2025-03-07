@@ -3,6 +3,7 @@ package com.asierla.das_app;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -20,7 +21,6 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.graphics.Insets;
 import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
@@ -56,6 +56,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         // Configurar el Navigation Drawer
         drawerLayout = findViewById(R.id.drawer_layout);
@@ -89,22 +90,22 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         // Configurar los botones de la actividad
         Button btnCorrer = findViewById(R.id.btnCorrer);
         btnCorrer.setOnClickListener(v -> {
-            Intent intent = new Intent(Home.this, v_Entrenamiento.class);
-            intent.putExtra("tipo_entrenamiento", "correr");
+            Intent intent = new Intent(Home.this, Entrena_Correr_Bici_Andar.class);
+            intent.putExtra("tipo_entrenamiento", 0);
             startActivity(intent);
         });
 
         Button btnBici = findViewById(R.id.btnBici);
         btnBici.setOnClickListener(v -> {
-            Intent intent = new Intent(Home.this, v_Entrenamiento.class);
-            intent.putExtra("tipo_entrenamiento", "bici");
+            Intent intent = new Intent(Home.this, Entrena_Correr_Bici_Andar.class);
+            intent.putExtra("tipo_entrenamiento", 1);
             startActivity(intent);
         });
 
         Button btnAndar = findViewById(R.id.btnAndar);
         btnAndar.setOnClickListener(v -> {
-            Intent intent = new Intent(Home.this, v_Entrenamiento.class);
-            intent.putExtra("tipo_entrenamiento", "andar");
+            Intent intent = new Intent(Home.this, Entrena_Correr_Bici_Andar.class);
+            intent.putExtra("tipo_entrenamiento", 2);
             startActivity(intent);
         });
 
