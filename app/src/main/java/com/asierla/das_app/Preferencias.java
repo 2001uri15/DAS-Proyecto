@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
@@ -29,7 +30,7 @@ import java.util.Locale;
 
 public class Preferencias extends AppCompatActivity {
     private ListView listViewIdiomas;
-    private Button btnGuardar, btnNotificaciones, btnPermisos, btnBorrarDatos;
+    private Button btnGuardar, btnNotificaciones, btnPermisos, btnBorrarDatos, btnPrivacidad, btnUnidadesMetricas;
 
     protected void onCreate(Bundle savedInstanceState) {
         // Cargamos el layout de la vista
@@ -133,12 +134,45 @@ public class Preferencias extends AppCompatActivity {
             intent.setData(android.net.Uri.fromParts("package", getPackageName(), null));
             startActivity(intent);
         });
-        
+
         btnBorrarDatos = findViewById(R.id.btnBorrarDatos);
-        btnBorrarDatos.setOnClickListener(v->{
-            DBHelper db = new DBHelper(this);
-            db.borrarTodosLosDatosDB();
-            Toast.makeText(this, "Se han borrado todos los datos locales.", Toast.LENGTH_SHORT).show();
+        btnBorrarDatos.setOnClickListener(v -> {
+            // Crear un AlertDialog para confirmar la acción
+            new AlertDialog.Builder(this)
+                    .setTitle("Confirmar borrado") // Título del diálogo
+                    .setMessage("¿Estás seguro de que quieres borrar todos los datos locales?") // Mensaje de confirmación
+                    .setPositiveButton(R.string.si, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // Si el usuario confirma, borrar los datos
+                            DBHelper db = new DBHelper(Preferencias.this);
+                            db.borrarTodosLosDatosDB();
+                            dialog.dismiss();
+                        }
+                    })
+                    .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // Si el usuario cancela, no hacer nada
+                            dialog.dismiss(); // Cerrar el diálogo
+                        }
+                    })
+                    .setIcon(android.R.drawable.ic_dialog_alert) // Icono de advertencia
+                    .show(); // Mostrar el diálogo
+        });
+
+
+        btnPrivacidad = findViewById(R.id.btnPrivacidad);
+        btnPrivacidad.setOnClickListener(v -> {
+            String url = "https://www.ehu.eus/es/lege-oharra";
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse(url));
+            startActivity(intent);
+        });
+
+        btnUnidadesMetricas = findViewById(R.id.btnMetricas);
+        btnUnidadesMetricas.setOnClickListener(v -> {
+            Toast.makeText(this, "No esta disponible", Toast.LENGTH_SHORT).show();
         });
 
     }

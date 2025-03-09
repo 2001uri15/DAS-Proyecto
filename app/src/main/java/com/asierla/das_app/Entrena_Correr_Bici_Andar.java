@@ -1,10 +1,12 @@
 package com.asierla.das_app;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,12 +19,22 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.snackbar.Snackbar;
@@ -32,7 +44,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
-public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMapReadyCallback{
+public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMapReadyCallback {
     private TextView tvCuentaAtras, tvTiempo, tvDistancia, tvVelocidad, tvRitmo, tvEntrenamiento;
     private Button btnParar, btnReanudar, btnFinalizar;
     private LinearLayout layoutBotones;
@@ -47,7 +59,13 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
     private PolylineOptions polyline;
     private final Handler handler = new Handler();
 
+    private FusedLocationProviderClient fusedLocationClient;
+    private LocationCallback locationCallback;
+    private LocationRequest locationRequest;
+    private ArrayList<LatLng> routePoints = new ArrayList<>();
 
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -62,9 +80,10 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         config.setLocale(nuevaloc);
         getBaseContext().getResources().updateConfiguration(config, getBaseContext().getResources().getDisplayMetrics());
 
-
-        // Coger todos los items con los que interactuo
+        // Cargar la vista
         setContentView(R.layout.activity_entrena_correr_bici_andar);
+
+        // Inicializar vistas
         tvCuentaAtras = findViewById(R.id.tvCuentaAtras);
         tvTiempo = findViewById(R.id.tvTiempo);
         tvDistancia = findViewById(R.id.tvDistancia);
@@ -78,36 +97,23 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         layoutBotones = findViewById(R.id.layoutBotones);
         tvEntrenamiento = findViewById(R.id.tvEntrenamiento);
 
-        // Coger el tipo de entrenamiento
+        // Poner el nombre del entrena
         int tipoEntrenamiento = getIntent().getIntExtra("tipo_entrenamiento", 0);
-        switch (tipoEntrenamiento){
-            case 0:
-                // Correr
-                tvEntrenamiento.setText(R.string.correr);
-                break;
-            case 1:
-                // Bicicleta
-                tvEntrenamiento.setText(R.string.bici);
-                break;
-            case 2:
-                // Andar
-                tvEntrenamiento.setText(R.string.andar);
-                break;
-        }
-
-
+        tvEntrenamiento.setText(obtenerNombreActividad(tipoEntrenamiento));
 
         // Inicializar el MapView
         mapView.onCreate(savedInstanceState);
-        mapView.getMapAsync((OnMapReadyCallback) this);
+        mapView.getMapAsync(this); // Configurar el callback para cuando el mapa esté listo
 
-        // Permisos de la Ubicación
+        // Configurar permisos de ubicación
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-        } else {
-            mapView.getMapAsync(this);
         }
 
+        // Inicializar FusedLocationProviderClient
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        createLocationRequest();
+        createLocationCallback();
 
         // Restaurar el estado guardado
         if (savedInstanceState != null) {
@@ -115,33 +121,22 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
             elapsedTime = savedInstanceState.getLong("elapsedTime");
             totalDistance = savedInstanceState.getFloat("totalDistance");
             isRunning = savedInstanceState.getBoolean("isRunning");
+            lastLocation = savedInstanceState.getParcelable("lastLocation");
+            routePoints = savedInstanceState.getParcelableArrayList("routePoints");
 
             if (elapsedTime > 0) {
                 tvCuentaAtras.setVisibility(View.GONE);
             }
 
-            /* Restaurar ubicación anterior
-            if (savedInstanceState.containsKey("lastLatitude") && savedInstanceState.containsKey("lastLongitude")) {
-                double latitude = savedInstanceState.getDouble("lastLatitude");
-                double longitude = savedInstanceState.getDouble("lastLongitude");
-                lastLocation = new Location("");
-                lastLocation.setLatitude(latitude);
-                lastLocation.setLongitude(longitude);
-            }*/
+            // Si hay puntos guardados, dibujar la ruta en el mapa
+            if (routePoints != null && googleMap != null) {
+                routePolyline = googleMap.addPolyline(new PolylineOptions().addAll(routePoints).width(5).color(Color.RED));
+            }
 
-            /* Restaurar los puntos de la Polyline
-            if (savedInstanceState.containsKey("polylinePoints")) {
-                ArrayList<LatLng> points = savedInstanceState.getParcelableArrayList("polylinePoints");
-                if (points != null && !points.isEmpty()) {
-                    polyline = new PolylineOptions()
-                            .addAll(points)
-                            .color(Color.RED)
-                            .width(10);
-                    if (googleMap != null) {
-                        routePolyline = googleMap.addPolyline(polyline);
-                    }
-                }
-            }*/
+            // Si la actividad estaba en ejecución, reiniciar el Handler
+            if (isRunning) {
+                startTraining();
+            }
         }
 
         // Iniciar la cuenta atrás solo si no estamos restaurando el estado
@@ -156,11 +151,7 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
                     startTraining();
                 }
             }.start();
-        } else {
-            // Si la actividad ya estaba corriendo, reiniciar el cronómetro y actualizar la distancia
-            tvDistancia.setText(String.format("%.2f km", totalDistance / 1000));
         }
-
 
         // Configurar listeners de botones
         btnParar.setOnClickListener(v -> pauseTraining());
@@ -168,54 +159,95 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         btnFinalizar.setOnClickListener(v -> stopTraining());
         btnMusica.setOnClickListener(v -> openMusica());
 
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                mostrarDialogoRetroceso();
+            }
+        });
     }
 
+    private void createLocationRequest() {
+        locationRequest = LocationRequest.create();
+        locationRequest.setInterval(10000); // 10 segundos
+        locationRequest.setFastestInterval(5000); // 5 segundos
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
 
-    /*
-     * Esta función se inicia cuando la cuenta atras de 4 segundos se inica
-     * Esta funión se encarga de iniciar el entrenamiento
-     */
+    private void createLocationCallback() {
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    return;
+                }
+                for (Location location : locationResult.getLocations()) {
+                    updateLocation(location);
+                }
+            }
+        };
+    }
+
+    private void updateLocation(Location location) {
+        if (lastLocation != null) {
+            float distance = lastLocation.distanceTo(location);
+            totalDistance += distance;
+
+            long timeElapsed = (System.currentTimeMillis() - startTime) / 1000;
+            float speed = (distance / 1000) / (timeElapsed / 3600); // km/h
+
+            tvDistancia.setText(String.format("%.2f km", totalDistance / 1000));
+            tvVelocidad.setText(String.format("%.2f km/h", speed));
+
+            // Calcular el ritmo (min/km)
+            if (distance > 0) {
+                float pace = (timeElapsed / 60) / (distance / 1000); // min/km
+                tvRitmo.setText(String.format("%.2f /km", pace));
+            }
+
+            // Dibujar la ruta en el mapa
+            LatLng newPoint = new LatLng(location.getLatitude(), location.getLongitude());
+            routePoints.add(newPoint);
+
+            if (googleMap != null) {
+                if (routePolyline != null) {
+                    routePolyline.remove(); // Eliminar la Polyline anterior
+                }
+                routePolyline = googleMap.addPolyline(new PolylineOptions().addAll(routePoints).width(5).color(Color.RED));
+            }
+        }
+        lastLocation = location;
+    }
+
     private void startTraining() {
         isRunning = true;
-        startTime = System.currentTimeMillis();
+        startTime = System.currentTimeMillis() - (elapsedTime * 1000); // Restaurar el tiempo acumulado
         handler.post(timerRunnable); // Inicia el temporizador
+        startLocationUpdates();
     }
 
-
-    /*
-     * Esta función se encarga de parar el entrenamiento
-     * Hace que aparezcan los botones de reanudar y finalizar en entrena
-     * Guarda en tiempo de entrenamiento que llevamos
-     */
     private void pauseTraining() {
         isRunning = false;
         handler.removeCallbacks(timerRunnable); // Detener actualización
-        elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
+        elapsedTime = (System.currentTimeMillis() - startTime) / 1000; // Guardar el tiempo acumulado
         btnParar.setVisibility(View.GONE);
         layoutBotones.setVisibility(View.VISIBLE);
+        stopLocationUpdates();
     }
 
-    /*
-     * Esta función se encarga de reanudar el entrenamiento despues de la pausa
-     * Vuelve a poner visible el boton de parar
-     * Recupera el tiempo de entrenamiento que llevabamos
-     */
     private void resumeTraining() {
         isRunning = true;
         startTime = System.currentTimeMillis() - (elapsedTime * 1000); // Restauramos el tiempo desde el punto de pausa
         handler.post(timerRunnable);
         btnParar.setVisibility(View.VISIBLE);
         layoutBotones.setVisibility(View.GONE);
+        startLocationUpdates();
     }
 
-
-    /*
-     * Esta función se encarga de parar y guardar el entrenamiento en memoria.
-     * Despues de guardar se visualiza el entrenamiento en la lista de entrenas.
-     */
     private void stopTraining() {
         isRunning = false;
         handler.removeCallbacks(timerRunnable);
+        stopLocationUpdates();
         guardarEntrenamientoEnBD();
         Toast.makeText(this, "Entrenamiento finalizado y guardado", Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(Entrena_Correr_Bici_Andar.this, HistorialEntrenamiento.class);
@@ -223,11 +255,16 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         finish();
     }
 
+    private void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
+        }
+    }
 
+    private void stopLocationUpdates() {
+        fusedLocationClient.removeLocationUpdates(locationCallback);
+    }
 
-    /*
-     * Esta funión pone los segundos en formato HH:MM:SS o MM:SS
-     */
     private String formatTime(long seconds) {
         long hours = seconds / 3600;
         long minutes = (seconds % 3600) / 60;
@@ -240,40 +277,6 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         }
     }
 
-
-
-    /*
-     * Esta función sirve para guardar el estado actual de una vista.
-     * La utilizo para guardar los datos de Vertical a Horizontal y vic.
-     */
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-        // Guardar el estado actual
-        outState.putLong("startTime", startTime);
-        outState.putLong("elapsedTime", elapsedTime);
-        outState.putFloat("totalDistance", totalDistance);
-        outState.putBoolean("isRunning", isRunning);
-
-        // Guardar si la cuenta atrás está en curso
-        outState.putBoolean("isCountingDown", tvCuentaAtras.getVisibility() == View.VISIBLE);
-
-        // Guardar ubicación si es necesario
-        if (lastLocation != null) {
-            outState.putDouble("lastLatitude", lastLocation.getLatitude());
-            outState.putDouble("lastLongitude", lastLocation.getLongitude());
-        }
-
-        // Guardar los puntos de la Polyline
-        if (polyline != null) {
-            outState.putParcelableArrayList("polylinePoints", new ArrayList<>(polyline.getPoints()));
-        }
-    }
-
-    /*
-     * Para abrir una aplicación de reproducción de musica
-     */
     private void openMusica() {
         Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), "Abriendo música...", Snackbar.LENGTH_SHORT);
         snackbar.show();
@@ -295,34 +298,40 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         }
     }
 
-    /*
-     * Guarda los datos en la bd.
-     */
     private void guardarEntrenamientoEnBD() {
         DBHelper dbHelper = new DBHelper(this);
 
-        // Obtener el tipo de actividad desde el TextView o desde la Intent (como ya lo haces)
         String fecha = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         float distancia = totalDistance; // Convertir a metros si es necesario
-        long tiempoSegundos = elapsedTime;
+        long tiempoSegundos = elapsedTime*1000;
 
-        // Obtener el tipo de entrenamiento (de la Intent)
         int tipoEntrenamiento = getIntent().getIntExtra("tipo_entrenamiento", 0);
 
-        // Guardar los datos en la base de datos
         dbHelper.guardarEntrenamientoAuto(tipoEntrenamiento, fecha, distancia, tiempoSegundos);
         Toast.makeText(this, "Entrenamiento guardado", Toast.LENGTH_SHORT).show();
     }
 
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
+
+        // Habilitar la capa de ubicación
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            googleMap.setMyLocationEnabled(true);
+        }
+
+        // Configurar el tipo de mapa como satélite
+        googleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+
+        // Establecer el nivel de zoom a 17
+        googleMap.moveCamera(CameraUpdateFactory.zoomTo(17));
+
+        // Si hay puntos guardados, dibujar la ruta en el mapa
+        if (routePoints != null && !routePoints.isEmpty()) {
+            routePolyline = googleMap.addPolyline(new PolylineOptions().addAll(routePoints).width(5).color(Color.RED));
+        }
     }
 
-    /*
-     * Para que se actualice cada minuto
-     */
     private final Runnable timerRunnable = new Runnable() {
         @Override
         public void run() {
@@ -333,4 +342,90 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
             }
         }
     };
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        // Guardar el estado actual
+        outState.putLong("startTime", startTime);
+        outState.putLong("elapsedTime", elapsedTime);
+        outState.putFloat("totalDistance", totalDistance);
+        outState.putBoolean("isRunning", isRunning);
+        outState.putParcelable("lastLocation", lastLocation);
+        outState.putParcelableArrayList("routePoints", routePoints);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mapView.onResume();
+        if (isRunning) {
+            startLocationUpdates();
+            handler.post(timerRunnable); // Reiniciar el Handler si el entrenamiento estaba en ejecución
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mapView.onPause();
+        if (isRunning) {
+            stopLocationUpdates();
+            handler.removeCallbacks(timerRunnable); // Detener el Handler si el entrenamiento estaba en ejecución
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mapView.onDestroy();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapView.onLowMemory();
+    }
+
+    private int obtenerNombreActividad(int actividad) {
+        switch (actividad) {
+            case 0:
+                return R.string.correr;
+            case 1:
+                return R.string.bici;
+            case 2:
+                return R.string.andar;
+            case 3:
+                return R.string.remo;
+            case 4:
+                return R.string.ergo;
+            default: return R.drawable.circle_outline;
+        }
+    }
+
+    private void mostrarDialogoRetroceso() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("¿Qué deseas hacer?");
+        builder.setMessage("Elige una opción:");
+
+        // Opción 1: Guardar y Salir
+        builder.setPositiveButton("Guardar y Salir", (dialog, which) -> {
+            guardarEntrenamientoEnBD(); // Guardar el entrenamiento
+            finish(); // Cerrar la actividad
+        });
+
+        // Opción 2: Salir
+        builder.setNeutralButton("Guardar sin salir", (dialog, which) -> {
+            finish();
+        });
+
+        // Opción 3: Cancelar
+        builder.setNegativeButton("Cancelar", (dialog, which) -> {
+            // No hacer nada, simplemente cerrar el diálogo
+        });
+
+        // Mostrar el diálogo
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
 }

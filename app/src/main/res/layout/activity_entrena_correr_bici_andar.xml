@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
-    tools:context=".v_Entrenamiento">
+    tools:context=".Entrena_Correr_Bici_Andar">
 
     <!-- Barra superior con botón de retroceso y música -->
     <RelativeLayout

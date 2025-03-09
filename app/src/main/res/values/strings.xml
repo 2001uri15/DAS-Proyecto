@@ -34,4 +34,5 @@
     <string name="duracion">Duración</string>
     <string name="distancia">Distancia</string>
     <string name="velocidad">Velocidad</string>
+    <string name="ritmo">Ritmo</string>
 </resources>

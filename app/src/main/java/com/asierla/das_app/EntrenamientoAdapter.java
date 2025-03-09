@@ -43,7 +43,9 @@ public class EntrenamientoAdapter extends RecyclerView.Adapter<EntrenamientoAdap
 
         if(entrenamiento.getIdEntrenamiento()>=0 && entrenamiento.getIdEntrenamiento()<=2){
             // Carrera, Bici, Andar
-            holder.textDistancia.setText(String.valueOf((entrenamiento.getDistancia()/1000)) + " km");
+            double distanciaEnKm = entrenamiento.getDistancia() / 1000.0;
+            String distanciaFormateada = String.format("%.2f", distanciaEnKm);
+            holder.textDistancia.setText(distanciaFormateada + " km");
         }else if(entrenamiento.getIdEntrenamiento()>2 && entrenamiento.getIdEntrenamiento()<5){
             // Remo y Ergometro
             holder.textDistancia.setText(String.valueOf((int)entrenamiento.getDistancia()) + " m");

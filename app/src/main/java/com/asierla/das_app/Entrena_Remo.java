@@ -65,6 +65,8 @@ public class Entrena_Remo extends AppCompatActivity {
         }
     }
 
+
+
     private void configurarSoloRemar() {
         // Configurar la interfaz para "Solo Remar"
         tvDistancia.setText("Distancia: 0m");

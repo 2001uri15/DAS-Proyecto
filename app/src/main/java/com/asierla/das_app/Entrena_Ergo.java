@@ -1,7 +1,10 @@
 package com.asierla.das_app;
 
 import android.app.DatePickerDialog;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -36,6 +39,9 @@ public class Entrena_Ergo extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_entrena_ergo);
 
+        // Que solo pueda estar en forma vertical
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
         // Inicializar vistas
         spinnerTipoEntrenamiento = findViewById(R.id.spinnerTipoEntrenamiento);
         layoutTabla = findViewById(R.id.layoutTabla);
@@ -66,13 +72,25 @@ public class Entrena_Ergo extends AppCompatActivity {
             }
         });
 
-        // Manejar la adición de nuevas filas
         btnAddRow.setOnClickListener(v -> {
             TableRow newRow = new TableRow(this);
             newRow.setLayoutParams(new TableRow.LayoutParams(
                     TableRow.LayoutParams.MATCH_PARENT,
                     TableRow.LayoutParams.WRAP_CONTENT
             ));
+
+            // Campo de orden
+            TextView textViewOrden = new TextView(this);
+            textViewOrden.setLayoutParams(new TableRow.LayoutParams(
+                    0,
+                    TableRow.LayoutParams.WRAP_CONTENT,
+                    0.5f
+            ));
+            textViewOrden.setGravity(Gravity.CENTER);
+
+            // Asignar el número de orden empezando desde 0
+            int orden = tableIntervalos.getChildCount(); // Empieza en 0
+            textViewOrden.setText(String.valueOf(orden));
 
             // Campo de distancia
             EditText editTextDistancia = new EditText(this);
@@ -91,8 +109,8 @@ public class Entrena_Ergo extends AppCompatActivity {
                     TableRow.LayoutParams.WRAP_CONTENT,
                     1
             ));
-            editTextTiempo.setHint("Tiempo");
-            editTextTiempo.setInputType(android.text.InputType.TYPE_CLASS_DATETIME);
+            editTextTiempo.setHint("MM:SS,XX");
+            editTextTiempo.setInputType(android.text.InputType.TYPE_CLASS_TEXT); // Permitir texto para usar : y ,
 
             // Campo de paladas
             EditText editTextPaladas = new EditText(this);
@@ -105,6 +123,7 @@ public class Entrena_Ergo extends AppCompatActivity {
             editTextPaladas.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
 
             // Añadir los campos a la fila
+            newRow.addView(textViewOrden);
             newRow.addView(editTextDistancia);
             newRow.addView(editTextTiempo);
             newRow.addView(editTextPaladas);
@@ -201,16 +220,12 @@ public class Entrena_Ergo extends AppCompatActivity {
                     .show();
         });
 
-
-
-
         // Botón para guardar los entrenamientos
         Button btnGuardar = findViewById(R.id.btnGuardar);
         btnGuardar.setOnClickListener(v -> {
             String selectedItem = spinnerTipoEntrenamiento.getSelectedItem().toString();
             if (selectedItem.equals("Solo Remar") || selectedItem.equals("Distancia Simple") || selectedItem.equals("Tiempo Simple")) {
                 Toast.makeText(this, "Guardando entrenamiento simple", Toast.LENGTH_SHORT).show();
-                Log.d("DEBUG", "Guardando entrenamiento simple...");
 
                 String tiempoStr = inputTiempo.getText().toString().trim();
 
@@ -224,7 +239,7 @@ public class Entrena_Ergo extends AppCompatActivity {
                 int horas = Integer.parseInt(partes[0]);
                 int minutos = Integer.parseInt(partes[1]);
                 int segundos = Integer.parseInt(partes[2]);
-                int valoracion = (int)ipValoracion.getRating();
+                int valoracion = (int) ipValoracion.getRating();
 
                 long tiempoEnMilisegundos = (horas * 3600 + minutos * 60 + segundos) * 1000L;
 
@@ -240,20 +255,89 @@ public class Entrena_Ergo extends AppCompatActivity {
                         inputComentarios.getText().toString()
                 );
 
-                if(id!=-1){
+                if (id != -1) {
                     Intent intent = new Intent(Entrena_Ergo.this, VerEntrenamiento.class);
-                    intent.putExtra("idEntrena", (int)id);  // Pasar el id del entrenamiento
+                    intent.putExtra("idEntrena", (int) id);  // Pasar el id del entrenamiento
                     startActivity(intent);
                     finish();
-                }else{
+                } else {
                     Toast.makeText(this, "Error al guardarlo", Toast.LENGTH_SHORT).show();
                 }
 
             } else if (selectedItem.equals("Intervalos de Distancia") || selectedItem.equals("Intervalos de Tiempo")) {
                 Toast.makeText(this, "Intervalos", Toast.LENGTH_SHORT).show();
-                // Aquí puedes manejar la lógica para intervalos
+
+                // Convertir hh:mm:ss a milisegundos
+                String tiempoStr = inputTiempo.getText().toString().trim();
+                String[] partes = tiempoStr.split(":");
+                int horas = Integer.parseInt(partes[0]);
+                int minutos = Integer.parseInt(partes[1]);
+                int segundos = Integer.parseInt(partes[2]);
+                int valoracion = (int) ipValoracion.getRating();
+                long tiempoEnMilisegundos = (horas * 3600 + minutos * 60 + segundos) * 1000L;
+
+                // Insertar en la base de datos
+                DBHelper db = new DBHelper(this);
+                long idEntrena = db.guardarEntrenamientosSimplesErgo(
+                        4,  // ID de la actividad (remar)
+                        inputDate.getText().toString(),
+                        Double.parseDouble(inputDistancia.getText().toString().trim()),
+                        tiempoEnMilisegundos,  // tiempo en milisegundos
+                        Double.parseDouble(inputPaladas.getText().toString().trim()),
+                        valoracion,
+                        inputComentarios.getText().toString()
+                );
+
+                for (int i = 1; i < tableIntervalos.getChildCount(); i++) {
+                    TableRow row = (TableRow) tableIntervalos.getChildAt(i);
+                    TextView textViewOrden = (TextView) row.getChildAt(0);
+                    EditText editTextDistancia = (EditText) row.getChildAt(1);
+                    EditText editTextTiempo = (EditText) row.getChildAt(2);
+                    EditText editTextPaladas = (EditText) row.getChildAt(3);
+
+                    try {
+                        int orden = Integer.parseInt(textViewOrden.getText().toString());
+                        double distancia = Double.parseDouble(editTextDistancia.getText().toString().trim());
+
+                        String tiempoStr2 = editTextTiempo.getText().toString().trim();
+                        if (!tiempoStr2.matches("\\d{1,2}:\\d{1,2},\\d{1,2}")) {
+                            Toast.makeText(this, "Formato de tiempo incorrecto en la fila " + (i + 1) + ". Usa MM:SS,XX", Toast.LENGTH_SHORT).show();
+                            return; // Detener el proceso si hay un error
+                        }
+
+                        int tiempo = (int) convertirTiempoAMilisegundos(tiempoStr2);  // Usar tiempoStr2 en lugar de tiempoStr
+                        double paladas = Double.parseDouble(editTextPaladas.getText().toString().trim());
+
+
+                        long resil = db.guardarIntervalo(idEntrena, orden, tiempo, distancia, paladas);
+                        if (resil == -1) {
+                            Toast.makeText(this, "Error al guardar el intervalo en la fila " + (i + 1), Toast.LENGTH_SHORT).show();
+                            return;  // Detener el proceso si hay un error
+                        }
+                    } catch (NumberFormatException e) {
+                        Toast.makeText(this, "Error en el formato de los números en la fila " + (i + 1), Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
+
+                /*
+                 * Visualizamos el entrenamiento
+                 */
+                Intent intent = new Intent(Entrena_Ergo.this, VerEntrenamiento.class);
+                intent.putExtra("idEntrena", idEntrena);  // Pasar el id del entrenamiento
+                startActivity(intent);
+                finish();
             }
         });
+    }
 
+    private long convertirTiempoAMilisegundos(String tiempo) {
+        String[] partes = tiempo.split(":");
+        int minutos = Integer.parseInt(partes[0]);
+        String[] segundosMilisegundos = partes[1].split(",");
+        int segundos = Integer.parseInt(segundosMilisegundos[0]);
+        int milisegundos = Integer.parseInt(segundosMilisegundos[1]) * 10; // Convertir centésimas a milisegundos
+
+        return (minutos * 60 + segundos) * 1000L + milisegundos;
     }
 }

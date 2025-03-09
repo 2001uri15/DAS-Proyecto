@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.Locale;
 
 public class DBHelper extends SQLiteOpenHelper {
@@ -31,13 +32,26 @@ public class DBHelper extends SQLiteOpenHelper {
                 "valoracion INTEGER, " +
                 "comentarios TEXT)";
 
+        String CREATE_INTERVAL_TABLE = "CREATE TABLE inter_entrena (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "idEntrena INTEGER, " +
+                "orden INTEGER, " +
+                "tiempo INTEGER, " +  // tiempo como INTEGER para representar la duración en milisegundos
+                "distancia DOUBLE, " +
+                "velocidad DOUBLE," +
+                "FOREIGN KEY(idEntrena) REFERENCES entrenamientos(id))";
+
         db.execSQL(CREATE_TRAININGS_TABLE);
+        db.execSQL(CREATE_INTERVAL_TABLE);
+
+        Log.d("DB_CREATION", "Tablas creadas correctamente");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // Eliminar la tabla si ya existe para actualizar la estructura
         db.execSQL("DROP TABLE IF EXISTS entrenamientos");
+        db.execSQL("DROP TABLE IF EXISTS inter_entrena");
         onCreate(db);
     }
 
@@ -65,6 +79,51 @@ public class DBHelper extends SQLiteOpenHelper {
         db.close();
 
         return result;
+    }
+
+    public long guardarIntervalo(long idEntrena, int orden, long tiempo, double distancia, double velocidad) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("idEntrena", idEntrena);
+        values.put("orden", orden);
+        values.put("tiempo", (int)tiempo);
+        values.put("distancia", distancia);
+        values.put("velocidad", velocidad);
+
+        long result = db.insert("inter_entrena", null, values);
+        db.close();
+        return result;
+    }
+
+    public ArrayList<EntrenamientoInterval> obtenerIntervalos(int idEntrena) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = null;
+        ArrayList<EntrenamientoInterval> entrenamientos = new ArrayList<>();
+
+        try {
+            // Corrected query to filter by idEntrena
+            cursor = db.rawQuery(
+                    "SELECT id, idEntrena, orden, tiempo, distancia, velocidad FROM inter_entrena WHERE idEntrena = ? ORDER BY orden ASC",
+                    new String[]{String.valueOf(idEntrena)}
+            );
+
+            // Loop through all rows in the cursor
+            while (cursor.moveToNext()) {
+                int id = cursor.getInt(0);
+                int idEntrena2 = cursor.getInt(1);
+                int orden = cursor.getInt(2);
+                long tiempo = cursor.getLong(3);
+                double distancia = cursor.getDouble(4);
+                double velocidad = cursor.getDouble(5);
+
+                // Add each interval to the list
+                entrenamientos.add(new EntrenamientoInterval(id, idEntrena2, orden, tiempo, distancia, velocidad));
+            }
+        } finally {
+            cursor.close();
+            db.close();
+        }
+        return entrenamientos;
     }
 
     public void guardarEntrenamientoAuto(int tipoEntrenamiento,String fecha, double distancia, long tiempoSegundos){
@@ -128,6 +187,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public void borrarTodosLosDatosDB() {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete("entrenamientos", null, null);
+        db.delete("inter_entrena", null, null);
         db.close();
     }
 
