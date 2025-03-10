@@ -62,8 +62,6 @@
     </FrameLayout>
 
 
-    <!-- Contador regresivo -->
-
     <!-- Métricas de entrenamiento -->
     <TextView
         android:id="@+id/tvCuentaAtras"

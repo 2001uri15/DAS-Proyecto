@@ -2,6 +2,9 @@ package com.asierla.das_app;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -9,6 +12,7 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -23,6 +27,8 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 
 import com.asierla.das_app.database.DBHelper;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -37,6 +43,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.text.SimpleDateFormat;
@@ -64,6 +71,9 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
     private LocationRequest locationRequest;
     private ArrayList<LatLng> routePoints = new ArrayList<>();
 
+    private NotificationManager elManager;
+    private NotificationCompat.Builder elBuilder;
+
 
 
 
@@ -81,6 +91,31 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         Configuration config = getBaseContext().getResources().getConfiguration();
         config.setLocale(nuevaloc);
         getBaseContext().getResources().updateConfiguration(config, getBaseContext().getResources().getDisplayMetrics());
+
+
+        // Pedir permiso para las notificaciones
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)!=
+                PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new
+                    String[]{Manifest.permission.POST_NOTIFICATIONS}, 11);
+        }
+
+
+        elManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        elBuilder = new NotificationCompat.Builder(this, "IdCanal");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel elCanal = new NotificationChannel("IdCanal", "NombreCanal",
+                    NotificationManager.IMPORTANCE_DEFAULT);
+            elManager.createNotificationChannel(elCanal);
+        }
+
+        elBuilder.setSmallIcon(android.R.drawable.stat_sys_warning)
+                .setContentTitle("Entrenamiento")
+                .setContentText("En entrenamiento va a comenzar")
+                .setSmallIcon(obtenerIconoActividad(getIntent().getIntExtra("tipo_entrenamiento", 0)))
+                .setAutoCancel(true);
+
+        elManager.notify(1, elBuilder.build());
 
         // Cargar la vista
         setContentView(R.layout.activity_entrena_correr_bici_andar);
@@ -252,6 +287,15 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         stopLocationUpdates();
         guardarEntrenamientoEnBD();
         Toast.makeText(this, R.string.entrena_guardado_finalizado, Toast.LENGTH_SHORT).show();
+
+        // En la notificación ponga total km y el tiempo
+        elBuilder.setSmallIcon(android.R.drawable.stat_sys_warning)
+                .setContentTitle("Entrenamiento Finalizado")
+                .setContentText("Distancia: "+ String.format("%.2f km", totalDistance / 1000) + "Tiempo: " + formatTime(elapsedTime))
+                .setSmallIcon(obtenerIconoActividad(getIntent().getIntExtra("tipo_entrenamiento", 0)))
+                .setAutoCancel(true);
+        elManager.notify(1, elBuilder.build());
+
         Intent intent = new Intent(Entrena_Correr_Bici_Andar.this, HistorialEntrenamiento.class);
         startActivity(intent);
         finish();
@@ -309,7 +353,12 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
 
         int tipoEntrenamiento = getIntent().getIntExtra("tipo_entrenamiento", 0);
 
-        dbHelper.guardarEntrenamientoAuto(tipoEntrenamiento, fecha, distancia, tiempoSegundos);
+        long idEntrena = dbHelper.guardarEntrenamientoAuto(tipoEntrenamiento, fecha, distancia, tiempoSegundos);
+
+        // Guardar los puntos de la ruta
+        for (LatLng punto : routePoints) {
+            dbHelper.guardarPuntoRuta(idEntrena, punto.latitude, punto.longitude);
+        }
     }
 
     @Override
@@ -319,13 +368,23 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         // Habilitar la capa de ubicación
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             googleMap.setMyLocationEnabled(true);
+
+            // Obtener la última ubicación conocida
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+                            if (location != null) {
+                                // Mover la cámara a la ubicación actual
+                                LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 17)); // 17 es el nivel de zoom
+                            }
+                        }
+                    });
         }
 
         // Configurar el tipo de mapa como satélite
         googleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
-
-        // Establecer el nivel de zoom a 17
-        googleMap.moveCamera(CameraUpdateFactory.zoomTo(17));
 
         // Si hay puntos guardados, dibujar la ruta en el mapa
         if (routePoints != null && !routePoints.isEmpty()) {
@@ -339,6 +398,14 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
             if (isRunning) {
                 elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
                 tvTiempo.setText(formatTime(elapsedTime));
+                elBuilder.setSmallIcon(android.R.drawable.stat_sys_warning)
+                        .setContentTitle("Entrenamiento")
+                        .setContentText("Distancia: "+ String.format("%.2f km", totalDistance / 1000) + "Tiempo: " + formatTime(elapsedTime))
+                        .setSmallIcon(obtenerIconoActividad(getIntent().getIntExtra("tipo_entrenamiento", 0)))
+                        .setAutoCancel(true);
+
+                elManager.notify(1, elBuilder.build());
+
                 handler.postDelayed(this, 1000); // Repite cada segundo
             }
         }
@@ -415,6 +482,7 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
 
         // Opción 2: Salir
         builder.setNeutralButton(R.string.salir, (dialog, which) -> {
+            elManager.cancel(1);
             finish();
         });
 
@@ -425,6 +493,23 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
 
         // Mostrar el diálogo
         AlertDialog dialog = builder.create();
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.rounded_background);
         dialog.show();
+    }
+
+    private int obtenerIconoActividad(int actividad) {
+        switch (actividad) {
+            case 0:
+                return R.drawable.icon_correr;
+            case 1:
+                return R.drawable.icon_bicicleta;
+            case 2:
+                return R.drawable.icon_andar;
+            case 3:
+                return R.drawable.icon_remo;
+            case 4:
+                return R.drawable.icon_ergo;
+            default: return R.drawable.circle_outline;
+        }
     }
 }

@@ -27,6 +27,7 @@
         android:layout_height="wrap_content"
         android:text="correo@ejemplo.com"
         android:textColor="@android:color/white"
-        android:textSize="14sp" />
+        android:textSize="14sp"
+        android:visibility="gone" />
 
 </LinearLayout>

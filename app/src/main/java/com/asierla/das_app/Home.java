@@ -135,6 +135,9 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
                     .setTitle(R.string.tipo_entrena)
                     .create();
 
+            dialog.getWindow().setBackgroundDrawableResource(R.drawable.rounded_background);
+            dialog.show();
+
             // Obtener referencias a las vistas
             Spinner spinnerTipoEntrenamiento = dialogView.findViewById(R.id.spinnerTipoEntrenamiento);
             LinearLayout containerDistanciaSimple = dialogView.findViewById(R.id.containerDistanciaSimple);

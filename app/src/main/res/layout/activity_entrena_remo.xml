@@ -4,68 +4,169 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/white"
-    android:padding="16dp">
+    android:background="@color/white">
+
+    <!-- Barra superior con botón de retroceso y música -->
+    <RelativeLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="#E0E0E0">
+
+        <TextView
+            android:id="@+id/tvEntrenamiento"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="@string/remo"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/btnMusica"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="14dp"
+            android:contentDescription="Musica"
+            android:src="@drawable/musica" />
+    </RelativeLayout>
 
     <!-- Mapa -->
     <FrameLayout
-        android:id="@+id/mapContainer"
+        android:id="@+id/frameLayout"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:background="@drawable/rounded_background" />
+        android:layout_height="300dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/rounded_background">
 
-    <!-- Matriz 2x2 -->
-    <GridLayout
-        android:id="@+id/gridInfo"
+        <com.google.android.gms.maps.MapView
+            android:id="@+id/mapView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/rounded_background"
+            android:contentDescription="Mapa del recorrido"
+            android:padding="6dp" />
+    </FrameLayout>
+
+    <!-- Primera fila de métricas (Distancia y Tiempo) -->
+    <LinearLayout
+        android:id="@+id/metricsLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:columnCount="2"
-        android:rowCount="2"
-        android:layout_marginTop="16dp">
-
-        <TextView
-            android:id="@+id/tvPaladas"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:text="Paladas: 0"
-            android:textSize="18sp"
-            android:gravity="center" />
-
-        <TextView
-            android:id="@+id/tvTiempo500m"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:text="500m: 00:00"
-            android:textSize="18sp"
-            android:gravity="center" />
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="27dp"
+        android:layout_marginEnd="8dp"
+        android:gravity="center"
+        android:orientation="horizontal">
 
         <TextView
             android:id="@+id/tvDistancia"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:text="Distancia: 0m"
-            android:textSize="18sp"
-            android:gravity="center" />
+            android:layout_height="70dp"
+            android:layout_marginRight="2dp"
+            android:layout_weight="1"
+            android:background="@drawable/rounded_background"
+            android:gravity="center_horizontal|center_vertical"
+            android:text="0 m
+"
+            android:textAlignment="center"
+            android:textSize="26sp" />
 
         <TextView
             android:id="@+id/tvTiempo"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:text="Tiempo: 00:00:00"
-            android:textSize="18sp"
-            android:gravity="center" />
-    </GridLayout>
+            android:layout_height="70dp"
+            android:layout_marginLeft="2dp"
+            android:layout_weight="1"
+            android:background="@drawable/rounded_background"
+            android:gravity="center_horizontal|center_vertical"
+            android:text="00:00"
+            android:textAlignment="center"
+            android:textSize="26sp" />
+    </LinearLayout>
 
-    <!-- Contenedor dinámico para modos específicos -->
+    <!-- Segunda fila de métricas (Velocidad y Ritmo) -->
     <LinearLayout
-        android:id="@+id/containerModoEspecifico"
+        android:id="@+id/metricsLayout2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginTop="16dp" />
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="27dp"
+        android:layout_marginEnd="8dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvVelocidad"
+            android:layout_width="0dp"
+            android:layout_height="70dp"
+            android:layout_marginRight="2dp"
+            android:layout_weight="1"
+            android:background="@drawable/rounded_background"
+            android:gravity="center_horizontal|center_vertical"
+            android:text="0 ppm"
+            android:textAlignment="center"
+            android:textSize="26sp" />
+
+        <TextView
+            android:id="@+id/tvRitmo"
+            android:layout_width="0dp"
+            android:layout_height="70dp"
+            android:layout_marginLeft="2dp"
+            android:layout_weight="1"
+            android:background="@drawable/rounded_background"
+            android:gravity="center_horizontal|center_vertical"
+            android:text="00:00 /500m"
+            android:textAlignment="center"
+            android:textSize="26sp" />
+    </LinearLayout>
+
+    <!-- Botón de Parar -->
+    <Button
+        android:id="@+id/btnParar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="8dp"
+        android:backgroundTint="#3448DF"
+        android:text="Parar" />
+
+    <!-- Botones de control (Reanudar y Finalizar) -->
+    <LinearLayout
+        android:id="@+id/layoutBotones"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/btnReanudar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="2dp"
+            android:layout_weight="1"
+            android:backgroundTint="#3448DF"
+            android:text="Reanudar" />
+
+        <Button
+            android:id="@+id/btnFinalizar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="2dp"
+            android:layout_weight="1"
+            android:backgroundTint="#E30A0A"
+            android:text="Finalizar"
+            android:textColor="@color/white" />
+    </LinearLayout>
 
 </LinearLayout>

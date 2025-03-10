@@ -45,4 +45,6 @@
     <string name="idioma_no_actualizado">Ez dago hizkuntzarik hautatu</string>
     <string name="tipo_entrena">Aukeratu prestakuntza mota</string>
     <string name="comenzar">Hasi</string>
+    <string name="no_entrena">Ez dago entrenamendurik</string>
+    <string name="detall_entrena">Prestakuntzaren xehetasunak</string>
 </resources>

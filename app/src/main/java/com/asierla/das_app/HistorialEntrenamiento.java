@@ -3,6 +3,8 @@ package com.asierla.das_app;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -22,12 +24,14 @@ public class HistorialEntrenamiento extends AppCompatActivity {
     private EntrenamientoAdapter adapter;
     private List<Entrenamiento> entrenamientos;
     private DBHelper dbHelper;
+    private TextView tvNoEntrenamientos;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_historial_entrenamiento);
 
+        tvNoEntrenamientos = findViewById(R.id.tvNoEntrenamientos);
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -35,10 +39,47 @@ public class HistorialEntrenamiento extends AppCompatActivity {
         dbHelper = new DBHelper(this);
         entrenamientos = cargarEntrenamientosDesdeDB();
 
-        adapter = new EntrenamientoAdapter(entrenamientos);
-        recyclerView.setAdapter(adapter);
+        // Verificar si la lista está vacía
+        if (entrenamientos.isEmpty()) {
+            // Mostrar el TextView y ocultar el RecyclerView
+            tvNoEntrenamientos.setVisibility(View.VISIBLE);
+            recyclerView.setVisibility(View.GONE);
+        } else {
+            // Mostrar el RecyclerView y ocultar el TextView
+            tvNoEntrenamientos.setVisibility(View.GONE);
+            recyclerView.setVisibility(View.VISIBLE);
+
+            adapter = new EntrenamientoAdapter(entrenamientos);
+            recyclerView.setAdapter(adapter);
+        }
 
 
+    }
+
+    /*
+     * Para que cuando se vuelva se recarge
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Recargar los entrenamientos desde la base de datos
+        entrenamientos.clear();
+        entrenamientos.addAll(cargarEntrenamientosDesdeDB());
+
+        // Verificar si la lista está vacía
+        TextView tvNoEntrenamientos = findViewById(R.id.tvNoEntrenamientos);
+        if (entrenamientos.isEmpty()) {
+            // Mostrar el TextView y ocultar el RecyclerView
+            tvNoEntrenamientos.setVisibility(View.VISIBLE);
+            recyclerView.setVisibility(View.GONE);
+        } else {
+            // Mostrar el RecyclerView y ocultar el TextView
+            tvNoEntrenamientos.setVisibility(View.GONE);
+            recyclerView.setVisibility(View.VISIBLE);
+
+            // Notificar al adaptador que los datos han cambiado
+            adapter.notifyDataSetChanged();
+        }
     }
 
 

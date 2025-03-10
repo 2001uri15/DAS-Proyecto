@@ -96,9 +96,9 @@ public class Preferencias extends AppCompatActivity {
                 snackbar.show();
 
                 // Reiniciar la actividad para aplicar los cambios
-                Intent intent = getIntent();
-                finish();
+                Intent intent = new Intent(this, Preferencias.class);
                 startActivity(intent);
+                finish();
             }
         });
 
@@ -133,8 +133,8 @@ public class Preferencias extends AppCompatActivity {
 
         btnBorrarDatos = findViewById(R.id.btnBorrarDatos);
         btnBorrarDatos.setOnClickListener(v -> {
-            // Crear un AlertDialog para confirmar la acción
-            new AlertDialog.Builder(this)
+            // Crear el AlertDialog
+            AlertDialog dialog = new AlertDialog.Builder(this)
                     .setTitle(R.string.confirmar_eliminacion) // Título del diálogo
                     .setMessage(R.string.deseas_borrar_entrenamiento) // Mensaje de confirmación
                     .setPositiveButton(R.string.si, new DialogInterface.OnClickListener() {
@@ -154,7 +154,10 @@ public class Preferencias extends AppCompatActivity {
                         }
                     })
                     .setIcon(android.R.drawable.ic_dialog_alert) // Icono de advertencia
-                    .show(); // Mostrar el diálogo
+                    .create(); // Importante: Usamos create() para obtener el AlertDialog antes de mostrarlo
+
+            dialog.getWindow().setBackgroundDrawableResource(R.drawable.rounded_background);
+            dialog.show(); // Mostrar el diálogo después de aplicar el fondo
         });
 
 

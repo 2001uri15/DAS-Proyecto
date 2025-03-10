@@ -1,18 +1,24 @@
 package com.asierla.das_app;
 
+import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.RatingBar;
 import android.widget.RelativeLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -30,7 +36,7 @@ import java.util.Locale;
 
 public class VerEntrenamiento extends AppCompatActivity {
     private TextView ipVelociad, ipEntrena, ipFecha, ipDuracion, ipDistancia, ipComentarios, ipRitmo;
-    private ImageView ipImagenEntre, btnBorrar;
+    private ImageView ipImagenEntre, btnMenu;
     private RatingBar ipValoracion;
     private TableLayout tableIntervalos;
     private RelativeLayout relaVueltas;
@@ -85,7 +91,7 @@ public class VerEntrenamiento extends AppCompatActivity {
         ipVelociad = findViewById(R.id.ipVelocidad);
         ipImagenEntre = findViewById(R.id.ipImagenEntre);
         ipComentarios = findViewById(R.id.ipComentarios);
-        btnBorrar = findViewById(R.id.btnBorrar);
+        btnMenu = findViewById(R.id.btnMenu);
         ipValoracion = findViewById(R.id.textValo);
         ipRitmo = findViewById(R.id.ipRitmo);
         tableIntervalos = findViewById(R.id.tableIntervalos);
@@ -101,8 +107,8 @@ public class VerEntrenamiento extends AppCompatActivity {
         ipFecha.setText(entrena.getFecha());
         ipDuracion.setText(entrena.getTiempo());
         ipImagenEntre.setImageResource(entrena.getIcono());
-        ipComentarios.setText(entrena.getComentarios());
         ipValoracion.setRating((float) entrena.getValoracion());
+        ipComentarios.setText(entrena.getComentarios());
 
         if(entrena.getIdEntrenamiento()>=0 && entrena.getIdEntrenamiento()<=2){
             // Carrera, Bici, Andar
@@ -153,11 +159,37 @@ public class VerEntrenamiento extends AppCompatActivity {
         }else{
             relaVueltas.setVisibility(View.GONE);
         }
-        
 
 
 
-        btnBorrar.setOnClickListener(v -> borrarEntrena(entrena.getId()));
+
+        btnMenu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Crear un PopupMenu
+                PopupMenu popupMenu = new PopupMenu(VerEntrenamiento.this, v);
+                popupMenu.getMenuInflater().inflate(R.menu.menu_entrenamiento, popupMenu.getMenu());
+
+                // Manejar las acciones de los ítems del menú
+                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        int id = item.getItemId();
+                        if (id == R.id.action_editar) {
+                            mostrarDialogoEditar();
+                            return true;
+                        } else if (id == R.id.action_borrar) {
+                            borrarEntrena(entrena.getId());
+                            finish();
+                        }
+                        return false;
+                    }
+                });
+
+                // Mostrar el menú
+                popupMenu.show();
+            }
+        });
     }
 
     public void borrarEntrena(int id){
@@ -215,5 +247,46 @@ public class VerEntrenamiento extends AppCompatActivity {
         int decimas = (int) ((milisegundos % 1000) / 100); // Primera cifra decimal
 
         return String.format("%02d:%02d,%d", minutos, segundos, decimas);
+    }
+
+    private void mostrarDialogoEditar() {
+        // Crear el diálogo
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Editar Entrenamiento");
+
+        // Inflar el layout del diálogo
+        View view = getLayoutInflater().inflate(R.layout.dialog_editar_entrenamiento, null);
+        builder.setView(view);
+
+        // Inicializar las variables
+        RatingBar ratingBar = view.findViewById(R.id.ratingBarEditar); // Asegúrate de que el ID coincida con el XML
+        EditText editTextComentarios = view.findViewById(R.id.editTextComentarios); // Asegúrate de que el ID coincida con el XML
+
+        // Cargar los valores actuales desde la base de datos
+        //cargarValoresActuales();
+        DBHelper db = new DBHelper(this);
+        Entrenamiento entrena = db.obtenerEntrenaById(getIntent().getIntExtra("idEntrena", 0));
+        ratingBar.setRating((float) entrena.getValoracion());
+        editTextComentarios.setText(entrena.getComentarios());
+
+        // Configurar botones del diálogo
+        builder.setPositiveButton(R.string.guardar, (dialog, which) -> {
+            // Guardar los cambios en la base de datos
+            //guardarCambios();
+            db.actualizarEntrena(getIntent().getIntExtra("idEntrena", 0), (int) ratingBar.getRating(), editTextComentarios.getText().toString());
+            Intent intent = new Intent(this, VerEntrenamiento.class);
+            intent.putExtra("idEntrena", getIntent().getIntExtra("idEntrena", 0)); // Pasar el ID del entrenamiento
+            startActivity(intent);
+            finish(); // Cerrar la actividad actual
+        });
+
+        builder.setNegativeButton(R.string.cancelar, (dialog, which) -> {
+            dialog.dismiss();
+        });
+
+        // Mostrar el diálogo
+        AlertDialog dialog = builder.create();
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.rounded_background);
+        dialog.show();
     }
 }

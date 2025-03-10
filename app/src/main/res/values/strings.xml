@@ -46,4 +46,7 @@
     <string name="idioma_no_actualizado">No hay ningún idioma seleccionado</string>
     <string name="tipo_entrena">Selecciona el tipo de entrenamiento</string>
     <string name="comenzar">Comenzar</string>
+    <string name="no_entrena">No hay ningún entrenamiento</string>
+    <string name="detall_entrena">Detalles del Entrenamiento</string>
+    <!-- TODO: Remove or change this placeholder text -->
 </resources>

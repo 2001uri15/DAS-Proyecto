@@ -45,4 +45,6 @@
     <string name="idioma_no_actualizado">There is no language selected</string>
     <string name="tipo_entrena">Select the type of training</string>
     <string name="comenzar">Begin</string>
+    <string name="no_entrena">There is no training</string>
+    <string name="detall_entrena">Training Details</string>
 </resources>

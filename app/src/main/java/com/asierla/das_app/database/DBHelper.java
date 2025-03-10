@@ -10,6 +10,7 @@ import android.util.Log;
 import com.asierla.das_app.model.Entrenamiento;
 import com.asierla.das_app.model.EntrenamientoInterval;
 import com.asierla.das_app.R;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -45,8 +46,16 @@ public class DBHelper extends SQLiteOpenHelper {
                 "velocidad DOUBLE," +
                 "FOREIGN KEY(idEntrena) REFERENCES entrenamientos(id))";
 
+        String CREATE_RUTA_TABLE = "CREATE TABLE IF NOT EXISTS Ruta (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "entrenamiento_id INTEGER, " +
+                "latitud REAL, " +
+                "longitud REAL, " +
+                "FOREIGN KEY(entrenamiento_id) REFERENCES entrenamientos(id));";
+
         db.execSQL(CREATE_TRAININGS_TABLE);
         db.execSQL(CREATE_INTERVAL_TABLE);
+        db.execSQL(CREATE_RUTA_TABLE);
 
         Log.d("DB_CREATION", "Tablas creadas correctamente");
     }
@@ -99,6 +108,15 @@ public class DBHelper extends SQLiteOpenHelper {
         return result;
     }
 
+    public long guardarPuntoRuta(long entrenamientoId, double latitud, double longitud) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("entrenamiento_id", entrenamientoId);
+        values.put("latitud", latitud);
+        values.put("longitud", longitud);
+        return db.insert("Ruta", null, values);
+    }
+
     public ArrayList<EntrenamientoInterval> obtenerIntervalos(int idEntrena) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = null;
@@ -130,7 +148,7 @@ public class DBHelper extends SQLiteOpenHelper {
         return entrenamientos;
     }
 
-    public void guardarEntrenamientoAuto(int tipoEntrenamiento,String fecha, double distancia, long tiempoSegundos){
+    public long guardarEntrenamientoAuto(int tipoEntrenamiento,String fecha, double distancia, long tiempoSegundos){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("idActividad", tipoEntrenamiento);  // id de la actividad
@@ -151,6 +169,7 @@ public class DBHelper extends SQLiteOpenHelper {
         }
 
         db.close();
+        return result;
     }
 
     public Entrenamiento obtenerEntrenaById(int id) {
@@ -240,5 +259,43 @@ public class DBHelper extends SQLiteOpenHelper {
         } else {
             return String.format(Locale.getDefault(), "%02d:%02d", minutos, seg);
         }
+    }
+
+
+    public ArrayList<LatLng> obtenerRutaPorEntrenamientoId(int entrenamientoId) {
+        ArrayList<LatLng> puntos = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT latitud, longitud FROM Ruta WHERE entrenamiento_id = ?", new String[]{String.valueOf(entrenamientoId)});
+
+        if (cursor.moveToFirst()) {
+            do {
+                double latitud = cursor.getDouble(0);
+                double longitud = cursor.getDouble(1);
+                puntos.add(new LatLng(latitud, longitud));
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        db.close();
+        return puntos;
+    }
+
+    public void actualizarEntrena(int id, int valoracion, String string) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // Crear un objeto ContentValues para almacenar los nuevos valores
+        ContentValues values = new ContentValues();
+        values.put("valoracion", valoracion); // Actualizar la valoración
+        values.put("comentarios", string); // Actualizar los comentarios
+
+        // Ejecutar la actualización en la base de datos
+        db.update(
+                "entrenamientos", // Nombre de la tabla
+                values, // Valores a actualizar
+                "id = ?", // Condición WHERE
+                new String[]{String.valueOf(id)} // Argumentos para la condición WHERE
+        );
+
+        db.close(); // Cerrar la conexión a la base de datos
     }
 }
