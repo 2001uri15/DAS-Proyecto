@@ -1,7 +1,5 @@
 package com.asierla.das_app;
 
-import static android.app.PendingIntent.getActivity;
-
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -9,23 +7,19 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.asierla.das_app.database.DBHelper;
 import com.google.android.material.snackbar.Snackbar;
 
-import java.io.IOException;
 import java.util.Locale;
 
 public class Preferencias extends AppCompatActivity {
@@ -74,7 +68,7 @@ public class Preferencias extends AppCompatActivity {
             int posicionSeleccionada = listViewIdiomas.getCheckedItemPosition();
 
             if (posicionSeleccionada == ListView.INVALID_POSITION) {
-                Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), "No hay ningún idioma seleccionado", Snackbar.LENGTH_SHORT);
+                Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), R.string.idioma_no_actualizado, Snackbar.LENGTH_SHORT);
                 snackbar.show();
             } else {
                 String idiomaSeleccionado = idiomas[posicionSeleccionada];
@@ -98,14 +92,16 @@ public class Preferencias extends AppCompatActivity {
                 editor.putString("idioma", valor2);
                 editor.apply();
 
-                Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), "El idioma se ha actualizado", Snackbar.LENGTH_SHORT);
+                Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), R.string.idioma_actualizado, Snackbar.LENGTH_SHORT);
                 snackbar.show();
 
+                // Reiniciar la actividad para aplicar los cambios
                 Intent intent = getIntent();
                 finish();
                 startActivity(intent);
             }
         });
+
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
@@ -139,8 +135,8 @@ public class Preferencias extends AppCompatActivity {
         btnBorrarDatos.setOnClickListener(v -> {
             // Crear un AlertDialog para confirmar la acción
             new AlertDialog.Builder(this)
-                    .setTitle("Confirmar borrado") // Título del diálogo
-                    .setMessage("¿Estás seguro de que quieres borrar todos los datos locales?") // Mensaje de confirmación
+                    .setTitle(R.string.confirmar_eliminacion) // Título del diálogo
+                    .setMessage(R.string.deseas_borrar_entrenamiento) // Mensaje de confirmación
                     .setPositiveButton(R.string.si, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {

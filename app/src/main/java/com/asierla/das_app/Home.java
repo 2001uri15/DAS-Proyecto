@@ -116,7 +116,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         });
 
         LinearLayout btnPesas = findViewById(R.id.btnPesas);
-        btnPesas.setOnClickListener(view -> Toast.makeText(this, "No está disponible", Toast.LENGTH_SHORT).show());
+        btnPesas.setOnClickListener(view -> Toast.makeText(this, R.string.no_disponible, Toast.LENGTH_SHORT).show());
 
         LinearLayout btnErgo = findViewById(R.id.btnErgo);
         btnErgo.setOnClickListener(view -> {
@@ -132,7 +132,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
             // Crear el diálogo
             AlertDialog dialog = new AlertDialog.Builder(this)
                     .setView(dialogView)
-                    .setTitle("Selecciona el tipo de entrenamiento")
+                    .setTitle(R.string.tipo_entrena)
                     .create();
 
             // Obtener referencias a las vistas
@@ -231,10 +231,8 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         int id = item.getItemId();
         if (id == R.id.nav_home) {
             // Acción para "Inicio"
-            Toast.makeText(this, "Inicio seleccionado", Toast.LENGTH_SHORT).show();
         } else if (id == R.id.nav_ajustes) {
             // Acción para "Ajustes"
-            //Toast.makeText(this, "Ajustes seleccionado", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(Home.this, Preferencias.class);
             startActivity(intent);
             finish();

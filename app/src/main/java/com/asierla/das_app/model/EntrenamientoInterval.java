@@ -1,4 +1,4 @@
-package com.asierla.das_app;
+package com.asierla.das_app.model;
 
 public class EntrenamientoInterval {
     private int id;

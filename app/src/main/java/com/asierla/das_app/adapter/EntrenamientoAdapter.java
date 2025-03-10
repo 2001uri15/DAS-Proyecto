@@ -1,4 +1,4 @@
-package com.asierla.das_app;
+package com.asierla.das_app.adapter;
 
 import android.content.Context;
 import android.content.Intent;
@@ -8,10 +8,14 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.asierla.das_app.model.Entrenamiento;
+import com.asierla.das_app.R;
+import com.asierla.das_app.VerEntrenamiento;
+import com.asierla.das_app.database.DBHelper;
 
 import java.util.List;
 

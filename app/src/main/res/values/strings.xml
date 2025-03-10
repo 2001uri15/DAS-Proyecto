@@ -20,19 +20,30 @@
     <string name="andar">Caminata</string>
     <string name="remo">Remo</string>
     <string name="actividad_desconocida">Desconocido</string>
-    <string name="confirmar_eliminacion" translatable="false">Confirmar eliminación</string>
-    <string name="deseas_borrar_entrenamiento" translatable="false">¿Estás seguro de que deseas borrar este entrenamiento?</string>
+    <string name="confirmar_eliminacion">Confirmar eliminación</string>
+    <string name="deseas_borrar_entrenamiento">¿Estás seguro de que quieres borrar todos los datos locales?</string>
     <string name="si">Sí</string>
     <string name="no">No</string>
     <string name="regPesas">Registro de Pesas</string>
-    <string name="navigation_drawer_open" translatable="false">Abrir menú</string>
+    <string name="navigation_drawer_open">Abrir menú</string>
     <string name="ajustes">Ajustes</string>
     <string name="salir">Salir</string>
     <string name="ergo" translatable="false">Ergometro</string>
-    <string name="navigation_drawer_close">k</string>
+    <string name="navigation_drawer_close">Cerrar menú</string>
     <string name="inicio">Inicio</string>
     <string name="duracion">Duración</string>
     <string name="distancia">Distancia</string>
     <string name="velocidad">Velocidad</string>
     <string name="ritmo">Ritmo</string>
+    <string name="que_quieres_hacer">¿Que deseas hacer?</string>
+    <string name="guardar_salir">Guardar y Salir</string>
+    <string name="cancelar">Cancelar</string>
+    <string name="no_disponible">No está disponible</string>
+    <string name="entrena_guardado_finalizado">Entrenamiento finalizado y guardado</string>
+    <string name="formato_incorrecto_tiempo">Formato de tiempo incorrecto. Usa hh:mm:ss</string>
+    <string name="error_guardar">Error al guardarlo</string>
+    <string name="idioma_actualizado">El idioma se ha actualizado</string>
+    <string name="idioma_no_actualizado">No hay ningún idioma seleccionado</string>
+    <string name="tipo_entrena">Selecciona el tipo de entrenamiento</string>
+    <string name="comenzar">Comenzar</string>
 </resources>

@@ -1,15 +1,17 @@
 package com.asierla.das_app;
 
-import android.app.AlertDialog;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.asierla.das_app.adapter.EntrenamientoAdapter;
+import com.asierla.das_app.database.DBHelper;
+import com.asierla.das_app.model.Entrenamiento;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -26,6 +28,7 @@ public class HistorialEntrenamiento extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_historial_entrenamiento);
 
+
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -37,6 +40,8 @@ public class HistorialEntrenamiento extends AppCompatActivity {
 
 
     }
+
+
 
 
     private List<Entrenamiento> cargarEntrenamientosDesdeDB() {

@@ -13,7 +13,6 @@ import android.widget.RelativeLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,6 +20,10 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
+import com.asierla.das_app.database.DBHelper;
+import com.asierla.das_app.model.Entrenamiento;
+import com.asierla.das_app.model.EntrenamientoInterval;
 
 import java.util.ArrayList;
 import java.util.Locale;

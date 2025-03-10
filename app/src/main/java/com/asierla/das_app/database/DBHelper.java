@@ -1,4 +1,4 @@
-package com.asierla.das_app;
+package com.asierla.das_app.database;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -6,6 +6,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+
+import com.asierla.das_app.model.Entrenamiento;
+import com.asierla.das_app.model.EntrenamientoInterval;
+import com.asierla.das_app.R;
 
 import java.util.ArrayList;
 import java.util.Locale;

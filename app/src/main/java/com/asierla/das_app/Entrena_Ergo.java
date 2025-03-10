@@ -1,12 +1,9 @@
 package com.asierla.das_app;
 
 import android.app.DatePickerDialog;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -22,6 +19,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+import com.asierla.das_app.database.DBHelper;
 
 import java.util.Calendar;
 
@@ -38,6 +40,11 @@ public class Entrena_Ergo extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_entrena_ergo);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
         // Que solo pueda estar en forma vertical
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -230,7 +237,7 @@ public class Entrena_Ergo extends AppCompatActivity {
                 String tiempoStr = inputTiempo.getText().toString().trim();
 
                 if (!tiempoStr.matches("\\d{1,2}:\\d{1,2}:\\d{1,2}")) {
-                    Toast.makeText(this, "Formato de tiempo incorrecto. Usa hh:mm:ss", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.formato_incorrecto_tiempo, Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -261,11 +268,10 @@ public class Entrena_Ergo extends AppCompatActivity {
                     startActivity(intent);
                     finish();
                 } else {
-                    Toast.makeText(this, "Error al guardarlo", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.error_guardar, Toast.LENGTH_SHORT).show();
                 }
 
             } else if (selectedItem.equals("Intervalos de Distancia") || selectedItem.equals("Intervalos de Tiempo")) {
-                Toast.makeText(this, "Intervalos", Toast.LENGTH_SHORT).show();
 
                 // Convertir hh:mm:ss a milisegundos
                 String tiempoStr = inputTiempo.getText().toString().trim();
@@ -301,7 +307,7 @@ public class Entrena_Ergo extends AppCompatActivity {
 
                         String tiempoStr2 = editTextTiempo.getText().toString().trim();
                         if (!tiempoStr2.matches("\\d{1,2}:\\d{1,2},\\d{1,2}")) {
-                            Toast.makeText(this, "Formato de tiempo incorrecto en la fila " + (i + 1) + ". Usa MM:SS,XX", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, R.string.formato_incorrecto_tiempo, Toast.LENGTH_SHORT).show();
                             return; // Detener el proceso si hay un error
                         }
 
@@ -311,11 +317,11 @@ public class Entrena_Ergo extends AppCompatActivity {
 
                         long resil = db.guardarIntervalo(idEntrena, orden, tiempo, distancia, paladas);
                         if (resil == -1) {
-                            Toast.makeText(this, "Error al guardar el intervalo en la fila " + (i + 1), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, R.string.error_guardar, Toast.LENGTH_SHORT).show();
                             return;  // Detener el proceso si hay un error
                         }
                     } catch (NumberFormatException e) {
-                        Toast.makeText(this, "Error en el formato de los números en la fila " + (i + 1), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, R.string.error_guardar, Toast.LENGTH_SHORT).show();
                         return;
                     }
                 }

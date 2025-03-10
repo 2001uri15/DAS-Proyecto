@@ -125,7 +125,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Comenzar"
+            android:text="@string/comenzar"
             android:layout_marginEnd="8dp" />
 
         <Button
@@ -133,7 +133,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Cancelar" />
+            android:text="@string/cancelar" />
     </LinearLayout>
 
 </LinearLayout>

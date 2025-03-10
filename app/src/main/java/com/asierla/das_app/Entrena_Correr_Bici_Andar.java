@@ -23,8 +23,8 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.asierla.das_app.database.DBHelper;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -63,6 +63,8 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
     private LocationCallback locationCallback;
     private LocationRequest locationRequest;
     private ArrayList<LatLng> routePoints = new ArrayList<>();
+
+
 
 
     @Override
@@ -177,7 +179,7 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
     private void createLocationCallback() {
         locationCallback = new LocationCallback() {
             @Override
-            public void onLocationResult(LocationResult locationResult) {
+            public void onLocationResult(@NonNull LocationResult locationResult) {
                 if (locationResult == null) {
                     return;
                 }
@@ -249,7 +251,7 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         handler.removeCallbacks(timerRunnable);
         stopLocationUpdates();
         guardarEntrenamientoEnBD();
-        Toast.makeText(this, "Entrenamiento finalizado y guardado", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.entrena_guardado_finalizado, Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(Entrena_Correr_Bici_Andar.this, HistorialEntrenamiento.class);
         startActivity(intent);
         finish();
@@ -308,7 +310,6 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         int tipoEntrenamiento = getIntent().getIntExtra("tipo_entrenamiento", 0);
 
         dbHelper.guardarEntrenamientoAuto(tipoEntrenamiento, fecha, distancia, tiempoSegundos);
-        Toast.makeText(this, "Entrenamiento guardado", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -405,22 +406,20 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
 
     private void mostrarDialogoRetroceso() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("¿Qué deseas hacer?");
-        builder.setMessage("Elige una opción:");
+        builder.setTitle(R.string.que_quieres_hacer);
 
         // Opción 1: Guardar y Salir
-        builder.setPositiveButton("Guardar y Salir", (dialog, which) -> {
-            guardarEntrenamientoEnBD(); // Guardar el entrenamiento
-            finish(); // Cerrar la actividad
+        builder.setPositiveButton(R.string.guardar_salir, (dialog, which) -> {
+            startTraining();
         });
 
         // Opción 2: Salir
-        builder.setNeutralButton("Guardar sin salir", (dialog, which) -> {
+        builder.setNeutralButton(R.string.salir, (dialog, which) -> {
             finish();
         });
 
         // Opción 3: Cancelar
-        builder.setNegativeButton("Cancelar", (dialog, which) -> {
+        builder.setNegativeButton(R.string.cancelar, (dialog, which) -> {
             // No hacer nada, simplemente cerrar el diálogo
         });
 
