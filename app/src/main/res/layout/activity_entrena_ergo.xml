@@ -71,7 +71,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="4dp"
-                    android:text="Fecha del entreno"
+                    android:text="@string/fechaEntreno"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
@@ -84,14 +84,14 @@
                     android:clickable="true"
                     android:ems="10"
                     android:focusable="false"
-                    android:hint="Seleccione la fecha" />
+                    android:hint="@string/fechaValor" />
 
                 <!-- Label "Distancia" -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="4dp"
-                    android:text="Distancia"
+                    android:text="@string/distancia"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
@@ -107,7 +107,7 @@
                         android:layout_width="0dp"
                         android:layout_height="65dp"
                         android:layout_weight="1"
-                        android:hint="Ingrese la distancia"
+                        android:hint="@string/dinstvalor"
                         android:inputType="number" />
 
                     <TextView
@@ -123,7 +123,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="4dp"
-                    android:text="Tiempo"
+                    android:text="@string/duracion"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
@@ -141,7 +141,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="4dp"
-                    android:text="Paladas"
+                    android:text="@string/paladas"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
@@ -151,7 +151,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="55dp"
                     android:layout_marginBottom="16dp"
-                    android:hint="Ingrese el número de paladas"
+                    android:hint="@string/nPaladas"
                     android:inputType="number" />
             </LinearLayout>
 
@@ -184,7 +184,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:text="Distancia"
+                            android:text="@string/distancia"
                             android:textStyle="bold" />
 
                         <TextView
@@ -192,7 +192,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:text="Tiempo"
+                            android:text="@string/duracion"
                             android:textStyle="bold" />
 
                         <TextView
@@ -200,7 +200,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:text="Paladas"
+                            android:text="@string/paladas"
                             android:textStyle="bold" />
                     </TableRow>
                 </TableLayout>
@@ -212,7 +212,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginTop="8dp"
-                    android:text="Añadir fila" />
+                    android:text="@string/añadirFila" />
             </LinearLayout>
 
             <!-- Tercer LinearLayout para comentarios -->
@@ -229,7 +229,7 @@
                     android:id="@+id/textValo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Valoracion"
+                    android:text="@string/valoracion"
                     android:textStyle="bold" />
 
                 <RatingBar
@@ -243,7 +243,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="4dp"
-                    android:text="Comentarios"
+                    android:text="@string/comentarios"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
@@ -254,7 +254,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
                     android:gravity="start|top"
-                    android:hint="Escriba sus comentarios aquí"
+                    android:hint="@string/comenText"
                     android:inputType="textMultiLine"
                     android:lines="4"
                     android:textAlignment="textStart" />

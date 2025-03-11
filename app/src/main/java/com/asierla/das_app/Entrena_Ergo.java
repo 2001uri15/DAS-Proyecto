@@ -106,7 +106,7 @@ public class Entrena_Ergo extends AppCompatActivity {
                     TableRow.LayoutParams.WRAP_CONTENT,
                     1
             ));
-            editTextDistancia.setHint("Distancia");
+            editTextDistancia.setHint(R.string.distancia);
             editTextDistancia.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
 
             // Campo de tiempo
@@ -126,7 +126,7 @@ public class Entrena_Ergo extends AppCompatActivity {
                     TableRow.LayoutParams.WRAP_CONTENT,
                     1
             ));
-            editTextPaladas.setHint("Paladas");
+            editTextPaladas.setHint(R.string.paladas);
             editTextPaladas.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
 
             // Añadir los campos a la fila

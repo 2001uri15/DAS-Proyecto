@@ -16,6 +16,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -31,6 +32,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
 import com.asierla.das_app.database.DBHelper;
+import com.asierla.das_app.model.EntrenamientoData;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -48,7 +50,9 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMapReadyCallback {
@@ -65,14 +69,17 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
     private Polyline routePolyline;
     private PolylineOptions polyline;
     private final Handler handler = new Handler();
+    private List<Float> speedList = new ArrayList<>();
 
     private FusedLocationProviderClient fusedLocationClient;
     private LocationCallback locationCallback;
     private LocationRequest locationRequest;
     private ArrayList<LatLng> routePoints = new ArrayList<>();
+    private ArrayList<EntrenamientoData> entrenamientoDataList = new ArrayList<EntrenamientoData>();
 
     private NotificationManager elManager;
     private NotificationCompat.Builder elBuilder;
+
 
 
 
@@ -160,6 +167,7 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
             isRunning = savedInstanceState.getBoolean("isRunning");
             lastLocation = savedInstanceState.getParcelable("lastLocation");
             routePoints = savedInstanceState.getParcelableArrayList("routePoints");
+            entrenamientoDataList = (ArrayList<EntrenamientoData>) savedInstanceState.getSerializable("entrenamientoDataList");
 
             if (elapsedTime > 0) {
                 tvCuentaAtras.setVisibility(View.GONE);
@@ -206,8 +214,8 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
 
     private void createLocationRequest() {
         locationRequest = LocationRequest.create();
-        locationRequest.setInterval(10000); // 10 segundos
-        locationRequest.setFastestInterval(5000); // 5 segundos
+        locationRequest.setInterval(1000);
+        locationRequest.setFastestInterval(500);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
@@ -230,17 +238,34 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
             float distance = lastLocation.distanceTo(location);
             totalDistance += distance;
 
-            long timeElapsed = (System.currentTimeMillis() - startTime) / 1000;
-            float speed = (distance / 1000) / (timeElapsed / 3600); // km/h
+            // Obtener el tiempo transcurrido entre las ubicaciones
+            long timeDeltaMillis = location.getTime() - lastLocation.getTime();
+            float timeDeltaSeconds = timeDeltaMillis / 1000f; // Convertir a segundos
+            float timeDeltaHours = timeDeltaSeconds / 3600f; // Convertir a horas
 
-            tvDistancia.setText(String.format("%.2f km", totalDistance / 1000));
+            float distanceKm = distance / 1000f; // Convertir a kilómetros
+            float totalDistanceKm = totalDistance / 1000f; // Convertir a kilómetros
+
+            // Calcular velocidad en km/h usando el tiempo exacto de la ubicación
+            float speed = (timeDeltaSeconds > 0) ? (distanceKm / timeDeltaHours) : 0;
+            speedList.add(speed);
+
+            // Actualizar la UI con la distancia y velocidad
+            tvDistancia.setText(String.format("%.2f km", totalDistanceKm));
             tvVelocidad.setText(String.format("%.2f km/h", speed));
 
-            // Calcular el ritmo (min/km)
-            if (distance > 0) {
-                float pace = (timeElapsed / 60) / (distance / 1000); // min/km
-                tvRitmo.setText(String.format("%.2f /km", pace));
+            // Calcular el ritmo (min/km) en formato mm:ss /km
+            if (distance > 0 && timeDeltaSeconds > 0) {
+                float paceMinutes = (timeDeltaSeconds / 60f) / distanceKm; // min/km
+                int minutes = (int) paceMinutes;
+                int seconds = (int) ((paceMinutes - minutes) * 60);
+
+                tvRitmo.setText(String.format("%02d:%02d /km", minutes, seconds));
+            } else {
+                tvRitmo.setText("--:-- /km"); // Mostrar un valor neutro si no hay distancia
             }
+
+            entrenamientoDataList.add(new EntrenamientoData(totalDistanceKm, (long) timeDeltaSeconds, speed));
 
             // Dibujar la ruta en el mapa
             LatLng newPoint = new LatLng(location.getLatitude(), location.getLongitude());
@@ -350,15 +375,35 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         String fecha = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         float distancia = totalDistance; // Convertir a metros si es necesario
         long tiempoSegundos = elapsedTime*1000;
-
+        float averageSpeed = calculateAverageSpeed(speedList);
         int tipoEntrenamiento = getIntent().getIntExtra("tipo_entrenamiento", 0);
 
-        long idEntrena = dbHelper.guardarEntrenamientoAuto(tipoEntrenamiento, fecha, distancia, tiempoSegundos);
+        long idEntrena = dbHelper.guardarEntrenamientoAuto(tipoEntrenamiento, fecha, distancia, tiempoSegundos, averageSpeed);
 
         // Guardar los puntos de la ruta
         for (LatLng punto : routePoints) {
             dbHelper.guardarPuntoRuta(idEntrena, punto.latitude, punto.longitude);
         }
+
+        // Obtener los datos agrupados por intervalos de 1 km
+        List<EntrenamientoData> kilometroDataList = agruparPorIntervalosDe1Km(entrenamientoDataList);
+        int i = 1;
+        for (EntrenamientoData data : kilometroDataList) {
+            dbHelper.guardarIntervalo(idEntrena, i, data.getTiempo(),data.getDistancia(),data.getVelocidad());
+            Log.d("KilometroData", data.toString());
+            i++;
+        }
+    }
+
+    private float calculateAverageSpeed(List<Float> speedList) {
+        if (speedList.isEmpty()) {
+            return 0; // Evitar división por cero si la lista está vacía
+        }
+        float sum = 0;
+        for (float speed : speedList) {
+            sum += speed;
+        }
+        return sum / speedList.size();
     }
 
     @Override
@@ -377,7 +422,7 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
                             if (location != null) {
                                 // Mover la cámara a la ubicación actual
                                 LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 17)); // 17 es el nivel de zoom
+                                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15)); // 17 es el nivel de zoom
                             }
                         }
                     });
@@ -421,6 +466,7 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         outState.putBoolean("isRunning", isRunning);
         outState.putParcelable("lastLocation", lastLocation);
         outState.putParcelableArrayList("routePoints", routePoints);
+        outState.putSerializable("entrenamientoDataList", entrenamientoDataList);
     }
 
     @Override
@@ -511,5 +557,52 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
                 return R.drawable.icon_ergo;
             default: return R.drawable.circle_outline;
         }
+    }
+
+
+    private List<EntrenamientoData> agruparPorIntervalosDe1Km(List<EntrenamientoData> entrenamientoDataList) {
+        // Crear una lista para almacenar los resultados
+        List<EntrenamientoData> kilometroDataList = new ArrayList<>();
+
+        // Ordenar la lista por distancia
+        entrenamientoDataList.sort(Comparator.comparing(EntrenamientoData::getDistancia));
+
+        // Variables para acumular datos del intervalo actual
+        double intervaloActual = 0.0; // Inicia en 0 km
+        long tiempoAcumulado = 0;
+        double velocidadAcumulada = 0.0;
+        int contador = 0;
+
+        // Recorrer la lista de datos
+        for (EntrenamientoData data : entrenamientoDataList) {
+            double distancia = data.getDistancia();
+
+            // Si la distancia supera el intervalo actual + 1 km, guardar el intervalo
+            if (distancia > intervaloActual + 1.0) {
+                if (contador > 0) { // Solo agregar si hay datos en el intervalo
+                    double velocidadMedia = velocidadAcumulada / contador;
+                    kilometroDataList.add(new EntrenamientoData((float) (intervaloActual + 1.0), tiempoAcumulado, (float) velocidadMedia));
+                }
+
+                // Reiniciar las variables para el nuevo intervalo
+                intervaloActual = Math.floor(distancia); // Redondear hacia abajo al kilómetro más cercano
+                tiempoAcumulado = data.getTiempo();
+                velocidadAcumulada = data.getVelocidad();
+                contador = 1;
+            } else {
+                // Acumular datos en el intervalo actual
+                tiempoAcumulado += data.getTiempo();
+                velocidadAcumulada += data.getVelocidad();
+                contador++;
+            }
+        }
+
+        // Agregar el último intervalo si hay datos
+        if (contador > 0) {
+            double velocidadMedia = velocidadAcumulada / contador;
+            kilometroDataList.add(new EntrenamientoData((float) (intervaloActual + 1.0), tiempoAcumulado,(float) velocidadMedia));
+        }
+
+        return kilometroDataList;
     }
 }

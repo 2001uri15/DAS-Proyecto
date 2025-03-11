@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -30,6 +31,13 @@ import androidx.core.view.WindowInsetsCompat;
 import com.asierla.das_app.database.DBHelper;
 import com.asierla.das_app.model.Entrenamiento;
 import com.asierla.das_app.model.EntrenamientoInterval;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -39,7 +47,11 @@ public class VerEntrenamiento extends AppCompatActivity {
     private ImageView ipImagenEntre, btnMenu;
     private RatingBar ipValoracion;
     private TableLayout tableIntervalos;
-    private RelativeLayout relaVueltas;
+    private RelativeLayout relaVueltas, relaMapa;
+
+    private MapView mapView;
+    private GoogleMap googleMap;
+    private ArrayList<LatLng> ubi;
 
 
     @Override
@@ -96,6 +108,7 @@ public class VerEntrenamiento extends AppCompatActivity {
         ipRitmo = findViewById(R.id.ipRitmo);
         tableIntervalos = findViewById(R.id.tableIntervalos);
         relaVueltas = findViewById(R.id.relaVueltas);
+        relaMapa = findViewById(R.id.relaMapa);
 
         int idEntreno = getIntent().getIntExtra("idEntrena", 0);
         DBHelper db = new DBHelper(this);
@@ -112,7 +125,7 @@ public class VerEntrenamiento extends AppCompatActivity {
 
         if(entrena.getIdEntrenamiento()>=0 && entrena.getIdEntrenamiento()<=2){
             // Carrera, Bici, Andar
-            ipVelociad.setText(String.valueOf(entrena.getVelocidad()) + " km/h");
+            ipVelociad.setText(String.format("%.2f km/h", entrena.getVelocidad()));
             ipDistancia.setText(String.format("%.2f km", entrena.getDistancia() / 1000.0));
         }else if(entrena.getIdEntrenamiento()>2 && entrena.getIdEntrenamiento()<5){
             // Remo y Ergometro
@@ -158,6 +171,22 @@ public class VerEntrenamiento extends AppCompatActivity {
             }
         }else{
             relaVueltas.setVisibility(View.GONE);
+        }
+
+        ubi = db.obtenerRutaPorEntrenamientoId(idEntreno);
+        if(ubi.size()>0){
+            mapView = findViewById(R.id.mapView);
+            mapView.onCreate(savedInstanceState);
+            mapView.getMapAsync(new OnMapReadyCallback() {
+                @Override
+                public void onMapReady(GoogleMap map) {
+                    googleMap = map;
+                    googleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+                    dibujarRuta();
+                }
+            });
+        }else{
+            relaMapa.setVisibility(View.GONE);
         }
 
 
@@ -288,5 +317,27 @@ public class VerEntrenamiento extends AppCompatActivity {
         AlertDialog dialog = builder.create();
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.rounded_background);
         dialog.show();
+    }
+
+    private void dibujarRuta() {
+        if (googleMap == null || ubi == null || ubi.isEmpty()) return;
+
+        // Dibujar la línea de la ruta
+        googleMap.addPolyline(new PolylineOptions()
+                .addAll(ubi)
+                .color(Color.RED)
+                .width(8f)
+                .geodesic(true));
+
+        // Ajustar la cámara para que toda la ruta sea visible con un zoom adecuado
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        for (LatLng punto : ubi) {
+            builder.include(punto);
+        }
+
+        // Establecer los límites de la cámara con un padding
+        googleMap.setOnMapLoadedCallback(() -> {
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 150));
+        });
     }
 }

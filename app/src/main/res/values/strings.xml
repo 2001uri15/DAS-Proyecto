@@ -48,5 +48,14 @@
     <string name="comenzar">Comenzar</string>
     <string name="no_entrena">No hay ningún entrenamiento</string>
     <string name="detall_entrena">Detalles del Entrenamiento</string>
-    <!-- TODO: Remove or change this placeholder text -->
+    <string name="fechaEntreno">Fecha del entreno</string>
+    <string name="paladas">Paladas</string>
+    <string name="valoracion">Valoración</string>
+    <string name="añadirFila">Añadir Fila</string>
+    <string name="comentarios">Comentarios</string>
+    <string name="comenText">Escriba sus comentarios aquí</string>
+    <string name="nPaladas">Número de paladas</string>
+    <string name="dinstvalor">Ingrese la distancia</string>
+    <string name="fechaValor">Introduzca la fecha</string>
+    <string name="map">Mapa</string>
 </resources>

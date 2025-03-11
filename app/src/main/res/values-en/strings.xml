@@ -47,4 +47,14 @@
     <string name="comenzar">Begin</string>
     <string name="no_entrena">There is no training</string>
     <string name="detall_entrena">Training Details</string>
+    <string name="fechaEntreno">Training date</string>
+    <string name="paladas">speed</string>
+    <string name="valoracion">Assessment</string>
+    <string name="añadirFila">Add row</string>
+    <string name="comentarios">Comments</string>
+    <string name="comenText">Write your comments here</string>
+    <string name="nPaladas">Number of shovelfuls</string>
+    <string name="dinstvalor">Enter the distance</string>
+    <string name="fechaValor">Enter the date</string>
+    <string name="map">Map</string>
 </resources>

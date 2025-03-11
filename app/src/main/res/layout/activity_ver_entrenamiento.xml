@@ -3,11 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
-    android:fitsSystemWindows="true"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".VerEntrenamiento"
-    android:background="@color/white">
+    android:background="@color/white"
+    android:fitsSystemWindows="true"
+    tools:context=".VerEntrenamiento">
 
     <!-- Barra superior -->
     <RelativeLayout
@@ -26,7 +26,7 @@
             android:layout_centerInParent="true"
             android:text="@string/app_name"
             android:textSize="16sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
 
         <ImageView
             android:id="@+id/btnMenu"
@@ -39,338 +39,392 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Menu"
             app:srcCompat="@drawable/img_trespuntos" />
-
     </RelativeLayout>
 
-    <RelativeLayout
-        android:id="@+id/relativeLayout2"
+    <!-- Contenedor principal con ScrollView -->
+    <ScrollView
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:background="@drawable/rounded_background"
-        android:padding="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/relativeLayout"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/relativeLayout">
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <ImageView
-            android:id="@+id/ipImagenEntre"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:contentDescription="Icono de la actividad"
-            app:srcCompat="@drawable/circle_outline" />
-
-        <TextView
-            android:id="@+id/ipEntrena"
-            android:layout_width="196dp"
-            android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true"
-            android:layout_marginStart="83dp"
-            android:layout_marginTop="8dp"
-            android:text="Entrenamiento"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/ipFecha"
-            android:layout_width="196dp"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/ipEntrena"
-            android:layout_alignParentStart="true"
-            android:layout_marginStart="83dp"
-            android:layout_marginTop="5dp"
-            android:text="2025-03-06" />
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:id="@+id/relaDatos"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:background="@drawable/rounded_background"
-        android:padding="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/relativeLayout2">
-
-        <ImageView
-            android:id="@+id/imageView5"
-            android:layout_width="44dp"
-            android:layout_height="34dp"
-            android:layout_alignParentTop="true"
-            android:layout_marginLeft="14dp"
-            android:layout_marginTop="38dp"
-            app:srcCompat="@drawable/img_crono" />
-
-        <TextView
-            android:id="@+id/textView7"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_marginStart="14dp"
-            android:layout_marginTop="44dp"
-            android:layout_toEndOf="@+id/imageView5"
-            android:text="@string/duracion"
-            android:textColor="@color/duracion"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/ipDuracion"
-            android:layout_width="70dp"
-            android:layout_height="20dp"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentEnd="true"
-            android:layout_marginTop="44dp"
-            android:layout_marginEnd="70dp"
-            android:text="00:00"
-            android:textSize="14sp" />
-
-        <ImageView
-            android:id="@+id/imageView6"
-            android:layout_width="44dp"
-            android:layout_height="34dp"
-            android:layout_below="@+id/imageView5"
-            android:layout_marginLeft="14dp"
-            android:layout_marginTop="13dp"
-            app:srcCompat="@drawable/img_distancia" />
-
-        <TextView
-            android:id="@+id/textView8"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/textView7"
-            android:layout_marginStart="13dp"
-            android:layout_marginTop="28dp"
-            android:layout_toEndOf="@+id/imageView6"
-            android:text="@string/distancia"
-            android:textColor="@color/distancia"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/ipDistancia"
-            android:layout_width="70dp"
-            android:layout_height="20dp"
-            android:layout_below="@+id/ipDuracion"
-            android:layout_alignParentEnd="true"
-            android:layout_marginTop="28dp"
-            android:layout_marginEnd="70dp"
-            android:text="-"
-            android:textSize="14sp" />
-
-        <ImageView
-            android:id="@+id/imageView7"
-            android:layout_width="44dp"
-            android:layout_height="34dp"
-            android:layout_below="@+id/imageView6"
-            android:layout_marginLeft="14dp"
-            android:layout_marginTop="13dp"
-            app:srcCompat="@drawable/img_velocidad" />
-
-        <TextView
-            android:id="@+id/textView9"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/textView8"
-            android:layout_marginStart="13dp"
-            android:layout_marginTop="28dp"
-            android:layout_toEndOf="@+id/imageView7"
-            android:text="@string/velocidad"
-            android:textColor="@color/velocidad"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/ipVelocidad"
-            android:layout_width="70dp"
-            android:layout_height="20dp"
-            android:layout_below="@+id/ipDistancia"
-            android:layout_alignParentEnd="true"
-            android:layout_marginTop="28dp"
-            android:layout_marginEnd="70dp"
-            android:text="-"
-            android:textSize="14sp" />
-
-        <TextView
-            android:id="@+id/textView4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_marginLeft="7dp"
-            android:layout_marginTop="6dp"
-            android:text="@string/detall_entrena"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <ImageView
-            android:id="@+id/imageView8"
-            android:layout_width="44dp"
-            android:layout_height="34dp"
-            android:layout_below="@+id/imageView7"
-            android:layout_marginLeft="14dp"
-            android:layout_marginTop="13dp"
-            app:srcCompat="@drawable/img_ritmo" />
-
-        <TextView
-            android:id="@+id/textView10"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/textView9"
-            android:layout_marginStart="13dp"
-            android:layout_marginTop="28dp"
-            android:layout_toEndOf="@+id/imageView8"
-            android:text="@string/ritmo"
-            android:textColor="@color/velocidad"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/ipRitmo"
-            android:layout_width="70dp"
-            android:layout_height="20dp"
-            android:layout_below="@+id/ipVelocidad"
-            android:layout_alignParentEnd="true"
-            android:layout_marginTop="28dp"
-            android:layout_marginEnd="70dp"
-            android:text="-"
-            android:textSize="14sp" />
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:id="@+id/relaVueltas"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:background="@drawable/rounded_background"
-        android:padding="8dp"
-        android:visibility="visible"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/relaDatos">
-
-        <TextView
-            android:id="@+id/textView12"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="7dp"
-            android:text="Vueltas"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <TableLayout
-            android:id="@+id/tableIntervalos"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/textView12"
-            android:layout_marginTop="8dp"
-            android:stretchColumns="1,2,3">
+            android:layout_height="wrap_content">
 
-            <!-- Cabecera de la tabla -->
-            <TableRow
-                android:background="@color/white"
-                android:padding="4dp">
+            <!-- Sección de detalles del entrenamiento -->
+            <RelativeLayout
+                android:id="@+id/relativeLayout2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/rounded_background"
+                android:padding="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <ImageView
+                    android:id="@+id/ipImagenEntre"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:contentDescription="Icono de la actividad"
+                    app:srcCompat="@drawable/circle_outline" />
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:id="@+id/ipEntrena"
+                    android:layout_width="196dp"
                     android:layout_height="wrap_content"
-                    android:layout_margin="2dp"
-                    android:gravity="center"
-                    android:text="#"
+                    android:layout_alignParentStart="true"
+                    android:layout_alignParentTop="true"
+                    android:layout_marginStart="83dp"
+                    android:layout_marginTop="8dp"
+                    android:text="Entrenamiento"
+                    android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:id="@+id/ipFecha"
+                    android:layout_width="196dp"
                     android:layout_height="wrap_content"
-                    android:layout_margin="2dp"
-                    android:gravity="center"
-                    android:text="@string/distancia"
-                    android:textStyle="bold" />
+                    android:layout_below="@+id/ipEntrena"
+                    android:layout_alignParentStart="true"
+                    android:layout_marginStart="83dp"
+                    android:layout_marginTop="5dp"
+                    android:text="2025-03-06" />
+            </RelativeLayout>
+
+            <!-- Sección de datos del entrenamiento -->
+            <RelativeLayout
+                android:id="@+id/relaDatos"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/rounded_background"
+                android:padding="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/relativeLayout2">
+
+                <ImageView
+                    android:id="@+id/imageView5"
+                    android:layout_width="44dp"
+                    android:layout_height="34dp"
+                    android:layout_alignParentTop="true"
+                    android:layout_marginLeft="14dp"
+                    android:layout_marginTop="38dp"
+                    app:srcCompat="@drawable/img_crono" />
 
                 <TextView
+                    android:id="@+id/textView7"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="2dp"
-                    android:gravity="center"
+                    android:layout_alignParentTop="true"
+                    android:layout_marginStart="14dp"
+                    android:layout_marginTop="44dp"
+                    android:layout_toEndOf="@+id/imageView5"
                     android:text="@string/duracion"
+                    android:textColor="@color/duracion"
+                    android:textSize="14sp"
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/ipDuracion"
+                    android:layout_width="70dp"
+                    android:layout_height="20dp"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginTop="44dp"
+                    android:layout_marginEnd="70dp"
+                    android:text="00:00"
+                    android:textSize="14sp" />
+
+                <ImageView
+                    android:id="@+id/imageView6"
+                    android:layout_width="44dp"
+                    android:layout_height="34dp"
+                    android:layout_below="@+id/imageView5"
+                    android:layout_marginLeft="14dp"
+                    android:layout_marginTop="13dp"
+                    app:srcCompat="@drawable/img_distancia" />
+
+                <TextView
+                    android:id="@+id/textView8"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="2dp"
-                    android:gravity="center"
-                    android:text="@string/velocidad"
+                    android:layout_below="@+id/textView7"
+                    android:layout_marginStart="13dp"
+                    android:layout_marginTop="28dp"
+                    android:layout_toEndOf="@+id/imageView6"
+                    android:text="@string/distancia"
+                    android:textColor="@color/distancia"
+                    android:textSize="14sp"
                     android:textStyle="bold" />
-            </TableRow>
-        </TableLayout>
 
-    </RelativeLayout>
+                <TextView
+                    android:id="@+id/ipDistancia"
+                    android:layout_width="70dp"
+                    android:layout_height="20dp"
+                    android:layout_below="@+id/ipDuracion"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginTop="28dp"
+                    android:layout_marginEnd="70dp"
+                    android:text="-"
+                    android:textSize="14sp" />
 
-    <RelativeLayout
-        android:id="@+id/relaComen"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:background="@drawable/rounded_background"
-        android:padding="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/relaVueltas">
+                <ImageView
+                    android:id="@+id/imageView7"
+                    android:layout_width="44dp"
+                    android:layout_height="34dp"
+                    android:layout_below="@+id/imageView6"
+                    android:layout_marginLeft="14dp"
+                    android:layout_marginTop="13dp"
+                    app:srcCompat="@drawable/img_velocidad" />
 
-        <TextView
-            android:id="@+id/ipComentarios"
-            android:layout_width="363dp"
-            android:layout_height="124dp"
-            android:layout_below="@+id/textView11"
-            android:layout_marginLeft="7dp"
-            android:layout_marginTop="5dp"
-            android:text="..."
-            android:visibility="visible" />
+                <TextView
+                    android:id="@+id/textView9"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/textView8"
+                    android:layout_marginStart="13dp"
+                    android:layout_marginTop="28dp"
+                    android:layout_toEndOf="@+id/imageView7"
+                    android:text="@string/velocidad"
+                    android:textColor="@color/velocidad"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/textView13"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="7dp"
-            android:text="Valoración"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/ipVelocidad"
+                    android:layout_width="70dp"
+                    android:layout_height="20dp"
+                    android:layout_below="@+id/ipDistancia"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginTop="28dp"
+                    android:layout_marginEnd="70dp"
+                    android:text="-"
+                    android:textSize="14sp" />
 
-        <RatingBar
-            android:id="@+id/textValo"
-            android:layout_width="wrap_content"
-            android:layout_height="46dp"
-            android:layout_below="@+id/textView13"
-            android:layout_marginLeft="7dp"
-            android:layout_marginTop="5dp"
-            android:isIndicator="true"
-            android:numStars="5"
-            android:stepSize="1" />
+                <TextView
+                    android:id="@+id/textView4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_marginLeft="7dp"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/detall_entrena"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/textView11"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/textValo"
-            android:layout_marginLeft="7dp"
-            android:layout_marginTop="5dp"
-            android:text="Comentarios"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+                <ImageView
+                    android:id="@+id/imageView8"
+                    android:layout_width="44dp"
+                    android:layout_height="34dp"
+                    android:layout_below="@+id/imageView7"
+                    android:layout_marginLeft="14dp"
+                    android:layout_marginTop="13dp"
+                    app:srcCompat="@drawable/img_ritmo" />
 
-    </RelativeLayout>
+                <TextView
+                    android:id="@+id/textView10"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/textView9"
+                    android:layout_marginStart="13dp"
+                    android:layout_marginTop="28dp"
+                    android:layout_toEndOf="@+id/imageView8"
+                    android:text="@string/ritmo"
+                    android:textColor="@color/velocidad"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
 
+                <TextView
+                    android:id="@+id/ipRitmo"
+                    android:layout_width="70dp"
+                    android:layout_height="20dp"
+                    android:layout_below="@+id/ipVelocidad"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginTop="28dp"
+                    android:layout_marginEnd="70dp"
+                    android:text="-"
+                    android:textSize="14sp" />
+            </RelativeLayout>
+
+            <!-- Sección de vueltas -->
+            <RelativeLayout
+                android:id="@+id/relaVueltas"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/rounded_background"
+                android:padding="8dp"
+                android:visibility="visible"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/relaDatos">
+
+                <TextView
+                    android:id="@+id/textView12"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="7dp"
+                    android:text="Vueltas"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TableLayout
+                    android:id="@+id/tableIntervalos"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/textView12"
+                    android:layout_marginTop="8dp"
+                    android:stretchColumns="1,2,3">
+
+                    <!-- Cabecera de la tabla -->
+                    <TableRow
+                        android:background="@color/white"
+                        android:padding="4dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="2dp"
+                            android:gravity="center"
+                            android:text="#"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="2dp"
+                            android:gravity="center"
+                            android:text="@string/distancia"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="2dp"
+                            android:gravity="center"
+                            android:text="@string/duracion"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="2dp"
+                            android:gravity="center"
+                            android:text="@string/velocidad"
+                            android:textStyle="bold" />
+                    </TableRow>
+                </TableLayout>
+            </RelativeLayout>
+
+            <!-- Sección del mapa -->
+            <RelativeLayout
+                android:id="@+id/relaMapa"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/rounded_background"
+                android:padding="8dp"
+                android:visibility="visible"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/relaVueltas">
+
+                <TextView
+                    android:id="@+id/textView14"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="7dp"
+                    android:text="@string/map"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="300dp"
+                    android:layout_below="@+id/textView14"
+                    android:layout_marginTop="9dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="4dp">
+
+                    <com.google.android.gms.maps.MapView
+                        android:id="@+id/mapView"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="Mapa del recorrido"/>
+
+                </androidx.cardview.widget.CardView>
+            </RelativeLayout>
+
+            <!-- Sección de comentarios y valoración -->
+            <RelativeLayout
+                android:id="@+id/relaComen"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/rounded_background"
+                android:padding="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/relaMapa">
+
+                <TextView
+                    android:id="@+id/textView13"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="7dp"
+                    android:text="Valoración"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <RatingBar
+                    android:id="@+id/textValo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="46dp"
+                    android:layout_below="@+id/textView13"
+                    android:layout_marginLeft="7dp"
+                    android:layout_marginTop="5dp"
+                    android:isIndicator="true"
+                    android:numStars="5"
+                    android:stepSize="1" />
+
+                <TextView
+                    android:id="@+id/textView11"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/textValo"
+                    android:layout_marginLeft="7dp"
+                    android:layout_marginTop="5dp"
+                    android:text="Comentarios"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/ipComentarios"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/textView11"
+                    android:layout_marginLeft="7dp"
+                    android:layout_marginTop="5dp"
+                    android:text="..."
+                    android:visibility="visible" />
+            </RelativeLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

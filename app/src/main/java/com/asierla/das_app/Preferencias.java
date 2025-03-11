@@ -8,6 +8,7 @@ import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -27,13 +28,6 @@ public class Preferencias extends AppCompatActivity {
     private Button btnGuardar, btnNotificaciones, btnPermisos, btnBorrarDatos, btnPrivacidad, btnUnidadesMetricas;
 
     protected void onCreate(Bundle savedInstanceState) {
-        // Cargamos el layout de la vista
-        setContentView(R.layout.activity_preferencias);
-
-        // Inicialización de vistas y otros componentes
-        listViewIdiomas = findViewById(R.id.listIdioma);
-        btnGuardar = findViewById(R.id.btnGuardar);
-
         // Obtener idioma guardado en SharedPreferences
         SharedPreferences prefs = getSharedPreferences("Ajustes", MODE_PRIVATE);
         String idioma = prefs.getString("idioma", "es"); // Por defecto español
@@ -44,6 +38,16 @@ public class Preferencias extends AppCompatActivity {
         Configuration config = getBaseContext().getResources().getConfiguration();
         config.setLocale(nuevaloc);
         getBaseContext().getResources().updateConfiguration(config, getBaseContext().getResources().getDisplayMetrics());
+
+
+        // Cargamos el layout de la vista
+        setContentView(R.layout.activity_preferencias);
+
+
+        // Inicialización de vistas y otros componentes
+        listViewIdiomas = findViewById(R.id.listIdioma);
+        btnGuardar = findViewById(R.id.btnGuardar);
+
 
 
         super.onCreate(savedInstanceState);
@@ -97,8 +101,9 @@ public class Preferencias extends AppCompatActivity {
 
                 // Reiniciar la actividad para aplicar los cambios
                 Intent intent = new Intent(this, Preferencias.class);
-                startActivity(intent);
                 finish();
+                startActivity(intent);
+
             }
         });
 

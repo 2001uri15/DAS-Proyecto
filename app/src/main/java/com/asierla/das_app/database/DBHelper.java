@@ -65,6 +65,7 @@ public class DBHelper extends SQLiteOpenHelper {
         // Eliminar la tabla si ya existe para actualizar la estructura
         db.execSQL("DROP TABLE IF EXISTS entrenamientos");
         db.execSQL("DROP TABLE IF EXISTS inter_entrena");
+        db.execSQL("DROP TABLE IF EXISTS Ruta");
         onCreate(db);
     }
 
@@ -148,14 +149,14 @@ public class DBHelper extends SQLiteOpenHelper {
         return entrenamientos;
     }
 
-    public long guardarEntrenamientoAuto(int tipoEntrenamiento,String fecha, double distancia, long tiempoSegundos){
+    public long guardarEntrenamientoAuto(int tipoEntrenamiento,String fecha, double distancia, long tiempoSegundos, float velocidad){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("idActividad", tipoEntrenamiento);  // id de la actividad
         values.put("fechaHora", fecha);  // fecha y hora del entrenamiento
         values.put("distancia", distancia);  // distancia recorrida
         values.put("tiempo", tiempoSegundos);  // tiempo en milisegundos
-        values.put("velocidad", 0);  // velocidad o paladas
+        values.put("velocidad", velocidad);  // velocidad o paladas
         values.put("valoracion", 0);  // valoración del entrenamiento
         values.put("comentarios", "");  // comentarios opcionales
 
@@ -211,6 +212,7 @@ public class DBHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete("entrenamientos", null, null);
         db.delete("inter_entrena", null, null);
+        db.delete("Ruta", null, null);
         db.close();
     }
 
