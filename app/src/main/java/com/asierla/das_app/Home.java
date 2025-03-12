@@ -116,7 +116,11 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         });
 
         LinearLayout btnPesas = findViewById(R.id.btnPesas);
-        btnPesas.setOnClickListener(view -> Toast.makeText(this, R.string.no_disponible, Toast.LENGTH_SHORT).show());
+        btnPesas.setOnClickListener(view -> {
+            Toast.makeText(this, R.string.no_disponible, Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(Home.this, RegistroPesas.class);
+            startActivity(intent);
+        });
 
         LinearLayout btnErgo = findViewById(R.id.btnErgo);
         btnErgo.setOnClickListener(view -> {

@@ -58,4 +58,9 @@
     <string name="dinstvalor">Ingrese la distancia</string>
     <string name="fechaValor">Introduzca la fecha</string>
     <string name="map">Mapa</string>
+    <string name="vueltas">Vueltas</string>
+    <string name="borrarEntrena">Borrar entrenamiento</string>
+    <string name="editarEntrena">Editar Entrenamiento</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

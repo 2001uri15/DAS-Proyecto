@@ -125,7 +125,7 @@ public class VerEntrenamiento extends AppCompatActivity {
 
         if(entrena.getIdEntrenamiento()>=0 && entrena.getIdEntrenamiento()<=2){
             // Carrera, Bici, Andar
-            ipVelociad.setText(String.format("%.2f km/h", entrena.getVelocidad()));
+            ipVelociad.setText(String.format("%.1f km/h", entrena.getVelocidad()));
             ipDistancia.setText(String.format("%.2f km", entrena.getDistancia() / 1000.0));
         }else if(entrena.getIdEntrenamiento()>2 && entrena.getIdEntrenamiento()<5){
             // Remo y Ergometro
@@ -140,6 +140,7 @@ public class VerEntrenamiento extends AppCompatActivity {
 
         // Cargar intervalos
         if(intervalos.size()!=0){
+            int i = 0;
             for (EntrenamientoInterval intervalo : intervalos) {
                 TableRow row = new TableRow(this);
                 row.setLayoutParams(new TableRow.LayoutParams(
@@ -147,27 +148,51 @@ public class VerEntrenamiento extends AppCompatActivity {
                         TableRow.LayoutParams.WRAP_CONTENT
                 ));
 
+
+                if (i % 2 == 0) {
+                    row.setBackgroundColor(ContextCompat.getColor(this, R.color.white));
+                } else {
+                    row.setBackgroundColor(ContextCompat.getColor(this, R.color.light_gray));
+                }
+
+// TextView para el número de intervalo
                 TextView tvOrden = new TextView(this);
                 tvOrden.setText(String.valueOf(intervalo.getOrden()));
                 tvOrden.setGravity(Gravity.CENTER);
+                tvOrden.setTextSize(14);
+                tvOrden.setPadding(2, 2, 2, 2); // Ajusta el padding según sea necesario
                 row.addView(tvOrden);
 
+// TextView para la distancia
                 TextView tvDistancia = new TextView(this);
-                tvDistancia.setText(String.format((int)intervalo.getDistancia() + " m"));
+                if(entrena.getIdEntrenamiento()>=0 && entrena.getIdEntrenamiento()<=2){
+                    tvDistancia.setText(String.format(intervalo.getDistancia() + " km"));
+                }else if (entrena.getIdEntrenamiento()>2 && entrena.getIdEntrenamiento()<5){
+                    tvDistancia.setText(String.format((int)intervalo.getDistancia() + " m"));
+                }
                 tvDistancia.setGravity(Gravity.CENTER);
+                tvDistancia.setTextSize(14);
+                tvDistancia.setPadding(2, 2, 2, 2); // Ajusta el padding según sea necesario
                 row.addView(tvDistancia);
 
+// TextView para el tiempo
                 TextView tvTiempo = new TextView(this);
                 tvTiempo.setText(convertirATiempo(intervalo.getTiempo()));
+                tvTiempo.setTextSize(14);
                 tvTiempo.setGravity(Gravity.CENTER);
+                tvTiempo.setPadding(2, 2, 2, 2); // Ajusta el padding según sea necesario
                 row.addView(tvTiempo);
 
+// TextView para el ritmo
                 TextView tvRitmo = new TextView(this);
                 tvRitmo.setText(String.valueOf((int)intervalo.getPaladas()));
+                tvRitmo.setTextSize(14);
                 tvRitmo.setGravity(Gravity.CENTER);
+                tvRitmo.setPadding(2, 2, 2, 2); // Ajusta el padding según sea necesario
                 row.addView(tvRitmo);
 
                 tableIntervalos.addView(row);
+                i++;
             }
         }else{
             relaVueltas.setVisibility(View.GONE);

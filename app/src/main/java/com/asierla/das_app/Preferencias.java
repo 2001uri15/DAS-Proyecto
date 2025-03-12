@@ -39,16 +39,12 @@ public class Preferencias extends AppCompatActivity {
         config.setLocale(nuevaloc);
         getBaseContext().getResources().updateConfiguration(config, getBaseContext().getResources().getDisplayMetrics());
 
-
         // Cargamos el layout de la vista
         setContentView(R.layout.activity_preferencias);
-
 
         // Inicialización de vistas y otros componentes
         listViewIdiomas = findViewById(R.id.listIdioma);
         btnGuardar = findViewById(R.id.btnGuardar);
-
-
 
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);

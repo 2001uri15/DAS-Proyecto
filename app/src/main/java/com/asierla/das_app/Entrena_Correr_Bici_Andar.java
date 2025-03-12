@@ -581,7 +581,7 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
             if (distancia > intervaloActual + 1.0) {
                 if (contador > 0) { // Solo agregar si hay datos en el intervalo
                     double velocidadMedia = velocidadAcumulada / contador;
-                    kilometroDataList.add(new EntrenamientoData((float) (intervaloActual + 1.0), tiempoAcumulado, (float) velocidadMedia));
+                    kilometroDataList.add(new EntrenamientoData((float) (intervaloActual + 1.0), tiempoAcumulado*1000, (float) velocidadMedia));
                 }
 
                 // Reiniciar las variables para el nuevo intervalo

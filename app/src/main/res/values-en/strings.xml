@@ -57,4 +57,7 @@
     <string name="dinstvalor">Enter the distance</string>
     <string name="fechaValor">Enter the date</string>
     <string name="map">Map</string>
+    <string name="vueltas">Spint</string>
+    <string name="borrarEntrena">Delete training</string>
+    <string name="editarEntrena">Edit training</string>
 </resources>
