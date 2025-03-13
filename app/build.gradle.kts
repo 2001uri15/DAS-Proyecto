@@ -48,7 +48,10 @@ dependencies {
     implementation ("com.google.android.gms:play-services-maps:18.1.0")
     implementation ("androidx.drawerlayout:drawerlayout:1.1.1")
     implementation ("androidx.navigation:navigation-ui:2.3.4")
+    implementation(libs.gridlayout)
+    implementation(libs.recyclerview)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    implementation ("androidx.recyclerview:recyclerview:1.3.2")
 }

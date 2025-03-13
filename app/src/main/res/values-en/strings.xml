@@ -48,7 +48,7 @@
     <string name="no_entrena">There is no training</string>
     <string name="detall_entrena">Training Details</string>
     <string name="fechaEntreno">Training date</string>
-    <string name="paladas">speed</string>
+    <string name="paladas">Speed</string>
     <string name="valoracion">Assessment</string>
     <string name="añadirFila">Add row</string>
     <string name="comentarios">Comments</string>
@@ -60,4 +60,12 @@
     <string name="vueltas">Spint</string>
     <string name="borrarEntrena">Delete training</string>
     <string name="editarEntrena">Edit training</string>
+    <string name="repeticion">Repetitions</string>
+    <string name="todasPesas">All weights</string>
+    <string name="mejoresPesas">Best Weights</string>
+    <string name="ejercicios">%d training</string>
+    <string name="maxPeso">Max. weight</string>
+    <string name="selectEntrena">Select Training</string>
+    <string name="orden">order</string>
+    <string name="peso">weight</string>
 </resources>

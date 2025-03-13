@@ -8,4 +8,13 @@
         <!-- Color del borde de las estrellas -->
         <item name="colorControlHighlight">#FFA500</item> <!-- Naranja -->
     </style>
+
+    <style name="CustomDatePickerDialogTheme" parent="ThemeOverlay.MaterialComponents.Dialog">
+        <!-- Cambia el color primario (azul por defecto) -->
+        <item name="colorPrimary">@color/white</item>
+        <!-- Cambia el color de fondo del diálogo -->
+        <item name="android:windowBackground">@color/white</item>
+        <!-- Cambia el color del texto -->
+        <item name="android:textColorPrimary">@color/black</item>
+    </style>
 </resources>

@@ -61,6 +61,12 @@
     <string name="vueltas">Vueltas</string>
     <string name="borrarEntrena">Borrar entrenamiento</string>
     <string name="editarEntrena">Editar Entrenamiento</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="repeticion">Repeticiones</string>
+    <string name="todasPesas">Todas las Pesas</string>
+    <string name="mejoresPesas">Mejores Pesas</string>
+    <string name="ejercicios">%d ejercicios</string>
+    <string name="maxPeso">Max. Peso</string>
+    <string name="selectEntrena">Seleccionar Entrenamiento</string>
+    <string name="orden">Orden</string>
+    <string name="peso">Peso</string>
 </resources>

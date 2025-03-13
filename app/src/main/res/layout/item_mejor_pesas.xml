@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
+    android:layout_margin="2dp"
     app:cardCornerRadius="8dp"
     app:cardElevation="4dp">
 
@@ -11,7 +11,7 @@
         android:id="@+id/itemHis"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="12dp">
+        android:padding="6dp">
 
         <!-- Imagen de la actividad -->
         <ImageView
@@ -33,14 +33,6 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/textActivida"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Correr"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <TextView
                 android:id="@+id/textView5"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -48,22 +40,31 @@
                 android:textColor="#FFFFFF" />
 
             <TextView
+                android:id="@+id/textActivida"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Correr"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
                 android:id="@+id/textTiempo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="30 min"
+                android:text="c"
+                android:textColor="#FFFFFF"
                 android:textSize="14sp" />
         </LinearLayout>
 
         <!-- Información de la actividad -->
         <LinearLayout
             android:id="@+id/linearLayout3"
-            android:layout_width="125dp"
-            android:layout_height="59dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
             android:layout_marginTop="1dp"
-            android:layout_marginEnd="23dp"
+            android:layout_marginEnd="13dp"
             android:gravity="center|left"
             android:orientation="vertical">
 
@@ -89,6 +90,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="2023-10-01"
+                android:textColor="@color/white"
                 android:textSize="14sp" />
         </LinearLayout>
 

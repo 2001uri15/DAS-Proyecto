@@ -60,4 +60,12 @@
     <string name="vueltas">Buelta</string>
     <string name="borrarEntrena">Entrenamendua ezabatu</string>
     <string name="editarEntrena">Entrenamendua editatu</string>
+    <string name="repeticion">Errepikapenak</string>
+    <string name="todasPesas">Pisu guztiak</string>
+    <string name="mejoresPesas">Pisu onenak</string>
+    <string name="ejercicios">%d ariketa</string>
+    <string name="maxPeso">Max. pisua</string>
+    <string name="selectEntrena">Hautatu Prestakuntza</string>
+    <string name="orden">Ordena</string>
+    <string name="peso">Pisua</string>
 </resources>

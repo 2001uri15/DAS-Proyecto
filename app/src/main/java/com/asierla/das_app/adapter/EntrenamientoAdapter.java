@@ -81,9 +81,9 @@ public class EntrenamientoAdapter extends RecyclerView.Adapter<EntrenamientoAdap
         public EntrenamientoViewHolder(@NonNull View itemView) {
             super(itemView);
             iconoActividad = itemView.findViewById(R.id.iconoActividad);
-            textActividad = itemView.findViewById(R.id.textActividad);
+            textActividad = itemView.findViewById(R.id.textActivida);
             textTiempo = itemView.findViewById(R.id.textTiempo);
-            textDistancia = itemView.findViewById(R.id.textDistancia);
+            textDistancia = itemView.findViewById(R.id.textPeso);
             textFecha = itemView.findViewById(R.id.textFecha);
             itemHis = itemView.findViewById(R.id.itemHis);  // Inicializar itemHis aquí
         }

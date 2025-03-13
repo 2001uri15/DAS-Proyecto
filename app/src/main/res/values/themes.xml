@@ -1,10 +1,17 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+    <!-- Base application theme -->
     <style name="Base.Theme.DAS_APP" parent="Theme.Material3.Light.NoActionBar">
         <!-- Color de la barra de estado -->
         <item name="android:statusBarColor">@color/white</item>
-        <!-- Color del texto/iconos de la barra de estado (claro u oscuro) -->
         <item name="android:windowLightStatusBar">true</item>
+
+        <!-- Forzar colores para botones -->
+        <item name="colorPrimary">@color/icon</item>
+        <item name="colorPrimaryContainer">@color/duracion</item>
+        <item name="colorSurface">@color/duracion</item>
+
+        <!-- Asegurar que los botones tomen este color -->
+        <item name="buttonStyle">@style/MiBotonPersonalizado</item>
     </style>
 
     <style name="Theme.DAS_APP" parent="Base.Theme.DAS_APP" />
@@ -17,4 +24,10 @@
     <style name="Theme.DAS_APP.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="Theme.DAS_APP.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <!-- Estilo personalizado para los botones -->
+    <style name="MiBotonPersonalizado" parent="Widget.MaterialComponents.Button">
+        <item name="android:backgroundTint">@color/icon</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
 </resources>

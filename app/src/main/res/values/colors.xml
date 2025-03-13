@@ -7,4 +7,12 @@
     <color name="velocidad">#46EC40</color>
     <color name="light_gray">#F5F5F5</color>
     <color name="header_background">#E0E0E0</color>
+    <color name="icon">#2471a3</color>
+
+    <color name="primary">#007AFF</color>
+    <color name="primaryDark">#0056B3</color>
+    <color name="primaryLight">#66B2FF</color>
+    <color name="background">#F5F5F5</color>
+    <color name="textPrimary">#1C1C1E</color>
+
 </resources>

@@ -24,6 +24,9 @@
         android:theme="@style/Theme.DAS_APP"
         tools:targetApi="29">
         <activity
+            android:name=".AnadirEntrena"
+            android:exported="false" />
+        <activity
             android:name=".RegistroPesas"
             android:exported="false" />
         <activity

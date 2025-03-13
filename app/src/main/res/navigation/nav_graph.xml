@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/fragmentTodasPesas">
+
+    <!-- Definir los fragments -->
+    <fragment
+        android:id="@+id/fragmentTodasPesas"
+        android:name="com.asierla.das_app.fragments.FragmentTodasPesas"
+        android:label="Todas las Pesas" />
+
+    <fragment
+        android:id="@+id/fragmentMejoresTiempos"
+        android:name="com.asierla.das_app.fragments.FragmentMejoresTiempos"
+        android:label="Mejores Tiempos" />
+
+    <!-- Definir las acciones de navegación -->
+    <action
+        android:id="@+id/action_todasPesas_to_mejoresTiempos"
+        app:destination="@id/fragmentMejoresTiempos" />
+
+    <action
+        android:id="@+id/action_mejoresTiempos_to_todasPesas"
+        app:destination="@id/fragmentTodasPesas" />
+
+</navigation>
