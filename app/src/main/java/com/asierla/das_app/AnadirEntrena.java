@@ -2,8 +2,11 @@ package com.asierla.das_app;
 
 import android.app.DatePickerDialog;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.text.InputType;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -51,6 +54,9 @@ public class AnadirEntrena extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        // Que solo pueda estar en forma vertical
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         // Coger los items de la vista
         ipFecha = findViewById(R.id.ipFecha);
@@ -160,6 +166,7 @@ public class AnadirEntrena extends AppCompatActivity {
 
     // Método para añadir una fila en blanco
     private void addBlankRow() {
+        // Crear la fila
         TableRow tableRow = new TableRow(this);
         TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(
                 TableRow.LayoutParams.MATCH_PARENT,
@@ -167,44 +174,52 @@ public class AnadirEntrena extends AppCompatActivity {
         );
         tableRow.setLayoutParams(layoutParams);
 
+        // Aplicar el fondo a la fila
+        tableRow.setBackgroundResource(R.drawable.table_border); // Asegúrate de que table_border.xml exista en res/drawable
+
         // Añadir EditText para Orden
-        EditText editOrden = new EditText(this);
-        editOrden.setHint(R.string.orden);
-        editOrden.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
-        TableRow.LayoutParams paramsOrden = new TableRow.LayoutParams(
-                0,
-                TableRow.LayoutParams.WRAP_CONTENT,
-                1f
-        );
-        editOrden.setLayoutParams(paramsOrden);
+        EditText editOrden = createTableCell(R.string.orden, android.text.InputType.TYPE_CLASS_NUMBER);
         tableRow.addView(editOrden);
 
         // Añadir EditText para Repetición
-        EditText editRepeticion = new EditText(this);
-        editRepeticion.setHint(R.string.repeticion);
-        editRepeticion.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
-        TableRow.LayoutParams paramsRepeticion = new TableRow.LayoutParams(
-                0,
-                TableRow.LayoutParams.WRAP_CONTENT,
-                1f
-        );
-        editRepeticion.setLayoutParams(paramsRepeticion);
+        EditText editRepeticion = createTableCell(R.string.repeticion, android.text.InputType.TYPE_CLASS_NUMBER);
         tableRow.addView(editRepeticion);
 
         // Añadir EditText para Peso
-        EditText editPeso = new EditText(this);
-        editPeso.setHint(R.string.peso);
-        editPeso.setInputType(android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        TableRow.LayoutParams paramsPeso = new TableRow.LayoutParams(
-                0,
-                TableRow.LayoutParams.WRAP_CONTENT,
-                1f
+        EditText editPeso = createTableCell(
+                R.string.peso,
+                InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_NUMBER_FLAG_SIGNED
         );
-        editPeso.setLayoutParams(paramsPeso);
         tableRow.addView(editPeso);
 
         // Añadir la fila a la tabla
         tableLayout.addView(tableRow);
+    }
+
+    // Método auxiliar para crear celdas con propiedades comunes
+    private EditText createTableCell(int hintResId, int inputType) {
+        EditText editText = new EditText(this);
+        editText.setHint(hintResId); // Establecer el hint desde recursos
+        editText.setInputType(inputType); // Establecer el tipo de entrada
+
+        // Configurar el LayoutParams para la celda
+        TableRow.LayoutParams params = new TableRow.LayoutParams(
+                0, // Ancho (0 para usar weight)
+                TableRow.LayoutParams.WRAP_CONTENT, // Alto (cambiar a 40dp)
+                1f // Peso
+        );
+        params.height = (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP,
+                40, // Altura en dp
+                getResources().getDisplayMetrics()
+        );
+        editText.setLayoutParams(params);
+
+        // Centrar el texto
+        editText.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+        editText.setBackgroundResource(R.drawable.table_border);
+
+        return editText;
     }
 
 }

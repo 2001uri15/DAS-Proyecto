@@ -1,0 +1,13 @@
+<!-- res/drawable/table_cell_background.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Color de fondo (puedes cambiarlo si lo necesitas) -->
+    <solid android:color="@android:color/transparent" />
+
+    <!-- Borde de 1dp con el color @color/primary -->
+    <stroke
+        android:width="1dp"
+        android:color="@color/primary" />
+
+    <!-- Esquinas redondeadas (opcional) -->
+    <corners android:radius="0dp" />
+</shape>

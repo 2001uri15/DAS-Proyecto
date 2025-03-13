@@ -62,6 +62,11 @@ public class Preferencias extends AppCompatActivity {
         // Obtener el ListView del layout y asignar el Adapter
         listViewIdiomas.setAdapter(adapter);
 
+        int posicionIdioma = obtenerPosicionIdioma(idioma, idiomas);
+        if (posicionIdioma != -1) {
+            listViewIdiomas.setItemChecked(posicionIdioma, true);
+        }
+
 
         // Acción al presionar Guardar
         btnGuardar.setOnClickListener(v -> {
@@ -172,8 +177,21 @@ public class Preferencias extends AppCompatActivity {
 
         btnUnidadesMetricas = findViewById(R.id.btnMetricas);
         btnUnidadesMetricas.setOnClickListener(v -> {
-            Toast.makeText(this, "No esta disponible", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.no_disponible, Toast.LENGTH_SHORT).show();
         });
 
+    }
+
+    private int obtenerPosicionIdioma(String idioma, String[] idiomas) {
+        switch (idioma) {
+            case "es":
+                return 2; // "Castellano" está en la posición 2
+            case "eu":
+                return 0; // "Euskara" está en la posición 0
+            case "en":
+                return 1; // "English" está en la posición 1
+            default:
+                return -1; // Si no se encuentra, devolver -1
+        }
     }
 }

@@ -2,11 +2,11 @@ package com.asierla.das_app.model;
 
 import java.util.List;
 
-public class Day {
+public class PesasDia {
     private String fecha;
-    private List<Exercise> ejercicios;
+    private List<PesasEjercicio> ejercicios;
 
-    public Day(String fecha, List<Exercise> ejercicios) {
+    public PesasDia(String fecha, List<PesasEjercicio> ejercicios) {
         this.fecha = fecha;
         this.ejercicios = ejercicios;
     }
@@ -15,7 +15,7 @@ public class Day {
         return fecha;
     }
 
-    public List<Exercise> getEjercicios() {
+    public List<PesasEjercicio> getEjercicios() {
         return ejercicios;
     }
 }

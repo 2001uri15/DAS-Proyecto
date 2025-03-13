@@ -158,31 +158,37 @@
                 android:id="@+id/tableRow1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="4dp">
+                android:background="@drawable/table_border"
+                android:textAlignment="center">
 
                 <EditText
                     android:id="@+id/inputOrden"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:hint="Orden"
-                    android:inputType="number" />
+                    android:layout_height="40dp"
+                    android:background="@drawable/table_border"
+                    android:hint="@string/orden"
+                    android:inputType="number"
+                    android:textAlignment="center" />
 
                 <EditText
                     android:id="@+id/inputRepeticion"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:hint="Repetición"
-                    android:inputType="number" />
+                    android:hint="@string/repeticion"
+                    android:inputType="number"
+                    android:background="@drawable/table_border"
+                    android:textAlignment="center" />
 
                 <EditText
                     android:id="@+id/inputPeso"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:hint="Peso"
-                    android:inputType="numberDecimal" />
+                    android:background="@drawable/table_border"
+                    android:hint="@string/peso"
+                    android:inputType="number|numberDecimal|numberSigned"
+                    android:textAlignment="center" />
             </TableRow>
         </TableLayout>
 

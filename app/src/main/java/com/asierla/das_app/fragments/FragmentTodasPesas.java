@@ -9,14 +9,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.asierla.das_app.AnadirEntrena;
 import com.asierla.das_app.R;
-import com.asierla.das_app.adapter.DayAdapter;
+import com.asierla.das_app.adapter.DiaAdapter;
 import com.asierla.das_app.database.DBHelper;
-import com.asierla.das_app.model.Day;
-import com.asierla.das_app.model.Exercise;
+import com.asierla.das_app.model.PesasDia;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -25,8 +23,8 @@ import java.util.List;
 public class FragmentTodasPesas extends Fragment {
 
     private RecyclerView recyclerView;
-    private DayAdapter dayAdapter;
-    private List<Day> days; // Lista de días
+    private DiaAdapter diaAdapter;
+    private List<PesasDia> pesasDias; // Lista de días
     private DBHelper dbHelper;
 
     public FragmentTodasPesas() {
@@ -45,9 +43,9 @@ public class FragmentTodasPesas extends Fragment {
         recyclerView = view.findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        days = new ArrayList<>();
-        dayAdapter = new DayAdapter(days);
-        recyclerView.setAdapter(dayAdapter);
+        pesasDias = new ArrayList<>();
+        diaAdapter = new DiaAdapter(pesasDias);
+        recyclerView.setAdapter(diaAdapter);
 
         // Cargar datos desde la base de datos
         new LoadWorkoutsTask().execute();
@@ -69,19 +67,19 @@ public class FragmentTodasPesas extends Fragment {
     }
 
     // AsyncTask para cargar los entrenamientos desde la base de datos
-    private class LoadWorkoutsTask extends AsyncTask<Void, Void, List<Day>> {
+    private class LoadWorkoutsTask extends AsyncTask<Void, Void, List<PesasDia>> {
         @Override
-        protected List<Day> doInBackground(Void... voids) {
+        protected List<PesasDia> doInBackground(Void... voids) {
             // Obtener todos los entrenamientos de pesas desde la base de datos
             return dbHelper.obtenerTodosLosEntrenamientosDePesas();
         }
 
         @Override
-        protected void onPostExecute(List<Day> loadedDays) {
+        protected void onPostExecute(List<PesasDia> loadedPesasDias) {
             // Actualizar la lista de días y notificar al adaptador
-            days.clear();
-            days.addAll(loadedDays);
-            dayAdapter.notifyDataSetChanged();
+            pesasDias.clear();
+            pesasDias.addAll(loadedPesasDias);
+            diaAdapter.notifyDataSetChanged();
         }
     }
 }

@@ -10,16 +10,16 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.asierla.das_app.R;
-import com.asierla.das_app.model.Day;
+import com.asierla.das_app.model.PesasDia;
 
 import java.util.List;
 
-public class DayAdapter extends RecyclerView.Adapter<DayAdapter.DayViewHolder> {
+public class DiaAdapter extends RecyclerView.Adapter<DiaAdapter.DayViewHolder> {
 
-    private List<Day> days;
+    private List<PesasDia> pesasDias;
 
-    public DayAdapter(List<Day> days) {
-        this.days = days;
+    public DiaAdapter(List<PesasDia> pesasDias) {
+        this.pesasDias = pesasDias;
     }
 
     @NonNull
@@ -31,15 +31,15 @@ public class DayAdapter extends RecyclerView.Adapter<DayAdapter.DayViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull DayViewHolder holder, int position) {
-        Day day = days.get(position);
-        holder.fecha.setText(day.getFecha());
-        holder.numEjercicios.setText(holder.itemView.getContext().getString(R.string.ejercicios, day.getEjercicios().size()));
+        PesasDia pesasDia = pesasDias.get(position);
+        holder.fecha.setText(pesasDia.getFecha());
+        holder.numEjercicios.setText(holder.itemView.getContext().getString(R.string.ejercicios, pesasDia.getEjercicios().size()));
 
 
         // Configurar el RecyclerView de ejercicios
-        ExerciseAdapter exerciseAdapter = new ExerciseAdapter(day.getEjercicios());
+        EjercicioAdapter ejercicioAdapter = new EjercicioAdapter(pesasDia.getEjercicios());
         holder.recyclerViewEjercicios.setLayoutManager(new LinearLayoutManager(holder.itemView.getContext()));
-        holder.recyclerViewEjercicios.setAdapter(exerciseAdapter);
+        holder.recyclerViewEjercicios.setAdapter(ejercicioAdapter);
 
         // Expandir/colapsar al hacer clic
         holder.itemView.setOnClickListener(v -> {
@@ -50,7 +50,7 @@ public class DayAdapter extends RecyclerView.Adapter<DayAdapter.DayViewHolder> {
 
     @Override
     public int getItemCount() {
-        return days.size();
+        return pesasDias.size();
     }
 
     public static class DayViewHolder extends RecyclerView.ViewHolder {

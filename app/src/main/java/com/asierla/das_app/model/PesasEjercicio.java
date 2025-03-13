@@ -1,12 +1,12 @@
 package com.asierla.das_app.model;
 
-public class Exercise {
+public class PesasEjercicio {
     private String nombre;
     private int id;
     private int repeticiones;
     private double pesoMax;
 
-    public Exercise(String nombre, int id, int repeticiones, double pesoMax) {
+    public PesasEjercicio(String nombre, int id, int repeticiones, double pesoMax) {
         this.nombre = nombre;
         this.id = id;
         this.repeticiones = repeticiones;

@@ -86,6 +86,8 @@ public class Entrena_Ergo extends AppCompatActivity {
                     TableRow.LayoutParams.WRAP_CONTENT
             ));
 
+            newRow.setBackgroundResource(R.drawable.table_border);
+
             // Campo de orden
             TextView textViewOrden = new TextView(this);
             textViewOrden.setLayoutParams(new TableRow.LayoutParams(
@@ -94,10 +96,13 @@ public class Entrena_Ergo extends AppCompatActivity {
                     0.5f
             ));
             textViewOrden.setGravity(Gravity.CENTER);
+            textViewOrden.setVisibility(View.GONE);
+            textViewOrden.setBackgroundResource(R.drawable.table_border);
 
             // Asignar el número de orden empezando desde 0
             int orden = tableIntervalos.getChildCount(); // Empieza en 0
             textViewOrden.setText(String.valueOf(orden));
+            textViewOrden.setBackgroundResource(R.drawable.table_border);
 
             // Campo de distancia
             EditText editTextDistancia = new EditText(this);
@@ -107,6 +112,7 @@ public class Entrena_Ergo extends AppCompatActivity {
                     1
             ));
             editTextDistancia.setHint(R.string.distancia);
+            editTextDistancia.setBackgroundResource(R.drawable.table_border);
             editTextDistancia.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
 
             // Campo de tiempo
@@ -117,6 +123,7 @@ public class Entrena_Ergo extends AppCompatActivity {
                     1
             ));
             editTextTiempo.setHint("MM:SS,XX");
+            editTextTiempo.setBackgroundResource(R.drawable.table_border);
             editTextTiempo.setInputType(android.text.InputType.TYPE_CLASS_TEXT); // Permitir texto para usar : y ,
 
             // Campo de paladas
@@ -127,6 +134,7 @@ public class Entrena_Ergo extends AppCompatActivity {
                     1
             ));
             editTextPaladas.setHint(R.string.paladas);
+            editTextPaladas.setBackgroundResource(R.drawable.table_border);
             editTextPaladas.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
 
             // Añadir los campos a la fila

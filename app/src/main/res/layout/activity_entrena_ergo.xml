@@ -177,7 +177,9 @@
                     <TableRow
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="#E0E0E0">
+                        android:background="@color/primary"
+                        android:padding="4dp">
+
 
                         <TextView
                             android:layout_width="0dp"
@@ -185,6 +187,7 @@
                             android:layout_weight="1"
                             android:gravity="center"
                             android:text="@string/distancia"
+                            android:textColor="@color/white"
                             android:textStyle="bold" />
 
                         <TextView
@@ -192,6 +195,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:gravity="center"
+                            android:textColor="@color/white"
                             android:text="@string/duracion"
                             android:textStyle="bold" />
 
@@ -200,6 +204,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:gravity="center"
+                            android:textColor="@color/white"
                             android:text="@string/paladas"
                             android:textStyle="bold" />
                     </TableRow>

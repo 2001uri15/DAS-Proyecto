@@ -1,5 +1,6 @@
 package com.asierla.das_app;
 
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -33,6 +34,9 @@ public class RegistroPesas extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        // Que solo pueda estar en forma vertical
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         buttonTodasPesas = findViewById(R.id.btnTodasPesas);
         buttonMejoresTiempos = findViewById(R.id.btnMejorTiempo);

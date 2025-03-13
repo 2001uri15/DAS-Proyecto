@@ -147,6 +147,7 @@ public class VerEntrenamiento extends AppCompatActivity {
                         TableRow.LayoutParams.MATCH_PARENT,
                         TableRow.LayoutParams.WRAP_CONTENT
                 ));
+                row.setBackgroundResource(R.drawable.table_border);
 
 
                 if (i % 2 == 0) {
@@ -161,6 +162,7 @@ public class VerEntrenamiento extends AppCompatActivity {
                 tvOrden.setGravity(Gravity.CENTER);
                 tvOrden.setTextSize(14);
                 tvOrden.setPadding(2, 2, 2, 2); // Ajusta el padding según sea necesario
+                tvOrden.setBackgroundResource(R.drawable.table_border);
                 row.addView(tvOrden);
 
 // TextView para la distancia
@@ -173,6 +175,7 @@ public class VerEntrenamiento extends AppCompatActivity {
                 tvDistancia.setGravity(Gravity.CENTER);
                 tvDistancia.setTextSize(14);
                 tvDistancia.setPadding(2, 2, 2, 2); // Ajusta el padding según sea necesario
+                tvDistancia.setBackgroundResource(R.drawable.table_border);
                 row.addView(tvDistancia);
 
 // TextView para el tiempo
@@ -181,6 +184,7 @@ public class VerEntrenamiento extends AppCompatActivity {
                 tvTiempo.setTextSize(14);
                 tvTiempo.setGravity(Gravity.CENTER);
                 tvTiempo.setPadding(2, 2, 2, 2); // Ajusta el padding según sea necesario
+                tvTiempo.setBackgroundResource(R.drawable.table_border);
                 row.addView(tvTiempo);
 
 // TextView para el ritmo
@@ -189,6 +193,7 @@ public class VerEntrenamiento extends AppCompatActivity {
                 tvRitmo.setTextSize(14);
                 tvRitmo.setGravity(Gravity.CENTER);
                 tvRitmo.setPadding(2, 2, 2, 2); // Ajusta el padding según sea necesario
+                tvRitmo.setBackgroundResource(R.drawable.table_border);
                 row.addView(tvRitmo);
 
                 tableIntervalos.addView(row);

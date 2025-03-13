@@ -7,11 +7,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import com.asierla.das_app.model.Day;
+import com.asierla.das_app.model.PesasDia;
 import com.asierla.das_app.model.Entrenamiento;
 import com.asierla.das_app.model.EntrenamientoInterval;
 import com.asierla.das_app.R;
-import com.asierla.das_app.model.Exercise;
+import com.asierla.das_app.model.PesasEjercicio;
 import com.asierla.das_app.model.MejorPesas;
 import com.google.android.gms.maps.model.LatLng;
 
@@ -270,6 +270,9 @@ public class DBHelper extends SQLiteOpenHelper {
         db.delete("entrenamientos", null, null);
         db.delete("inter_entrena", null, null);
         db.delete("Ruta", null, null);
+        db.delete("TipoPesas", null, null);
+        db.delete("Ejercicio", null, null);
+        db.delete("Repeticiones", null, null);
         db.close();
     }
 
@@ -473,8 +476,8 @@ public class DBHelper extends SQLiteOpenHelper {
         db.close();
     }
 
-    public ArrayList<Day> obtenerTodosLosEntrenamientosDePesas() {
-        ArrayList<Day> entrenamientos = new ArrayList<>();
+    public ArrayList<PesasDia> obtenerTodosLosEntrenamientosDePesas() {
+        ArrayList<PesasDia> entrenamientos = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
 
         // Consulta para obtener todos los entrenamientos de pesas
@@ -487,11 +490,11 @@ public class DBHelper extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             do {
                 String fecha = cursor.getString(0);
-                ArrayList<Exercise> ejercicio = obtenerRepeticionesPorEjercicio(fecha);
+                ArrayList<PesasEjercicio> ejercicio = obtenerRepeticionesPorEjercicio(fecha);
 
                 // Crear un objeto Day con los datos obtenidos
-                Day day = new Day(fecha, ejercicio);
-                entrenamientos.add(day);
+                PesasDia pesasDia = new PesasDia(fecha, ejercicio);
+                entrenamientos.add(pesasDia);
             } while (cursor.moveToNext());
         }
 
@@ -500,8 +503,8 @@ public class DBHelper extends SQLiteOpenHelper {
         return entrenamientos;
     }
 
-    public ArrayList<Exercise> obtenerRepeticionesPorEjercicio(String fecha) {
-        ArrayList<Exercise> repeticiones = new ArrayList<>();
+    public ArrayList<PesasEjercicio> obtenerRepeticionesPorEjercicio(String fecha) {
+        ArrayList<PesasEjercicio> repeticiones = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
 
         // Consulta para obtener la información requerida
@@ -523,8 +526,8 @@ public class DBHelper extends SQLiteOpenHelper {
                 double pesoMaximo = cursor.getDouble(3);
 
                 // Crear un objeto Exercise con los datos obtenidos
-                Exercise exercise = new Exercise(nombreActividad, idEjercicio, totalRepeticiones, pesoMaximo);
-                repeticiones.add(exercise);
+                PesasEjercicio pesasEjercicio = new PesasEjercicio(nombreActividad, idEjercicio, totalRepeticiones, pesoMaximo);
+                repeticiones.add(pesasEjercicio);
             } while (cursor.moveToNext());
         }
 

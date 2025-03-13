@@ -9,16 +9,16 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.asierla.das_app.R;
-import com.asierla.das_app.model.Exercise;
+import com.asierla.das_app.model.PesasEjercicio;
 
 import java.util.List;
 
-public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.ExerciseViewHolder> {
+public class EjercicioAdapter extends RecyclerView.Adapter<EjercicioAdapter.ExerciseViewHolder> {
 
-    private List<Exercise> exercises;
+    private List<PesasEjercicio> pesasEjercicios;
 
-    public ExerciseAdapter(List<Exercise> exercises) {
-        this.exercises = exercises;
+    public EjercicioAdapter(List<PesasEjercicio> pesasEjercicios) {
+        this.pesasEjercicios = pesasEjercicios;
     }
 
     @NonNull
@@ -30,19 +30,19 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.Exerci
 
     @Override
     public void onBindViewHolder(@NonNull ExerciseViewHolder holder, int position) {
-        Exercise exercise = exercises.get(position);
+        PesasEjercicio pesasEjercicio = pesasEjercicios.get(position);
 
         // Asignar el nombre del ejercicio
-        holder.nombreEjercicio.setText(exercise.getNombre());
+        holder.nombreEjercicio.setText(pesasEjercicio.getNombre());
 
         // Asignar los valores de la tabla
-        holder.repeticiones.setText(String.valueOf(exercise.getRepeticiones()));
-        holder.pesoMax.setText(String.valueOf(exercise.getPesoMax()));
+        holder.repeticiones.setText(String.valueOf(pesasEjercicio.getRepeticiones()));
+        holder.pesoMax.setText(String.valueOf(pesasEjercicio.getPesoMax()));
     }
 
     @Override
     public int getItemCount() {
-        return exercises.size();
+        return pesasEjercicios.size();
     }
 
     public static class ExerciseViewHolder extends RecyclerView.ViewHolder {
