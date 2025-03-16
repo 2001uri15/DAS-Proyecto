@@ -108,7 +108,7 @@
             android:id="@+id/textView17"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/fechaEntreno"
+            android:text="@string/vueltas"
             android:textStyle="bold" />
 
         <!-- Tabla con tres columnas -->

@@ -25,7 +25,6 @@ public class FragmentMejoresTiempos extends Fragment {
 
     private RecyclerView recyclerView;
     private MejorPesasAdapter adapter;
-    private List<MejorPesas> mejorPesasList;
 
     public FragmentMejoresTiempos() {
         // Required empty public constructor

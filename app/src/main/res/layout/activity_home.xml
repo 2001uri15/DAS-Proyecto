@@ -99,7 +99,8 @@
                 android:layout_marginLeft="3dp"
                 android:layout_marginRight="3dp"
                 android:background="@drawable/icon_remo"
-                android:contentDescription="Añadir" />
+                android:contentDescription="Añadir"
+                android:visibility="gone" />
         </LinearLayout>
 
         <!-- Botón de historial -->

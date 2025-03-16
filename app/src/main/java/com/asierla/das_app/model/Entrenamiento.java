@@ -12,7 +12,10 @@ public class Entrenamiento {
     private int valoracion;
     private String comentarios;
 
-    public Entrenamiento(int id, int idEntrenamiento, int nombre, int icono, String tiempo, double distancia, String fecha, double velocidad, int valoracion, String comentarios) {
+    public Entrenamiento(int id, int idEntrenamiento, int nombre, int icono,
+                         String tiempo, double distancia, String fecha,
+                         double velocidad, int valoracion,
+                         String comentarios) {
         this.id = id;
         this.idEntrenamiento = idEntrenamiento;
         this.icono = icono;

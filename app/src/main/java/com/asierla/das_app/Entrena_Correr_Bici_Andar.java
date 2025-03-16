@@ -67,7 +67,6 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
     private float totalDistance = 0;
     private Location lastLocation;
     private Polyline routePolyline;
-    private PolylineOptions polyline;
     private final Handler handler = new Handler();
     private List<Float> speedList = new ArrayList<>();
 
@@ -79,9 +78,6 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
 
     private NotificationManager elManager;
     private NotificationCompat.Builder elBuilder;
-
-
-
 
 
     @Override
@@ -389,7 +385,7 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         List<EntrenamientoData> kilometroDataList = agruparPorIntervalosDe1Km(entrenamientoDataList);
         int i = 1;
         for (EntrenamientoData data : kilometroDataList) {
-            dbHelper.guardarIntervalo(idEntrena, i, data.getTiempo(),data.getDistancia(),data.getVelocidad());
+            dbHelper.guardarIntervalo(idEntrena, i, data.getTiempo()*1000,data.getDistancia(),data.getVelocidad());
             Log.d("KilometroData", data.toString());
             i++;
         }
@@ -523,7 +519,7 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
 
         // Opción 1: Guardar y Salir
         builder.setPositiveButton(R.string.guardar_salir, (dialog, which) -> {
-            startTraining();
+            stopTraining();
         });
 
         // Opción 2: Salir

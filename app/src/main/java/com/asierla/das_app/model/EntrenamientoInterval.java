@@ -21,10 +21,6 @@ public class EntrenamientoInterval {
         return id;
     }
 
-    public int getIdEntrena() {
-        return idEntrena;
-    }
-
     public int getOrden() {
         return orden;
     }

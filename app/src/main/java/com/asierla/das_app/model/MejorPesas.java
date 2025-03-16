@@ -24,8 +24,4 @@ public class MejorPesas {
     public double getMaxPeso() {
         return maxPeso;
     }
-
-    public int getIcon() {
-        return icon;
-    }
 }

@@ -120,14 +120,15 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS entrenamientos");
         db.execSQL("DROP TABLE IF EXISTS inter_entrena");
         db.execSQL("DROP TABLE IF EXISTS Ruta");
-        db.execSQL("DROP TABLE IF EXISTS TipoPesas");
         db.execSQL("DROP TABLE IF EXISTS Ejercicio");
         db.execSQL("DROP TABLE IF EXISTS Repeticiones");
         onCreate(db);
     }
 
     // Función para guardar un entrenamiento con parámetros simples
-    public long guardarEntrenamientosSimplesErgo(int idActividad, String fechaHora, double distancia, long tiempo, double velocidad, int valoracion, String comentarios) {
+    public long guardarEntrenamientosSimplesErgo(int idActividad, String fechaHora, double distancia,
+                                                 long tiempo, double velocidad, int valoracion,
+                                                 String comentarios) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("idActividad", idActividad);  // id de la actividad
@@ -152,7 +153,8 @@ public class DBHelper extends SQLiteOpenHelper {
         return result;
     }
 
-    public long guardarIntervalo(long idEntrena, int orden, long tiempo, double distancia, double velocidad) {
+    public long guardarIntervalo(long idEntrena, int orden, long tiempo, double distancia,
+                                 double velocidad) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("idEntrena", idEntrena);
@@ -206,7 +208,8 @@ public class DBHelper extends SQLiteOpenHelper {
         return entrenamientos;
     }
 
-    public long guardarEntrenamientoAuto(int tipoEntrenamiento,String fecha, double distancia, long tiempoSegundos, float velocidad){
+    public long guardarEntrenamientoAuto(int tipoEntrenamiento,String fecha, double distancia,
+                                         long tiempoSegundos, float velocidad){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("idActividad", tipoEntrenamiento);  // id de la actividad

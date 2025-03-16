@@ -43,7 +43,7 @@
             android:exported="false" />
         <activity
             android:name=".Entrena_Correr_Bici_Andar"
-            android:exported="false" />
+            android:windowSoftInputMode="adjustPan" />
         <activity
             android:name=".Home"
             android:exported="false" />

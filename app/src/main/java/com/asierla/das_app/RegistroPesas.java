@@ -21,8 +21,8 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class RegistroPesas extends AppCompatActivity {
 
-    private Button buttonTodasPesas;
-    private Button buttonMejoresTiempos;
+    private Button btnTodasPesas;
+    private Button btnMejoresTiempos;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,30 +38,30 @@ public class RegistroPesas extends AppCompatActivity {
         // Que solo pueda estar en forma vertical
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        buttonTodasPesas = findViewById(R.id.btnTodasPesas);
-        buttonMejoresTiempos = findViewById(R.id.btnMejorTiempo);
+        btnTodasPesas = findViewById(R.id.btnTodasPesas);
+        btnMejoresTiempos = findViewById(R.id.btnMejorTiempo);
 
-        buttonTodasPesas.setOnClickListener(new View.OnClickListener() {
+        btnTodasPesas.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 loadFragment(new FragmentTodasPesas());
-                buttonTodasPesas.setBackgroundResource(R.drawable.boton_seleccionado);
-                buttonMejoresTiempos.setBackgroundResource(android.R.color.transparent);
+                btnTodasPesas.setBackgroundResource(R.drawable.boton_seleccionado);
+                btnMejoresTiempos.setBackgroundResource(android.R.color.transparent);
             }
         });
 
-        buttonMejoresTiempos.setOnClickListener(new View.OnClickListener() {
+        btnMejoresTiempos.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 loadFragment(new FragmentMejoresTiempos());
-                buttonMejoresTiempos.setBackgroundResource(R.drawable.boton_seleccionado);
-                buttonTodasPesas.setBackgroundResource(android.R.color.transparent);
+                btnMejoresTiempos.setBackgroundResource(R.drawable.boton_seleccionado);
+                btnTodasPesas.setBackgroundResource(android.R.color.transparent);
             }
         });
 
         // Cargar el fragment por defecto
         loadFragment(new FragmentTodasPesas());
-        buttonTodasPesas.setBackgroundResource(R.drawable.boton_seleccionado);
+        btnTodasPesas.setBackgroundResource(R.drawable.boton_seleccionado);
 
 
     }
