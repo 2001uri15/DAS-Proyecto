@@ -13,13 +13,19 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.net.ssl.SSLHandshakeException;
 
 public class DBServer extends Worker {
     private static final String BASE_URL = "https://das.egunero.eus/";
@@ -35,7 +41,11 @@ public class DBServer extends Worker {
         String action = getInputData().getString("action");
         String username = getInputData().getString("username");
         String password = getInputData().getString("password");
+        String nombre = getInputData().getString("nombre");
+        String apellido = getInputData().getString("apellido");
+        String mail = getInputData().getString("mail");
         String token = getInputData().getString("token");
+        int privacidad = getInputData().getInt("privacidad", 1);
 
         try {
             String result;
@@ -47,7 +57,7 @@ public class DBServer extends Worker {
                     result = validateToken(token);
                     break;
                 case "registrar":
-                    result = null;//registrar(username, nombre, apellido, mail, password, privacidad);
+                    result = registrar(username, nombre, apellido, password, mail, String.valueOf(privacidad));
                     break;
                 default:
                     return Result.failure(createOutputData("Error: Acción no válida"));
@@ -74,52 +84,99 @@ public class DBServer extends Worker {
     }
 
     private String hacerPeticion(String endpoint, Map<String, String> params) throws IOException {
+        // Validación de parámetros de entrada
+        if (endpoint == null || endpoint.trim().isEmpty()) {
+            throw new IllegalArgumentException("El endpoint no puede ser nulo o vacío");
+        }
+
+        if (params == null) {
+            throw new IllegalArgumentException("Los parámetros no pueden ser nulos");
+        }
+
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
+        String response = null;
 
         try {
-            URL url = new URL(BASE_URL + endpoint);
-            urlConnection = (HttpURLConnection) url.openConnection();
+            // Construir URL con validación
+            String fullUrl = BASE_URL + (endpoint.startsWith("/") ? endpoint.substring(1) : endpoint);
+            URL url = new URL(fullUrl);
+            Log.d(TAG, "Conectando a: " + fullUrl);
 
             // Configurar conexión
+            urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("POST");
             urlConnection.setDoOutput(true);
             urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            urlConnection.setConnectTimeout(5000);
-            urlConnection.setReadTimeout(5000);
+            urlConnection.setConnectTimeout(15000);
+            urlConnection.setReadTimeout(15000);
 
-            // Construir parámetros POST
+            // Construir y validar parámetros POST
             StringBuilder postData = new StringBuilder();
             for (Map.Entry<String, String> param : params.entrySet()) {
-                if (postData.length() != 0) postData.append('&');
-                postData.append(param.getKey());
-                postData.append('=');
-                postData.append(param.getValue());
+                if (param.getKey() == null || param.getValue() == null) {
+                    Log.w(TAG, "Parámetro nulo detectado - Key: " + param.getKey() + ", Value: " + param.getValue());
+                    continue;
+                }
+
+                if (postData.length() != 0) {
+                    postData.append('&');
+                }
+                postData.append(URLEncoder.encode(param.getKey(), "UTF-8"))
+                        .append('=')
+                        .append(URLEncoder.encode(param.getValue(), "UTF-8"));
             }
 
-            // Enviar parámetros
+            // Verificar si hay parámetros válidos
+            if (postData.length() == 0) {
+                throw new IOException("No se proporcionaron parámetros válidos para la solicitud");
+            }
+
+            Log.d(TAG, "Enviando parámetros: " + postData.toString());
+
+            // Enviar datos
             try (OutputStream os = urlConnection.getOutputStream()) {
                 byte[] input = postData.toString().getBytes(StandardCharsets.UTF_8);
                 os.write(input, 0, input.length);
+                os.flush();
             }
 
-            // Verificar respuesta
+            // Procesar respuesta
             int responseCode = urlConnection.getResponseCode();
-            if (responseCode != HttpURLConnection.HTTP_OK) {
-                throw new IOException("HTTP error code: " + responseCode);
+            Log.d(TAG, "Código de respuesta: " + responseCode);
+
+            InputStream inputStream;
+            if (responseCode >= HttpURLConnection.HTTP_OK && responseCode < HttpURLConnection.HTTP_MULT_CHOICE) {
+                inputStream = urlConnection.getInputStream();
+            } else {
+                inputStream = urlConnection.getErrorStream();
             }
 
             // Leer respuesta
-            StringBuilder response = new StringBuilder();
             try (BufferedReader br = new BufferedReader(
-                    new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8))) {
+                    new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+                StringBuilder responseBuilder = new StringBuilder();
                 String responseLine;
                 while ((responseLine = br.readLine()) != null) {
-                    response.append(responseLine.trim());
+                    responseBuilder.append(responseLine);
                 }
+                response = responseBuilder.toString();
             }
 
-            return response.toString();
+            if (response == null || response.trim().isEmpty()) {
+                throw new IOException("Respuesta vacía del servidor");
+            }
+
+            Log.d(TAG, "Respuesta recibida: " + response);
+
+        } catch (MalformedURLException e) {
+            throw new IOException("URL mal formada: " + e.getMessage(), e);
+        } catch (SocketTimeoutException e) {
+            throw new IOException("Tiempo de espera agotado al conectar con el servidor", e);
+        } catch (SSLHandshakeException e) {
+            throw new IOException("Error de seguridad SSL: " + e.getMessage(), e);
+        } catch (IOException e) {
+            throw new IOException("Error de comunicación: " + e.getMessage(), e);
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
@@ -128,10 +185,12 @@ public class DBServer extends Worker {
                 try {
                     reader.close();
                 } catch (IOException e) {
-                    Log.e(TAG, "Error cerrando reader", e);
+                    Log.e(TAG, "Error al cerrar reader", e);
                 }
             }
         }
+
+        return response;
     }
 
     private Data createOutputData(String message) {
@@ -154,15 +213,15 @@ public class DBServer extends Worker {
         return hacerPeticion(recurso, params);
     }
 
-    private String registrar(String username, String nombre, String apellido, String contrasenia,
-                             String mail, String privacidad) throws IOException{
+    private String registrar(String username, String nombre, String apellido, String password,
+                             String mail, String privacidad) throws IOException {
         String recurso = "registrar.php";
 
         Map<String, String> params = new HashMap<>();
         params.put("username", username);
         params.put("nombre", nombre);
-        params.put("apellidos", apellido);
-        params.put("password", contrasenia);
+        params.put("apellido", apellido);
+        params.put("password", password);
         params.put("mail", mail);
         params.put("privacidad", privacidad);
 

@@ -15,6 +15,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -29,6 +30,8 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.navigation.NavigationView;
 
+import java.time.Instant;
+import java.time.temporal.TemporalAdjuster;
 import java.util.Locale;
 
 public class Home extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -62,6 +65,8 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         drawerLayout = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        setupNavHeader(navigationView);
 
         // Configurar el botón de hamburguesa (toggle)
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -245,9 +250,14 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         } else if (id == R.id.nav_salir) {
             // Acción para cerrar sesión e ir a la página de Inicio de sesión
             // Decimos que no ha iniciado.
-            SharedPreferences prefs2 = getSharedPreferences("Ajustes", MODE_PRIVATE);
+            SharedPreferences prefs2 = getSharedPreferences("Usuario", MODE_PRIVATE);
             SharedPreferences.Editor editor = prefs2.edit();
             editor.putBoolean("iniciado", false);
+            editor.putString("token", null);
+            editor.putString("nombre", null);
+            editor.putString("apellido", null);
+            editor.putString("username", null);
+            editor.putString("mail", null);
             editor.apply();
 
             // Ir a la página de Inicio de sesión
@@ -269,5 +279,26 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         } else {
             super.onBackPressed();
         }
+    }
+
+    private void setupNavHeader(NavigationView navigationView) {
+        // Obtener la vista del header (puede ser null si no hay header)
+        View headerView = navigationView.getHeaderView(0);
+        if (headerView == null) return;
+
+        // Obtener referencias a los views
+        TextView tvUsername = headerView.findViewById(R.id.username);
+        TextView tvMail = headerView.findViewById(R.id.mail);
+
+        // Obtener datos del usuario (desde SharedPreferences, base de datos, etc.)
+        SharedPreferences prefs = getSharedPreferences("Usuario", MODE_PRIVATE);
+        String nombre = prefs.getString("nombre", getString(R.string.app_name));
+        String apellido = prefs.getString("apellido", " ");
+        String email = prefs.getString("mail", " ");
+
+        // Actualizar views
+        tvUsername.setText(nombre + " " + apellido);
+        tvMail.setText(email);
+
     }
 }

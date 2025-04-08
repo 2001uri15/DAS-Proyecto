@@ -89,6 +89,17 @@
                 android:padding="12dp"
                 android:textColor="@android:color/black" />
 
+            <!-- Mail -->
+            <EditText
+                android:id="@+id/inputmail"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="10dp"
+                android:autofillHints="familyName"
+                android:hint="Correo electronico"
+                android:inputType="textPersonName"
+                android:padding="12dp"
+                android:textColor="@android:color/black" />
             <!-- Contraseña -->
             <EditText
                 android:id="@+id/inputContrasena"
@@ -146,6 +157,7 @@
 
             <!-- Enlace a Login -->
             <TextView
+                android:id="@+id/iniciarSesion"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"

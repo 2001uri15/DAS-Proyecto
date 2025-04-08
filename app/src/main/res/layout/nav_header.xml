@@ -9,13 +9,14 @@
     android:gravity="bottom">
 
     <ImageView
-        android:id="@+id/imageView"
+        android:id="@+id/userFoto"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:contentDescription="Logo"
         android:src="@drawable/icon_user" />
 
     <TextView
+        android:id="@+id/username"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/app_name"
@@ -23,11 +24,12 @@
         android:textSize="18sp" />
 
     <TextView
+        android:id="@+id/mail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="correo@ejemplo.com"
         android:textColor="@android:color/white"
         android:textSize="14sp"
-        android:visibility="gone" />
+        android:visibility="visible" />
 
 </LinearLayout>

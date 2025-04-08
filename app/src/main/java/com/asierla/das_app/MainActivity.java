@@ -8,8 +8,10 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.Manifest;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -34,11 +36,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        SharedPreferences prefs = getSharedPreferences("Ajustes", MODE_PRIVATE);
+
         // Si ya ha iniciado que valla a home
-        Boolean iniciado = prefs.getBoolean("iniciado", false);
+        SharedPreferences user = getSharedPreferences("Usuario", MODE_PRIVATE);
+        Boolean iniciado = user.getBoolean("iniciado", false);
         if(iniciado){
-            Intent intent = new Intent(MainActivity.this, Home.class);c
+            Intent intent = new Intent(MainActivity.this, Home.class);
             startActivity(intent);
             finish();
         }
@@ -51,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         // Obtener idioma guardado en SharedPreferences
+        SharedPreferences prefs = getSharedPreferences("Ajustes", MODE_PRIVATE);
         String idioma = prefs.getString("idioma", "es"); // Por defecto español
 
         // Aplicar idioma antes de cargar el contenido
@@ -76,13 +80,17 @@ public class MainActivity extends AppCompatActivity {
 
         Button btnEntrar = findViewById(R.id.btnEntrar);
         btnEntrar.setOnClickListener(v -> {
-            Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), "No se puede iniciar sesión, acción no disponible", Snackbar.LENGTH_SHORT);
-            snackbar.show();
+            TextView usuario = findViewById(R.id.inputUsuario);
+            TextView contra = findViewById(R.id.inputContrasena);
+            CheckBox mateSesiCheck = findViewById(R.id.matenerSesi);
+            boolean mateSesi = mateSesiCheck.isChecked();
+
+            loginUser(usuario.getText().toString(), contra.getText().toString(), mateSesi);
         });
 
         Button btnEntrarSinIniciar = findViewById(R.id.btnEntrarSinIniciar);
         btnEntrarSinIniciar.setOnClickListener(v -> {
-            SharedPreferences prefs2 = getSharedPreferences("Ajustes", MODE_PRIVATE);
+            SharedPreferences prefs2 = getSharedPreferences("Usuario", MODE_PRIVATE);
             SharedPreferences.Editor editor = prefs2.edit();
             editor.putBoolean("iniciado", true);
             editor.apply();
@@ -93,10 +101,6 @@ public class MainActivity extends AppCompatActivity {
 
         Button btnRegistrar = findViewById(R.id.btnRegistrar);
         btnRegistrar.setOnClickListener(v -> {
-            SharedPreferences prefs2 = getSharedPreferences("Ajustes", MODE_PRIVATE);
-            SharedPreferences.Editor editor = prefs2.edit();
-            editor.putBoolean("iniciado", true);
-            editor.apply();
             Intent intent = new Intent(MainActivity.this, Registrar.class);
             startActivity(intent);
             finish();
@@ -104,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void loginUser(String username, String password) {
+    private void loginUser(String username, String password, boolean manSesi) {
         Data inputData = new Data.Builder()
                 .putString("action", "login")
                 .putString("username", username)
@@ -121,26 +125,31 @@ public class MainActivity extends AppCompatActivity {
                         if (workInfo.getState() == WorkInfo.State.SUCCEEDED) {
                             try {
                                 JSONObject response = new JSONObject(workInfo.getOutputData().getString("result"));
-
                                 if (response.getString("status").equals("success")) {
-                                    /*
-                                     * Hay que guardar la informacón del usuario en preferencias
-                                     * - token
-                                     * - nombre, apellido, username, mail, foto.
-                                     */
-                                    // Login exitoso
+                                    // Cogemos la info de JSON de la respuesta
                                     String token = response.getString("token");
-                                    String nombre = response.getString("nombre");
-                                    String apellido = response.getString("apellido");
+                                    String nombre2 = response.getString("nombre");
+                                    String apellido2 = response.getString("apellido");
                                     String username2 = response.getString("username");
-                                    String mail = response.getString("mail");
-                                    String foto = response.optString("foto", null);
+                                    String mail2 = response.getString("mail");
 
                                     // Guardar datos de sesión (usando SharedPreferences, por ejemplo)
-                                    //saveUserData(token, nombre, apellido, username2, mail, foto);
+                                    SharedPreferences prefs2 = getSharedPreferences("Usuario", MODE_PRIVATE);
+                                    SharedPreferences.Editor editor = prefs2.edit();
+                                    if(manSesi){
+                                        editor.putBoolean("iniciado", true);
+                                    }else {
+                                        editor.putBoolean("iniciado", false);
+                                    }
+                                    editor.putString("token", token);
+                                    editor.putString("nombre", nombre2);
+                                    editor.putString("apellido", apellido2);
+                                    editor.putString("username", username2);
+                                    editor.putString("mail", mail2);
+                                    editor.apply();
 
                                     // Redirigir al main activity
-                                    startActivity(new Intent(this, MainActivity.class));
+                                    startActivity(new Intent(this, Home.class));
                                     finish();
                                 } else {
                                     showError(response.getString("message"));
