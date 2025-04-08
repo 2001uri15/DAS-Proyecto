@@ -69,4 +69,5 @@
     <string name="selectEntrena">Seleccionar Entrenamiento</string>
     <string name="orden">Orden</string>
     <string name="peso">Peso</string>
+    <string name="registar">Registrar</string>
 </resources>

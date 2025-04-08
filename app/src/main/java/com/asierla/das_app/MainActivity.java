@@ -10,13 +10,22 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.Manifest;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
 
+import com.asierla.das_app.database.DBServer;
 import com.google.android.material.snackbar.Snackbar;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.Locale;
 
@@ -29,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
         // Si ya ha iniciado que valla a home
         Boolean iniciado = prefs.getBoolean("iniciado", false);
         if(iniciado){
-            Intent intent = new Intent(MainActivity.this, Home.class);
+            Intent intent = new Intent(MainActivity.this, Home.class);c
             startActivity(intent);
             finish();
         }
@@ -81,5 +90,74 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+
+        Button btnRegistrar = findViewById(R.id.btnRegistrar);
+        btnRegistrar.setOnClickListener(v -> {
+            SharedPreferences prefs2 = getSharedPreferences("Ajustes", MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs2.edit();
+            editor.putBoolean("iniciado", true);
+            editor.apply();
+            Intent intent = new Intent(MainActivity.this, Registrar.class);
+            startActivity(intent);
+            finish();
+        });
+    }
+
+
+    private void loginUser(String username, String password) {
+        Data inputData = new Data.Builder()
+                .putString("action", "login")
+                .putString("username", username)
+                .putString("password", password)
+                .build();
+
+        OneTimeWorkRequest loginRequest = new OneTimeWorkRequest.Builder(DBServer.class)
+                .setInputData(inputData)
+                .build();
+
+        WorkManager.getInstance(this).getWorkInfoByIdLiveData(loginRequest.getId())
+                .observe(this, workInfo -> {
+                    if (workInfo != null && workInfo.getState().isFinished()) {
+                        if (workInfo.getState() == WorkInfo.State.SUCCEEDED) {
+                            try {
+                                JSONObject response = new JSONObject(workInfo.getOutputData().getString("result"));
+
+                                if (response.getString("status").equals("success")) {
+                                    /*
+                                     * Hay que guardar la informacón del usuario en preferencias
+                                     * - token
+                                     * - nombre, apellido, username, mail, foto.
+                                     */
+                                    // Login exitoso
+                                    String token = response.getString("token");
+                                    String nombre = response.getString("nombre");
+                                    String apellido = response.getString("apellido");
+                                    String username2 = response.getString("username");
+                                    String mail = response.getString("mail");
+                                    String foto = response.optString("foto", null);
+
+                                    // Guardar datos de sesión (usando SharedPreferences, por ejemplo)
+                                    //saveUserData(token, nombre, apellido, username2, mail, foto);
+
+                                    // Redirigir al main activity
+                                    startActivity(new Intent(this, MainActivity.class));
+                                    finish();
+                                } else {
+                                    showError(response.getString("message"));
+                                }
+                            } catch (JSONException e) {
+                                showError("Error al procesar la respuesta");
+                            }
+                        } else {
+                            showError(workInfo.getOutputData().getString("result"));
+                        }
+                    }
+                });
+
+        WorkManager.getInstance(this).enqueue(loginRequest);
+    }
+
+    private void showError(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }

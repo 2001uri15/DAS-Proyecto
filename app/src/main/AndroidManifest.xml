@@ -4,11 +4,11 @@
     <!-- Con esta línea la app puede poner notificaciones en la barra -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> <!-- Permisos para utilizar el gps cuando la app este activa -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /> <!-- Permisos para utilizar el gps cuando la app este inactiva -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" /> <!-- Permisos para habrir otras aplicaciones -->
-    <uses-permission android:name="android.permission.INTERNET" /> <!-- Services -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
@@ -23,6 +23,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DAS_APP"
         tools:targetApi="29">
+        <activity
+            android:name=".Registrar"
+            android:exported="false" />
         <activity
             android:name=".AnadirEntrena"
             android:exported="false" />

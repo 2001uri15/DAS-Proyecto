@@ -50,8 +50,13 @@ dependencies {
     implementation ("androidx.navigation:navigation-ui:2.3.4")
     implementation(libs.gridlayout)
     implementation(libs.recyclerview)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.ext.junit)
+    implementation(libs.work.runtime)
+    implementation("junit:junit:4.13.2") {
+        exclude(group = "org.hamcrest", module = "hamcrest-core")
+    }
+    androidTestImplementation(libs.ext.junit) // Usar la dependencia correcta para pruebas de Android
     androidTestImplementation(libs.espresso.core)
     implementation ("androidx.recyclerview:recyclerview:1.3.2")
+    implementation ("androidx.work:work-runtime:2.7.1")
+    implementation ("com.googlecode.json-simple:json-simple:1.1.1")
 }
