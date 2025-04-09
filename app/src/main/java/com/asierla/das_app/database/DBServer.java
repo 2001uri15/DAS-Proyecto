@@ -62,6 +62,9 @@ public class DBServer extends Worker {
                 case "borrarSesion":
                     result = borrarSesion(token);
                     break;
+                case "actualizarUsar":
+                    result = actualizarUsuario(token, nombre, apellido, mail, password);
+                    break;
                 default:
                     return Result.failure(createOutputData("Error: Acción no válida"));
             }
@@ -245,6 +248,19 @@ public class DBServer extends Worker {
 
         Map<String, String> params = new HashMap<>();
         params.put("token", token);
+
+        return hacerPeticion(recurso, params);
+    }
+
+    private String actualizarUsuario(String token, String nombre, String apellido, String mail, String contra) throws IOException {
+        String recurso = "actualizarUser.php";
+
+        Map<String, String> params = new HashMap<>();
+        params.put("token", token);
+        params.put("nombre", nombre);
+        params.put("apellido", apellido);
+        params.put("mail", mail);
+        params.put("password", contra);
 
         return hacerPeticion(recurso, params);
     }

@@ -68,4 +68,12 @@
     <string name="selectEntrena">Hautatu Prestakuntza</string>
     <string name="orden">Ordena</string>
     <string name="peso">Pisua</string>
+    <string name="profile_image">Profilaren argazkia</string>
+    <string name="username">Erabiltzaile izena</string>
+    <string name="first_name">Izena</string>
+    <string name="last_name">Abizena</string>
+    <string name="email">Posta elektronikoa</string>
+    <string name="password">Pasahitza</string>
+    <string name="confirm_password">Berretsi pasahitza</string>
+    <string name="save_changes">Aldaketak gorde</string>
 </resources>

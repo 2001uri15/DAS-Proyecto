@@ -69,5 +69,14 @@
     <string name="selectEntrena">Seleccionar Entrenamiento</string>
     <string name="orden">Orden</string>
     <string name="peso">Peso</string>
-    <string name="registar">Registrar</string>
+    <string name="registar" translatable="false">Registrar</string>
+    <string name="profile_image">Imagen de perfil</string>
+    <string name="username">Nombre de usuario</string>
+    <string name="first_name">Nombre</string>
+    <string name="last_name">Apellidos</string>
+    <string name="email">Correo electronico</string>
+    <string name="password">Contraseña</string>
+    <string name="confirm_password">Confirmar contraseña</string>
+    <string name="save_changes">Guardar cambios</string>
+
 </resources>
