@@ -2,6 +2,7 @@ package com.asierla.das_app;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -23,11 +24,23 @@ import com.asierla.das_app.database.DBServer;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Locale;
+
 public class Registrar extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SharedPreferences prefs = getSharedPreferences("Ajustes", MODE_PRIVATE);
+        String idioma = prefs.getString("idioma", "es"); // Por defecto español
+
+        // Aplicar idioma antes de cargar el contenido
+        Locale nuevaloc = new Locale(idioma);
+        Locale.setDefault(nuevaloc);
+        Configuration config = getBaseContext().getResources().getConfiguration();
+        config.setLocale(nuevaloc);
+        getBaseContext().getResources().updateConfiguration(config, getBaseContext().getResources().getDisplayMetrics());
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_registrar);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {

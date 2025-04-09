@@ -24,6 +24,9 @@
         android:theme="@style/Theme.DAS_APP"
         tools:targetApi="29">
         <activity
+            android:name=".Perfil"
+            android:exported="false" />
+        <activity
             android:name=".Registrar"
             android:exported="false" />
         <activity

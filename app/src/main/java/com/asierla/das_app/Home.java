@@ -7,6 +7,7 @@ import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -27,8 +28,16 @@ import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
 
+import com.asierla.das_app.database.DBServer;
 import com.google.android.material.navigation.NavigationView;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.time.Instant;
 import java.time.temporal.TemporalAdjuster;
@@ -66,6 +75,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        // Para poner el nombre del usuario y si esta iniciado el perfil
         setupNavHeader(navigationView);
 
         // Configurar el botón de hamburguesa (toggle)
@@ -247,11 +257,16 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
             Intent intent = new Intent(Home.this, Preferencias.class);
             startActivity(intent);
             finish();
+        } else if (id == R.id.nav_perfil) {
+            // Acción para "Perfil"
+            Intent intent = new Intent(Home.this, Perfil.class); // Asume que tienes una actividad PerfilActivity
+            startActivity(intent);
         } else if (id == R.id.nav_salir) {
             // Acción para cerrar sesión e ir a la página de Inicio de sesión
             // Decimos que no ha iniciado.
             SharedPreferences prefs2 = getSharedPreferences("Usuario", MODE_PRIVATE);
             SharedPreferences.Editor editor = prefs2.edit();
+            String token = prefs2.getString("token", "");
             editor.putBoolean("iniciado", false);
             editor.putString("token", null);
             editor.putString("nombre", null);
@@ -259,6 +274,8 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
             editor.putString("username", null);
             editor.putString("mail", null);
             editor.apply();
+
+            borrarSesion(token);
 
             // Ir a la página de Inicio de sesión
             Intent intent = new Intent(Home.this, MainActivity.class);
@@ -295,10 +312,61 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         String nombre = prefs.getString("nombre", getString(R.string.app_name));
         String apellido = prefs.getString("apellido", " ");
         String email = prefs.getString("mail", " ");
+        String token = prefs.getString("token", null);
 
         // Actualizar views
         tvUsername.setText(nombre + " " + apellido);
         tvMail.setText(email);
 
+
+        // Mostrar u ocultar ítems del menú según si está logueado
+        Menu menu = navigationView.getMenu();
+        MenuItem profileItem = menu.findItem(R.id.nav_perfil);
+
+        if (token!=null) {
+            profileItem.setVisible(true);
+        }else{
+            profileItem.setVisible(false);
+        }
+
+    }
+
+
+    private void borrarSesion(String token) {
+        Data inputData = new Data.Builder()
+                .putString("action", "borrarSesion")
+                .putString("token", token)
+                .build();
+
+        OneTimeWorkRequest loginRequest = new OneTimeWorkRequest.Builder(DBServer.class)
+                .setInputData(inputData)
+                .build();
+
+        WorkManager.getInstance(this).getWorkInfoByIdLiveData(loginRequest.getId())
+                .observe(this, workInfo -> {
+                    if (workInfo != null && workInfo.getState().isFinished()) {
+                        if (workInfo.getState() == WorkInfo.State.SUCCEEDED) {
+                            try {
+                                JSONObject response = new JSONObject(workInfo.getOutputData().getString("result"));
+                                if (response.getString("status").equals("success")) {
+                                    // Cogemos la info de JSON de la respuesta
+                                    String status = response.getString("status");
+                                } else {
+                                    showError(response.getString("message"));
+                                }
+                            } catch (JSONException e) {
+                                showError("Error al procesar la respuesta");
+                            }
+                        } else {
+                            showError(workInfo.getOutputData().getString("result"));
+                        }
+                    }
+                });
+
+        WorkManager.getInstance(this).enqueue(loginRequest);
+    }
+
+    private void showError(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }

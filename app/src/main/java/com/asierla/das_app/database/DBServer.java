@@ -59,6 +59,9 @@ public class DBServer extends Worker {
                 case "registrar":
                     result = registrar(username, nombre, apellido, password, mail, String.valueOf(privacidad));
                     break;
+                case "borrarSesion":
+                    result = borrarSesion(token);
+                    break;
                 default:
                     return Result.failure(createOutputData("Error: Acción no válida"));
             }
@@ -224,6 +227,15 @@ public class DBServer extends Worker {
         params.put("password", password);
         params.put("mail", mail);
         params.put("privacidad", privacidad);
+
+        return hacerPeticion(recurso, params);
+    }
+
+    private String borrarSesion(String token) throws IOException {
+        String recurso = "cerrarSesion.php";
+
+        Map<String, String> params = new HashMap<>();
+        params.put("token", token);
 
         return hacerPeticion(recurso, params);
     }

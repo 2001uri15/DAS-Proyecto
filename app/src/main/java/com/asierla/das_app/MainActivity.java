@@ -7,6 +7,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
@@ -35,15 +36,16 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         // Si ya ha iniciado que valla a home
         SharedPreferences user = getSharedPreferences("Usuario", MODE_PRIVATE);
         Boolean iniciado = user.getBoolean("iniciado", false);
-        if(iniciado){
-            Intent intent = new Intent(MainActivity.this, Home.class);
-            startActivity(intent);
-            finish();
+        String token = user.getString("token", "");
+
+        if(iniciado && !token.isEmpty()){
+            verificarToken(token);
         }
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)!=
@@ -63,8 +65,6 @@ public class MainActivity extends AppCompatActivity {
         Configuration config = getBaseContext().getResources().getConfiguration();
         config.setLocale(nuevaloc);
         getBaseContext().getResources().updateConfiguration(config, getBaseContext().getResources().getDisplayMetrics());
-
-        super.onCreate(savedInstanceState);
 
 
         EdgeToEdge.enable(this);
@@ -153,6 +153,50 @@ public class MainActivity extends AppCompatActivity {
                                     finish();
                                 } else {
                                     showError(response.getString("message"));
+                                }
+                            } catch (JSONException e) {
+                                showError("Error al procesar la respuesta");
+                            }
+                        } else {
+                            showError(workInfo.getOutputData().getString("result"));
+                        }
+                    }
+                });
+
+        WorkManager.getInstance(this).enqueue(loginRequest);
+    }
+
+    private void verificarToken(String token) {
+        Data inputData = new Data.Builder()
+                .putString("action", "validate_token")
+                .putString("token", token)
+                .build();
+
+        OneTimeWorkRequest loginRequest = new OneTimeWorkRequest.Builder(DBServer.class)
+                .setInputData(inputData)
+                .build();
+
+        WorkManager.getInstance(this).getWorkInfoByIdLiveData(loginRequest.getId())
+                .observe(this, workInfo -> {
+                    if (workInfo != null && workInfo.getState().isFinished()) {
+                        if (workInfo.getState() == WorkInfo.State.SUCCEEDED) {
+                            try {
+                                JSONObject response = new JSONObject(workInfo.getOutputData().getString("result"));
+                                if (response.getString("status").equals("success")) {
+                                    // Cogemos la info de JSON de la respuesta
+                                    Intent intent = new Intent(MainActivity.this, Home.class);
+                                    startActivity(intent);
+                                    finish();
+                                } else {
+                                    SharedPreferences prefs2 = getSharedPreferences("Usuario", MODE_PRIVATE);
+                                    SharedPreferences.Editor editor = prefs2.edit();
+                                    editor.putBoolean("iniciado", false);
+                                    editor.putString("token", null);
+                                    editor.putString("nombre", null);
+                                    editor.putString("apellido", null);
+                                    editor.putString("username", null);
+                                    editor.putString("mail", null);
+                                    editor.apply();
                                 }
                             } catch (JSONException e) {
                                 showError("Error al procesar la respuesta");
