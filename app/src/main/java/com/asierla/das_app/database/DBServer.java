@@ -24,6 +24,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.net.ssl.SSLHandshakeException;
 
@@ -45,25 +46,31 @@ public class DBServer extends Worker {
         String apellido = getInputData().getString("apellido");
         String mail = getInputData().getString("mail");
         String token = getInputData().getString("token");
+        String tokenFCM = getInputData().getString("tokenFCM");
+        String foto = getInputData().getString("foto");
         int privacidad = getInputData().getInt("privacidad", 1);
 
         try {
             String result;
-            switch (action) {
+            switch (Objects.requireNonNull(action)) {
                 case "login":
-                    result = loginUser(username, password);
+                    result = loginUser(username, password, tokenFCM);
                     break;
                 case "validate_token":
-                    result = validateToken(token);
+                    result = validateToken(token, tokenFCM);
                     break;
                 case "registrar":
-                    result = registrar(username, nombre, apellido, password, mail, String.valueOf(privacidad));
+                    result = registrar(username, nombre, apellido, password, mail, String.valueOf(privacidad), tokenFCM);
                     break;
                 case "borrarSesion":
                     result = borrarSesion(token);
                     break;
                 case "actualizarUsar":
                     result = actualizarUsuario(token, nombre, apellido, mail, password);
+                    break;
+                case "actualizarImg":
+                    result = actualizarFoto(token, foto);
+                    Log.e(TAG, "Error inesperado: Entra foto");
                     break;
                 default:
                     return Result.failure(createOutputData("Error: Acción no válida"));
@@ -100,7 +107,6 @@ public class DBServer extends Worker {
         }
 
         HttpURLConnection urlConnection = null;
-        BufferedReader reader = null;
         String response = null;
 
         try {
@@ -169,7 +175,7 @@ public class DBServer extends Worker {
                 response = responseBuilder.toString();
             }
 
-            if (response == null || response.trim().isEmpty()) {
+            if (response.trim().isEmpty()) {
                 throw new IOException("Respuesta vacía del servidor");
             }
 
@@ -187,13 +193,6 @@ public class DBServer extends Worker {
             if (urlConnection != null) {
                 urlConnection.disconnect();
             }
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    Log.e(TAG, "Error al cerrar reader", e);
-                }
-            }
         }
 
         return response;
@@ -209,18 +208,19 @@ public class DBServer extends Worker {
      * A partir de aqui están todas las funciones para hacer las consultas de las peticiones
      */
 
-    private String loginUser(String username, String password) throws IOException {
+    private String loginUser(String username, String password, String tokenFCM) throws IOException {
         String recurso = "sartu.php";
 
         Map<String, String> params = new HashMap<>();
         params.put("username", username);
         params.put("password", password);
+        params.put("tokenFCM", tokenFCM);
 
         return hacerPeticion(recurso, params);
     }
 
     private String registrar(String username, String nombre, String apellido, String password,
-                             String mail, String privacidad) throws IOException {
+                             String mail, String privacidad, String tokenFCM) throws IOException {
         String recurso = "registrar.php";
 
         Map<String, String> params = new HashMap<>();
@@ -230,6 +230,7 @@ public class DBServer extends Worker {
         params.put("password", password);
         params.put("mail", mail);
         params.put("privacidad", privacidad);
+        params.put("tokenFCM", tokenFCM);
 
         return hacerPeticion(recurso, params);
     }
@@ -243,11 +244,12 @@ public class DBServer extends Worker {
         return hacerPeticion(recurso, params);
     }
 
-    private String validateToken(String token) throws IOException {
+    private String validateToken(String token, String tokenFCM) throws IOException {
         String recurso = "verificarToken.php";
 
         Map<String, String> params = new HashMap<>();
         params.put("token", token);
+        params.put("tokenFCM", tokenFCM);
 
         return hacerPeticion(recurso, params);
     }
@@ -261,6 +263,16 @@ public class DBServer extends Worker {
         params.put("apellido", apellido);
         params.put("mail", mail);
         params.put("password", contra);
+
+        return hacerPeticion(recurso, params);
+    }
+
+    private String actualizarFoto(String token, String foto) throws IOException {
+        String recurso = "actualizarFoto.php";
+
+        Map<String, String> params = new HashMap<>();
+        params.put("token", token);
+        params.put("foto", foto);
 
         return hacerPeticion(recurso, params);
     }

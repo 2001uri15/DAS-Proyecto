@@ -26,6 +26,7 @@ import androidx.work.WorkManager;
 
 import com.asierla.das_app.database.DBServer;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -44,11 +45,13 @@ public class MainActivity extends AppCompatActivity {
         Boolean iniciado = user.getBoolean("iniciado", false);
         String token = user.getString("token", "");
 
-        if(iniciado && !token.isEmpty()){
-            verificarToken(token);
+        if(iniciado && !token.isEmpty()) {
+            FirebaseMessaging.getInstance().getToken()
+                    .addOnSuccessListener(tokenFCM -> verificarToken(token, tokenFCM))
+                    .addOnFailureListener(e -> Log.e("FCM", "Error obteniendo token", e));
         }
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)!=
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
                 PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new
                     String[]{Manifest.permission.POST_NOTIFICATIONS}, 11);
@@ -67,52 +70,57 @@ public class MainActivity extends AppCompatActivity {
         getBaseContext().getResources().updateConfiguration(config, getBaseContext().getResources().getDisplayMetrics());
 
 
-        EdgeToEdge.enable(this);
+            EdgeToEdge.enable(this);
 
-        setContentView(R.layout.activity_main);
-        ImageButton btnBack = findViewById(R.id.btnBack);
+            setContentView(R.layout.activity_main);
+            ImageButton btnBack = findViewById(R.id.btnBack);
 
-        btnBack.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, Preferencias.class);
-            startActivity(intent);
-            finish();
-        });
+            btnBack.setOnClickListener(v -> {
+                Intent intent = new Intent(MainActivity.this, Preferencias.class);
+                startActivity(intent);
+                finish();
+            });
 
-        Button btnEntrar = findViewById(R.id.btnEntrar);
-        btnEntrar.setOnClickListener(v -> {
-            TextView usuario = findViewById(R.id.inputUsuario);
-            TextView contra = findViewById(R.id.inputContrasena);
-            CheckBox mateSesiCheck = findViewById(R.id.matenerSesi);
-            boolean mateSesi = mateSesiCheck.isChecked();
+            Button btnEntrar = findViewById(R.id.btnEntrar);
+            btnEntrar.setOnClickListener(v -> {
+                TextView usuario = findViewById(R.id.inputUsuario);
+                TextView contra = findViewById(R.id.inputContrasena);
+                CheckBox mateSesiCheck = findViewById(R.id.matenerSesi);
+                boolean mateSesi = mateSesiCheck.isChecked();
 
-            loginUser(usuario.getText().toString(), contra.getText().toString(), mateSesi);
-        });
+                FirebaseMessaging.getInstance().getToken()
+                        .addOnSuccessListener(tokenFCM -> loginUser(usuario.getText().toString(), contra.getText().toString(), mateSesi, tokenFCM))
+                        .addOnFailureListener(e -> Log.e("FCM", "Error obteniendo token", e));
 
-        Button btnEntrarSinIniciar = findViewById(R.id.btnEntrarSinIniciar);
-        btnEntrarSinIniciar.setOnClickListener(v -> {
-            SharedPreferences prefs2 = getSharedPreferences("Usuario", MODE_PRIVATE);
-            SharedPreferences.Editor editor = prefs2.edit();
-            editor.putBoolean("iniciado", true);
-            editor.apply();
-            Intent intent = new Intent(MainActivity.this, Home.class);
-            startActivity(intent);
-            finish();
-        });
+            });
 
-        Button btnRegistrar = findViewById(R.id.btnRegistrar);
-        btnRegistrar.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, Registrar.class);
-            startActivity(intent);
-            finish();
-        });
+            Button btnEntrarSinIniciar = findViewById(R.id.btnEntrarSinIniciar);
+            btnEntrarSinIniciar.setOnClickListener(v -> {
+                SharedPreferences prefs2 = getSharedPreferences("Usuario", MODE_PRIVATE);
+                SharedPreferences.Editor editor = prefs2.edit();
+                editor.putBoolean("iniciado", true);
+                editor.apply();
+                Intent intent = new Intent(MainActivity.this, Home.class);
+                startActivity(intent);
+                finish();
+            });
+
+            Button btnRegistrar = findViewById(R.id.btnRegistrar);
+            btnRegistrar.setOnClickListener(v -> {
+                Intent intent = new Intent(MainActivity.this, Registrar.class);
+                startActivity(intent);
+                finish();
+            });
+
     }
 
 
-    private void loginUser(String username, String password, boolean manSesi) {
+    private void loginUser(String username, String password, boolean manSesi, String tokenFCM) {
         Data inputData = new Data.Builder()
                 .putString("action", "login")
                 .putString("username", username)
                 .putString("password", password)
+                .putString("tokenFCM", tokenFCM)
                 .build();
 
         OneTimeWorkRequest loginRequest = new OneTimeWorkRequest.Builder(DBServer.class)
@@ -166,10 +174,11 @@ public class MainActivity extends AppCompatActivity {
         WorkManager.getInstance(this).enqueue(loginRequest);
     }
 
-    private void verificarToken(String token) {
+    private void verificarToken(String token, String tokenFCM) {
         Data inputData = new Data.Builder()
                 .putString("action", "validate_token")
                 .putString("token", token)
+                .putString("tokenFCM", tokenFCM)
                 .build();
 
         OneTimeWorkRequest loginRequest = new OneTimeWorkRequest.Builder(DBServer.class)
@@ -197,6 +206,10 @@ public class MainActivity extends AppCompatActivity {
                                     editor.putString("username", null);
                                     editor.putString("mail", null);
                                     editor.apply();
+
+                                    Intent intent = new Intent(MainActivity.this, MainActivity.class);
+                                    startActivity(intent);
+                                    finish();
                                 }
                             } catch (JSONException e) {
                                 showError("Error al procesar la respuesta");

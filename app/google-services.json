@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "591255019933",
+    "project_id": "das-proyecto-f594b",
+    "storage_bucket": "das-proyecto-f594b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:591255019933:android:6eb390e023bc6302b6cf74",
+        "android_client_info": {
+          "package_name": "com.asierla.das_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAphIIu-0QQMOKKbM0D1tA5kb-C7ASTqgs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

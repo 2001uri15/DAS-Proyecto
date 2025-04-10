@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -20,6 +21,7 @@ import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
 import com.asierla.das_app.database.DBServer;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -77,20 +79,24 @@ public class Registrar extends AppCompatActivity {
                 return;
             }
 
-            int priva = 0;
+            int priva;
             if (privacidad.isChecked()){
                 priva=1;
+            } else {
+                priva = 0;
             }
 
-            loginUser(usuario.getText().toString(), contra1.getText().toString(),
-                    nombre.getText().toString(), apellido.getText().toString(), priva,
-                    mail.getText().toString());
+            FirebaseMessaging.getInstance().getToken()
+                    .addOnSuccessListener(tokenFCM -> loginUser(usuario.getText().toString(), contra1.getText().toString(),
+                            nombre.getText().toString(), apellido.getText().toString(), priva,
+                            mail.getText().toString(), tokenFCM))
+                    .addOnFailureListener(e -> Log.e("FCM", "Error obteniendo token", e));
 
         });
     }
 
     private void loginUser(String username, String password, String nombre, String apellido,
-                           int privacidad, String mail) {
+                           int privacidad, String mail, String tokenFCM) {
         Data inputData = new Data.Builder()
                 .putString("action", "registrar")
                 .putString("username", username)
@@ -99,6 +105,7 @@ public class Registrar extends AppCompatActivity {
                 .putString("apellido", apellido)
                 .putInt("privacidad", privacidad)
                 .putString("mail", mail)
+                .putString("tokenFCM", tokenFCM)
                 .build();
 
         OneTimeWorkRequest loginRequest = new OneTimeWorkRequest.Builder(DBServer.class)

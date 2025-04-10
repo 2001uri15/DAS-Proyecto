@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -54,6 +55,7 @@ dependencies {
     implementation("junit:junit:4.13.2") {
         exclude(group = "org.hamcrest", module = "hamcrest-core")
     }
+    implementation(libs.firebase.messaging)
     androidTestImplementation(libs.ext.junit) // Usar la dependencia correcta para pruebas de Android
     androidTestImplementation(libs.espresso.core)
     implementation ("androidx.recyclerview:recyclerview:1.3.2")
