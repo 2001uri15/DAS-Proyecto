@@ -56,9 +56,10 @@ dependencies {
         exclude(group = "org.hamcrest", module = "hamcrest-core")
     }
     implementation(libs.firebase.messaging)
-    androidTestImplementation(libs.ext.junit) // Usar la dependencia correcta para pruebas de Android
-    androidTestImplementation(libs.espresso.core)
     implementation ("androidx.recyclerview:recyclerview:1.3.2")
     implementation ("androidx.work:work-runtime:2.7.1")
     implementation ("com.googlecode.json-simple:json-simple:1.1.1")
+    implementation ("com.android.volley:volley:1.2.1")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5") // Use the latest version
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 }

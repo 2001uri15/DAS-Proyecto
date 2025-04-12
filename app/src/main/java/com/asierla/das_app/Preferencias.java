@@ -1,12 +1,17 @@
 package com.asierla.das_app;
 
+import android.Manifest;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
+import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ArrayAdapter;
@@ -16,16 +21,19 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.RequiresPermission;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.asierla.das_app.database.DBHelper;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.Calendar;
 import java.util.Locale;
 
 public class Preferencias extends AppCompatActivity {
     private ListView listViewIdiomas;
-    private Button btnGuardar, btnNotificaciones, btnPermisos, btnBorrarDatos, btnPrivacidad, btnUnidadesMetricas;
+    private Button btnGuardar, btnNotificaciones, btnPermisos, btnBorrarDatos, btnPrivacidad, btnUnidadesMetricas, btnAlarma;
+    private SharedPreferences prefs2;
 
     protected void onCreate(Bundle savedInstanceState) {
         // Obtener idioma guardado en SharedPreferences
@@ -180,6 +188,18 @@ public class Preferencias extends AppCompatActivity {
             Toast.makeText(this, R.string.no_disponible, Toast.LENGTH_SHORT).show();
         });
 
+        // Inicializar SharedPreferences
+        prefs2 = getSharedPreferences("Ajustes", MODE_PRIVATE);
+
+        // Configurar el botón de alarma
+        btnAlarma = findViewById(R.id.btnAlarma);
+        prefs2 = getSharedPreferences("Ajustes", MODE_PRIVATE);
+
+        btnAlarma.setOnClickListener(v -> mostrarSelectorHora());
+
+        // Verifica si hay una alarma programada al iniciar
+        actualizarTextoBotonAlarma();
+
     }
 
     private int obtenerPosicionIdioma(String idioma, String[] idiomas) {
@@ -194,4 +214,65 @@ public class Preferencias extends AppCompatActivity {
                 return -1; // Si no se encuentra, devolver -1
         }
     }
+
+    private void mostrarSelectorHora() {
+        Calendar ahora = Calendar.getInstance();
+        int horaActual = ahora.get(Calendar.HOUR_OF_DAY);
+        int minutoActual = ahora.get(Calendar.MINUTE);
+
+        TimePickerDialog timePicker = new TimePickerDialog(
+                this,
+                (view, horaSeleccionada, minutoSeleccionado) -> {
+                    programarAlarma(horaSeleccionada, minutoSeleccionado);
+                    guardarHoraAlarma(horaSeleccionada, minutoSeleccionado);
+                    actualizarTextoBotonAlarma();
+                    Toast.makeText(this, "Alarma programada", Toast.LENGTH_SHORT).show();
+                },
+                horaActual,
+                minutoActual,
+                true
+        );
+        timePicker.show();
+    }
+
+    private void programarAlarma(int hora, int minuto) {
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        Intent intent = new Intent(this, AlarmaReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                this,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        Calendar calendario = Calendar.getInstance();
+        calendario.set(Calendar.HOUR_OF_DAY, hora);
+        calendario.set(Calendar.MINUTE, minuto);
+        calendario.set(Calendar.SECOND, 0);
+
+        // Si la hora ya pasó hoy, programar para mañana
+        if (calendario.getTimeInMillis() <= System.currentTimeMillis()) {
+            calendario.add(Calendar.DAY_OF_YEAR, 1);
+        }
+
+        alarmManager.set(AlarmManager.RTC_WAKEUP, calendario.getTimeInMillis(), pendingIntent);
+    }
+
+    private void guardarHoraAlarma(int hora, int minuto) {
+        SharedPreferences.Editor editor = prefs2.edit();
+        editor.putInt("alarma_hora", hora);
+        editor.putInt("alarma_minuto", minuto);
+        editor.apply();
+    }
+
+    private void actualizarTextoBotonAlarma() {
+        if (prefs2.contains("alarma_hora")) {
+            int hora = prefs2.getInt("alarma_hora", 8);
+            int minuto = prefs2.getInt("alarma_minuto", 0);
+            btnAlarma.setText(String.format("Recordatorio: %02d:%02d", hora, minuto));
+        } else {
+            btnAlarma.setText("Configurar recordatorio");
+        }
+    }
+
 }

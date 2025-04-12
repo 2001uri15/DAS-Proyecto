@@ -110,6 +110,21 @@
             android:paddingLeft="10dp"
             android:textAllCaps="false"
             android:text="@string/notifi" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@drawable/divider" />
+        <Button
+            android:id="@+id/btnAlarma"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#00FAF7F7"
+            android:textColor="@color/black"
+            android:textAlignment="textStart"
+            android:background="@drawable/boton_transparente"
+            android:paddingLeft="10dp"
+            android:textAllCaps="false"
+            android:text="Recordatorio de alarma" />
     </LinearLayout>
 
     <TextView

@@ -80,5 +80,12 @@
     <string name="save_changes">Guardar cambios</string>
     <string name="take_photo" translatable="false">Tomar una foto</string>
     <string name="choose_from_gallery" translatable="false">Galeria</string>
+    <string name="configurar_alarma" translatable="false">Configurar recordatorio</string>
+    <string name="alarma_configurada" translatable="false">Alarma: %02d:%02d</string>
+    <string name="alarma_programada" translatable="false">Alarma programada a las %02d:%02d</string>
+    <string name="recordatorio_entrenamiento" translatable="false">¡Hora de entrenar!</string>
+    <string name="es_hora_de_entrenar" translatable="false">Es hora de tu sesión de entrenamiento diaria</string>
+    <string name="recordatorios_entrenamiento" translatable="false">Recordatorios de entrenamiento</string>
+    <string name="canal_recordatorios" translatable="false">Notificaciones para recordatorios de entrenamiento</string>
 
 </resources>

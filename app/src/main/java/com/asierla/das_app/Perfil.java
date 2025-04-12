@@ -9,6 +9,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
@@ -21,10 +22,12 @@ import android.Manifest;
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -41,15 +44,21 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
 
 public class Perfil extends AppCompatActivity {
-    private static final int REQUEST_READ_STORAGE = 101;
-    private static final int PICK_IMAGE_REQUEST = 102;
+    private static final int REQUEST_IMAGE_CAPTURE = 1;
+    private static final int REQUEST_IMAGE_PICK = 2;
+    private static final int REQUEST_CAMERA_PERMISSION = 101;
+    private static final int REQUEST_STORAGE_PERMISSION = 102;
     private ImageView imgUsuario;
+    private Uri imageUri;
 
 
     @Override
@@ -85,77 +94,148 @@ public class Perfil extends AppCompatActivity {
 
 
         imgUsuario = findViewById(R.id.profileImage);
-        imgUsuario.setOnClickListener(v->{
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Seleciona");
-            builder.setItems(new CharSequence[]{
-                    getString(R.string.take_photo),
-                    getString(R.string.choose_from_gallery),
-                    getString(R.string.cancelar)
-            }, (dialog, which) -> {
-                switch (which) {
-                    case 0:
-                        //checkCameraPermissionAndTakePhoto();
-                        break;
-                    case 1:
-                        checkStoragePermissionAndPickImage();
-                        break;
-                    case 2:
-                        dialog.dismiss();
-                        break;
-                }
-            });
-            builder.show();
-        });
-        
+        imgUsuario.setOnClickListener(v -> showImagePickerDialog());
+
     }
 
-    private void checkStoragePermissionAndPickImage() {
+    private void showImagePickerDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Seleccionar imagen");
+        builder.setItems(new CharSequence[]{"Tomar foto", "Elegir de galería", "Cancelar"},
+                (dialog, which) -> {
+                    switch (which) {
+                        case 0:
+                            checkCameraPermission();
+                            break;
+                        case 1:
+                            checkStoragePermission();
+                            break;
+                        case 2:
+                            dialog.dismiss();
+                            break;
+                    }
+                });
+        builder.show();
+    }
+
+    private void checkCameraPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CAMERA},
+                    REQUEST_CAMERA_PERMISSION);
+        } else {
+            dispatchTakePictureIntent();
+        }
+    }
+
+    private void checkStoragePermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                    REQUEST_READ_STORAGE);
+                    REQUEST_STORAGE_PERMISSION);
         } else {
-            pickImageFromGallery();
+            openGallery();
         }
     }
 
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                Toast.makeText(this, "Error al crear el archivo", Toast.LENGTH_SHORT).show();
+            }
 
-    private void pickImageFromGallery() {
-        Intent intent = new Intent(Intent.ACTION_PICK,
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        intent.setType("image/*");
-        startActivityForResult(Intent.createChooser(intent, "Selecciona una imagen"), PICK_IMAGE_REQUEST);
+            if (photoFile != null) {
+                imageUri = FileProvider.getUriForFile(this,
+                        "com.asierla.das_app.fileprovider",
+                        photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            }
+        }
     }
 
-    // Manejar el resultado de la selección
+    private File createImageFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        String imageFileName = "GARATU_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        return File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",        /* suffix */
+                storageDir     /* directory */
+        );
+    }
+
+    private void openGallery() {
+        Intent intent = new Intent(Intent.ACTION_PICK,
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(intent, REQUEST_IMAGE_PICK);
+    }
+
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode == RESULT_OK) {
-            if (requestCode == PICK_IMAGE_REQUEST && data != null) {
-                Uri selectedImageUri = data.getData();
-                Log.d("Foto", "d");
+            switch (requestCode) {
+                case REQUEST_IMAGE_CAPTURE:
+                    // La imagen ya se guardó en imageUri
+                    setImageAndUpload(imageUri);
+                    break;
+                case REQUEST_IMAGE_PICK:
+                    if (data != null) {
+                        imageUri = data.getData();
+                        setImageAndUpload(imageUri);
+                    }
+                    break;
             }
         }
     }
 
-    // Manejar la respuesta de los permisos
+    private void setImageAndUpload(Uri uri) {
+        try {
+            Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+            imgUsuario.setImageBitmap(bitmap);
+
+            // Convertir a Base64 y subir al servidor
+            String imageBase64 = convertBitmapToBase64(bitmap);
+            SharedPreferences prefs = getSharedPreferences("Usuario", MODE_PRIVATE);
+            String token = prefs.getString("token", "");
+            //actualizarImg(token, imageBase64);
+        } catch (IOException e) {
+            Toast.makeText(this, "Error al cargar la imagen", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private String convertBitmapToBase64(Bitmap bitmap) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, byteArrayOutputStream);
+        byte[] byteArray = byteArrayOutputStream.toByteArray();
+        return Base64.encodeToString(byteArray, Base64.DEFAULT);
+    }
+
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_READ_STORAGE) {
-            if (true) { //grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED
-                pickImageFromGallery();
-            } else {
-                Toast.makeText(this, "Permiso denegado para acceder al almacenamiento", Toast.LENGTH_SHORT).show();
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            switch (requestCode) {
+                case REQUEST_CAMERA_PERMISSION:
+                    dispatchTakePictureIntent();
+                    break;
+                case REQUEST_STORAGE_PERMISSION:
+                    openGallery();
+                    break;
             }
+        } else {
+            Toast.makeText(this, "Permiso denegado", Toast.LENGTH_SHORT).show();
         }
     }
-
-
 
     private void asignarDatosUsuario() {
         TextView username = findViewById(R.id.usernameText);
