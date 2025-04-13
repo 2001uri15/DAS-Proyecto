@@ -39,8 +39,6 @@ import com.google.android.material.navigation.NavigationView;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.time.Instant;
-import java.time.temporal.TemporalAdjuster;
 import java.util.Locale;
 
 public class Home extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -278,7 +276,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
             borrarSesion(token);
 
             // Ir a la página de Inicio de sesión
-            Intent intent = new Intent(Home.this, MainActivity.class);
+            Intent intent = new Intent(Home.this, IogIn.class);
             startActivity(intent);
             finish();
         }

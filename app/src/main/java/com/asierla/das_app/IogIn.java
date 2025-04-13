@@ -2,19 +2,22 @@ package com.asierla.das_app;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.EditText;
+import android.widget.ImageButton;
+import android.Manifest;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.work.Data;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkInfo;
@@ -28,11 +31,22 @@ import org.json.JSONObject;
 
 import java.util.Locale;
 
-public class Registrar extends AppCompatActivity {
+public class IogIn extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
+                PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new
+                    String[]{Manifest.permission.POST_NOTIFICATIONS}, 11);
+        }
+
+
+        // Obtener idioma guardado en SharedPreferences
         SharedPreferences prefs = getSharedPreferences("Ajustes", MODE_PRIVATE);
         String idioma = prefs.getString("idioma", "es"); // Por defecto español
 
@@ -43,68 +57,57 @@ public class Registrar extends AppCompatActivity {
         config.setLocale(nuevaloc);
         getBaseContext().getResources().updateConfiguration(config, getBaseContext().getResources().getDisplayMetrics());
 
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_registrar);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
 
+            EdgeToEdge.enable(this);
 
-        TextView iniciarSesion = findViewById(R.id.iniciarSesion);
-        iniciarSesion.setOnClickListener(v->{
-            Intent intent = new Intent(this, IogIn.class);
-            startActivity(intent);
-            finish();
-        });
+            setContentView(R.layout.activity_login);
+            ImageButton btnBack = findViewById(R.id.btnBack);
 
-        TextView btnRegistro = findViewById(R.id.btnRegistro);
-        btnRegistro.setOnClickListener(v->{
-            CheckBox privacidad = findViewById(R.id.checkPrivacidad);
-            EditText usuario = findViewById(R.id.inputUsuario);
-            EditText nombre = findViewById(R.id.inputNombre);
-            EditText apellido = findViewById(R.id.inputApellido);
-            EditText contra1 = findViewById(R.id.inputContrasena);
-            EditText contra2 = findViewById(R.id.inputConfirmarContrasena);
-            EditText mail = findViewById(R.id.inputmail);
+            btnBack.setOnClickListener(v -> {
+                Intent intent = new Intent(IogIn.this, Preferencias.class);
+                startActivity(intent);
+                finish();
+            });
 
-            if(!privacidad.isChecked()){
-                Toast.makeText(this, "Tienes que aceptar la privacidad", Toast.LENGTH_SHORT).show();
-                return;
-            }
+            Button btnEntrar = findViewById(R.id.btnEntrar);
+            btnEntrar.setOnClickListener(v -> {
+                TextView usuario = findViewById(R.id.inputUsuario);
+                TextView contra = findViewById(R.id.inputContrasena);
+                CheckBox mateSesiCheck = findViewById(R.id.matenerSesi);
+                boolean mateSesi = mateSesiCheck.isChecked();
 
-            if (!contra1.getText().toString().equals(contra2.getText().toString())) {
-                Toast.makeText(this, "Las contraseñas tienen que ser iguales", Toast.LENGTH_SHORT).show();
-                return;
-            }
+                FirebaseMessaging.getInstance().getToken()
+                        .addOnSuccessListener(tokenFCM -> loginUser(usuario.getText().toString(), contra.getText().toString(), mateSesi, tokenFCM))
+                        .addOnFailureListener(e -> Log.e("FCM", "Error obteniendo token", e));
 
-            int priva;
-            if (privacidad.isChecked()){
-                priva=1;
-            } else {
-                priva = 0;
-            }
+            });
 
-            FirebaseMessaging.getInstance().getToken()
-                    .addOnSuccessListener(tokenFCM -> loginUser(usuario.getText().toString(), contra1.getText().toString(),
-                            nombre.getText().toString(), apellido.getText().toString(), priva,
-                            mail.getText().toString(), tokenFCM))
-                    .addOnFailureListener(e -> Log.e("FCM", "Error obteniendo token", e));
+            Button btnEntrarSinIniciar = findViewById(R.id.btnEntrarSinIniciar);
+            btnEntrarSinIniciar.setOnClickListener(v -> {
+                SharedPreferences prefs2 = getSharedPreferences("Usuario", MODE_PRIVATE);
+                SharedPreferences.Editor editor = prefs2.edit();
+                editor.putBoolean("iniciado", true);
+                editor.apply();
+                Intent intent = new Intent(IogIn.this, Home.class);
+                startActivity(intent);
+                finish();
+            });
 
-        });
+            Button btnRegistrar = findViewById(R.id.btnRegistrar);
+            btnRegistrar.setOnClickListener(v -> {
+                Intent intent = new Intent(IogIn.this, Registrar.class);
+                startActivity(intent);
+                finish();
+            });
+
     }
 
-    private void loginUser(String username, String password, String nombre, String apellido,
-                           int privacidad, String mail, String tokenFCM) {
+
+    private void loginUser(String username, String password, boolean manSesi, String tokenFCM) {
         Data inputData = new Data.Builder()
-                .putString("action", "registrar")
+                .putString("action", "login")
                 .putString("username", username)
                 .putString("password", password)
-                .putString("nombre", nombre)
-                .putString("apellido", apellido)
-                .putInt("privacidad", privacidad)
-                .putString("mail", mail)
                 .putString("tokenFCM", tokenFCM)
                 .build();
 
@@ -118,7 +121,6 @@ public class Registrar extends AppCompatActivity {
                         if (workInfo.getState() == WorkInfo.State.SUCCEEDED) {
                             try {
                                 JSONObject response = new JSONObject(workInfo.getOutputData().getString("result"));
-
                                 if (response.getString("status").equals("success")) {
                                     // Cogemos la info de JSON de la respuesta
                                     String token = response.getString("token");
@@ -130,7 +132,11 @@ public class Registrar extends AppCompatActivity {
                                     // Guardar datos de sesión (usando SharedPreferences, por ejemplo)
                                     SharedPreferences prefs2 = getSharedPreferences("Usuario", MODE_PRIVATE);
                                     SharedPreferences.Editor editor = prefs2.edit();
-                                    editor.putBoolean("iniciado", true);
+                                    if(manSesi){
+                                        editor.putBoolean("iniciado", true);
+                                    }else {
+                                        editor.putBoolean("iniciado", false);
+                                    }
                                     editor.putString("token", token);
                                     editor.putString("nombre", nombre2);
                                     editor.putString("apellido", apellido2);
@@ -155,6 +161,7 @@ public class Registrar extends AppCompatActivity {
 
         WorkManager.getInstance(this).enqueue(loginRequest);
     }
+
 
     private void showError(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();

@@ -5,7 +5,6 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Build;
 import android.util.Log;
 
@@ -13,7 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
-import com.asierla.das_app.MainActivity;
+import com.asierla.das_app.IogIn;
 import com.asierla.das_app.R;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -60,7 +59,7 @@ public class NotificacionesPUSH extends FirebaseMessagingService {
                 .setColor(ContextCompat.getColor(this, R.color.primary)); // Color del icono
 
         // Manejar click en la notificación
-        Intent intent = new Intent(this, MainActivity.class); // Cambia a tu actividad principal
+        Intent intent = new Intent(this, IogIn.class); // Cambia a tu actividad principal
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 this, 0, intent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
