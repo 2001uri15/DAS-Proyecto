@@ -129,16 +129,15 @@
             android:exported="false"
             android:foregroundServiceType="location"
             tools:targetApi="q" />
-        <receiver
-            android:name=".HorasEntrenaSemana"
-            android:exported="false">
+        <receiver android:name=".HorasEntrenaSemana" android:exported="true">
             <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+                <action android:name="android.appwidget.action.APPWIDGET_ENABLED"/>
+                <action android:name="android.appwidget.action.APPWIDGET_DISABLED"/>
             </intent-filter>
-
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/horas_entrena_semana_info" />
+                android:resource="@xml/horas_entrena_semana_info"/>
         </receiver>
     </application>
 
