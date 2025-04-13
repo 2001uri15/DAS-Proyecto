@@ -32,7 +32,7 @@ public class AlarmaReceiver extends BroadcastReceiver {
 
         // Construir la notificación
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, canalId)
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setSmallIcon(R.drawable.icon_app)
                 .setContentTitle("¡Hora de entrenar!")
                 .setContentText("No olvides completar tu rutina diaria")
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT);

@@ -1,6 +1,6 @@
 package com.asierla.das_app;
 
-import android.Manifest;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -10,7 +10,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
-import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -19,26 +18,21 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.Manifest;
+
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.asierla.das_app.database.DBHelper;
-import com.asierla.das_app.model.EntrenamientoData;
 import com.asierla.das_app.service.EntrenamientoService;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -46,58 +40,49 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.snackbar.Snackbar;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMapReadyCallback {
+
+    // Views
     private TextView tvCuentaAtras, tvTiempo, tvDistancia, tvVelocidad, tvRitmo, tvEntrenamiento;
     private Button btnParar, btnReanudar, btnFinalizar;
     private LinearLayout layoutBotones;
     private ImageView btnMusica;
     private MapView mapView;
     private GoogleMap googleMap;
-    private boolean isRunning = false;
-    private long elapsedTime = 0;
-    private float totalDistance = 0;
-    private Location lastLocation;
     private Polyline routePolyline;
+
+    // Estado del entrenamiento
+    private boolean isRunning = false;
+    private boolean isActivityVisible = false;
     private final Handler handler = new Handler();
-    private List<Float> speedList = new ArrayList<>();
     private CountDownTimer countDownTimer;
 
     // Servicio
     private EntrenamientoService entrenamientoService;
     private boolean isBound = false;
-    private ServiceConnection serviceConnection = new ServiceConnection() {
+    private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             EntrenamientoService.LocalBinder binder = (EntrenamientoService.LocalBinder) service;
             entrenamientoService = binder.getService();
             isBound = true;
-
-            // Restaurar datos del servicio
-            if (entrenamientoService != null) {
-                elapsedTime = entrenamientoService.getElapsedTime();
-                totalDistance = entrenamientoService.getTotalDistance();
-                lastLocation = entrenamientoService.getLastLocation();
-
-                updateUI();
-
-                if (isRunning) {
-                    handler.post(timerRunnable);
-                }
+            if (isRunning && isActivityVisible) {
+                startUIUpdates();
             }
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
             isBound = false;
+            // Intentar reconectar después de 1 segundo
+            handler.postDelayed(() -> bindToService(), 1000);
         }
     };
 
@@ -106,13 +91,7 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         super.onCreate(savedInstanceState);
 
         // Configuración de idioma
-        SharedPreferences prefs = getSharedPreferences("Ajustes", MODE_PRIVATE);
-        String idioma = prefs.getString("idioma", "es");
-        Locale nuevaloc = new Locale(idioma);
-        Locale.setDefault(nuevaloc);
-        Configuration config = getBaseContext().getResources().getConfiguration();
-        config.setLocale(nuevaloc);
-        getBaseContext().getResources().updateConfiguration(config, getBaseContext().getResources().getDisplayMetrics());
+        setupLanguage();
 
         setContentView(R.layout.activity_entrena_correr_bici_andar);
 
@@ -123,20 +102,31 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
 
-        // Verificar permisos
+        // Verificar permisos y optimización de batería
         checkPermissions();
-
-        // Verificar optimización de batería
         checkBatteryOptimization();
 
         // Configurar entrenamiento
         setupTraining(savedInstanceState);
 
-        // Configurar botones
+        // Configurar botones y manejo de retroceso
         setupButtons();
-
-        // Manejar botón de retroceso
         handleBackButton();
+
+        // Restaurar estado si existe
+        if (savedInstanceState != null) {
+            isRunning = savedInstanceState.getBoolean("isRunning", false);
+        }
+    }
+
+    private void setupLanguage() {
+        SharedPreferences prefs = getSharedPreferences("Ajustes", MODE_PRIVATE);
+        String idioma = prefs.getString("idioma", "es");
+        Locale nuevaloc = new Locale(idioma);
+        Locale.setDefault(nuevaloc);
+        Configuration config = getBaseContext().getResources().getConfiguration();
+        config.setLocale(nuevaloc);
+        getBaseContext().getResources().updateConfiguration(config, getBaseContext().getResources().getDisplayMetrics());
     }
 
     private void initViews() {
@@ -186,13 +176,15 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         if (savedInstanceState == null) {
             startCountdown();
         } else {
-            // Restaurar estado del countdown
             boolean countdownFinished = savedInstanceState.getBoolean("countdownFinished", false);
             if (countdownFinished) {
                 tvCuentaAtras.setVisibility(View.GONE);
             } else {
                 startCountdown();
             }
+
+            btnParar.setVisibility(savedInstanceState.getInt("buttonVisibility", View.VISIBLE));
+            layoutBotones.setVisibility(savedInstanceState.getInt("layoutVisibility", View.GONE));
         }
     }
 
@@ -228,35 +220,122 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
     private void startTraining() {
         isRunning = true;
 
-        // Iniciar servicio en primer plano
-        Intent serviceIntent = new Intent(this, EntrenamientoService.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(serviceIntent);
-        } else {
-            startService(serviceIntent);
+        // Iniciar servicio si no está en ejecución
+        if (!isServiceRunning(EntrenamientoService.class)) {
+            Intent serviceIntent = new Intent(this, EntrenamientoService.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(serviceIntent);
+            } else {
+                startService(serviceIntent);
+            }
         }
-        bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
 
-        handler.post(timerRunnable);
+        // Conectar al servicio
+        bindToService();
+
+        // Configurar UI
+        btnParar.setVisibility(View.VISIBLE);
+        layoutBotones.setVisibility(View.GONE);
+
+        // Iniciar actualizaciones
+        if (isActivityVisible) {
+            startUIUpdates();
+        }
+    }
+
+    private void bindToService() {
+        Intent serviceIntent = new Intent(this, EntrenamientoService.class);
+        bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    private boolean isServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void startUIUpdates() {
+        handler.removeCallbacks(updateUIRunnable);
+        handler.post(updateUIRunnable);
+    }
+
+    private final Runnable updateUIRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (isBound && entrenamientoService != null && isActivityVisible) {
+                updateUI();
+                handler.postDelayed(this, 1000);
+            }
+        }
+    };
+
+    private void updateUI() {
+        long elapsedTime = entrenamientoService.getElapsedTime();
+        float totalDistance = entrenamientoService.getTotalDistance();
+        List<LatLng> routePoints = entrenamientoService.getRoutePoints();
+
+        runOnUiThread(() -> {
+            // Actualizar textos
+            tvTiempo.setText(formatTime(elapsedTime));
+            tvDistancia.setText(String.format("%.2f km", totalDistance / 1000));
+
+            // Calcular velocidad y ritmo
+            if (elapsedTime > 0 && totalDistance > 0) {
+                float speed = (totalDistance / elapsedTime) * 3.6f; // m/s a km/h
+                tvVelocidad.setText(String.format("%.1f km/h", speed));
+
+                if (speed > 0) {
+                    float pace = 16.6667f / speed; // min/km
+                    tvRitmo.setText(String.format("%.1f min/km", pace));
+                }
+            }
+
+            // Actualizar mapa
+            if (googleMap != null && routePoints != null && !routePoints.isEmpty()) {
+                updateMapRoute(routePoints);
+            }
+        });
+    }
+
+    private void updateMapRoute(List<LatLng> route) {
+        runOnUiThread(() -> {
+            if (routePolyline != null) {
+                routePolyline.remove();
+            }
+
+            routePolyline = googleMap.addPolyline(new PolylineOptions()
+                    .addAll(route)
+                    .width(5)
+                    .color(Color.RED));
+
+            // Mover cámara al último punto
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(route.get(route.size() - 1), 15));
+        });
     }
 
     private void pauseTraining() {
         isRunning = false;
-        handler.removeCallbacks(timerRunnable);
+        handler.removeCallbacks(updateUIRunnable);
         btnParar.setVisibility(View.GONE);
         layoutBotones.setVisibility(View.VISIBLE);
     }
 
     private void resumeTraining() {
         isRunning = true;
-        handler.post(timerRunnable);
         btnParar.setVisibility(View.VISIBLE);
         layoutBotones.setVisibility(View.GONE);
+        if (isActivityVisible) {
+            startUIUpdates();
+        }
     }
 
     private void stopTraining() {
         isRunning = false;
-        handler.removeCallbacks(timerRunnable);
+        handler.removeCallbacks(updateUIRunnable);
 
         // Detener servicio
         if (isBound) {
@@ -270,55 +349,28 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         finish();
     }
 
-    private final Runnable timerRunnable = new Runnable() {
-        @Override
-        public void run() {
-            if (isRunning && isBound && entrenamientoService != null) {
-                updateUI();
-                handler.postDelayed(this, 1000);
+    private void saveTrainingToDB() {
+        DBHelper dbHelper = new DBHelper(this);
+
+        String fecha = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        float distancia = entrenamientoService.getTotalDistance();
+        long tiempoSegundos = entrenamientoService.getElapsedTime();
+        int tipoEntrenamiento = getIntent().getIntExtra("tipo_entrenamiento", 0);
+
+        // Calcular velocidad promedio
+        float averageSpeed = 0;
+        if (tiempoSegundos > 0) {
+            averageSpeed = (distancia / tiempoSegundos) * 3.6f; // m/s a km/h
+        }
+
+        long idEntrena = dbHelper.guardarEntrenamientoAuto(tipoEntrenamiento, fecha,
+                distancia, tiempoSegundos, averageSpeed);
+
+        // Guardar puntos de ruta
+        if (entrenamientoService != null) {
+            for (LatLng punto : entrenamientoService.getRoutePoints()) {
+                dbHelper.guardarPuntoRuta(idEntrena, punto.latitude, punto.longitude);
             }
-        }
-    };
-
-    private void updateUI() {
-        elapsedTime = entrenamientoService.getElapsedTime();
-        totalDistance = entrenamientoService.getTotalDistance();
-
-        tvTiempo.setText(formatTime(elapsedTime));
-        tvDistancia.setText(String.format("%.2f km", totalDistance / 1000));
-
-        // Actualizar mapa si hay nuevos puntos
-        if (googleMap != null && entrenamientoService.getRoutePoints() != null) {
-            updateMapRoute();
-        }
-    }
-
-    private void updateMapRoute() {
-        List<LatLng> currentRoute = entrenamientoService.getRoutePoints();
-        if (currentRoute != null && !currentRoute.isEmpty()) {
-            if (routePolyline != null) {
-                routePolyline.remove();
-            }
-            routePolyline = googleMap.addPolyline(new PolylineOptions()
-                    .addAll(currentRoute)
-                    .width(5)
-                    .color(Color.RED));
-
-            // Mover cámara al último punto
-            LatLng lastPoint = currentRoute.get(currentRoute.size() - 1);
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(lastPoint, 15));
-        }
-    }
-
-    private String formatTime(long seconds) {
-        long hours = seconds / 3600;
-        long minutes = (seconds % 3600) / 60;
-        long secs = seconds % 60;
-
-        if (hours > 0) {
-            return String.format("%02d:%02d:%02d", hours, minutes, secs);
-        } else {
-            return String.format("%02d:%02d", minutes, secs);
         }
     }
 
@@ -341,35 +393,6 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         }
     }
 
-    private void saveTrainingToDB() {
-        DBHelper dbHelper = new DBHelper(this);
-
-        String fecha = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
-        float distancia = totalDistance;
-        long tiempoSegundos = elapsedTime;
-        float averageSpeed = calculateAverageSpeed();
-        int tipoEntrenamiento = getIntent().getIntExtra("tipo_entrenamiento", 0);
-
-        long idEntrena = dbHelper.guardarEntrenamientoAuto(tipoEntrenamiento, fecha,
-                distancia, tiempoSegundos, averageSpeed);
-
-        // Guardar puntos de ruta
-        if (entrenamientoService != null) {
-            for (LatLng punto : entrenamientoService.getRoutePoints()) {
-                dbHelper.guardarPuntoRuta(idEntrena, punto.latitude, punto.longitude);
-            }
-        }
-    }
-
-    private float calculateAverageSpeed() {
-        if (speedList.isEmpty()) return 0;
-        float sum = 0;
-        for (float speed : speedList) {
-            sum += speed;
-        }
-        return sum / speedList.size();
-    }
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
@@ -381,8 +404,8 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
 
         googleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
 
-        if (entrenamientoService != null && entrenamientoService.getRoutePoints() != null) {
-            updateMapRoute();
+        if (isBound && entrenamientoService != null) {
+            updateMapRoute(entrenamientoService.getRoutePoints());
         }
     }
 
@@ -406,46 +429,63 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         }
     }
 
+    private String formatTime(long seconds) {
+        long hours = seconds / 3600;
+        long minutes = (seconds % 3600) / 60;
+        long secs = seconds % 60;
+
+        if (hours > 0) {
+            return String.format("%02d:%02d:%02d", hours, minutes, secs);
+        } else {
+            return String.format("%02d:%02d", minutes, secs);
+        }
+    }
+
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-
-        // Guardar estado del countdown
-        outState.putBoolean("countdownFinished", tvCuentaAtras.getVisibility() == View.GONE);
-
-        // Guardar estado de la actividad
         outState.putBoolean("isRunning", isRunning);
-        outState.putLong("elapsedTime", elapsedTime);
-        outState.putFloat("totalDistance", totalDistance);
-        outState.putBoolean("isBound", isBound);
-
-        // Guardar estado de los botones
+        outState.putBoolean("countdownFinished", tvCuentaAtras.getVisibility() == View.GONE);
         outState.putInt("buttonVisibility", btnParar.getVisibility());
         outState.putInt("layoutVisibility", layoutBotones.getVisibility());
+    }
 
-        // Guardar última ubicación conocida
-        if (lastLocation != null) {
-            outState.putParcelable("lastLocation", lastLocation);
+    @Override
+    protected void onStart() {
+        super.onStart();
+        isActivityVisible = true;
+        mapView.onStart();
+        if (isServiceRunning(EntrenamientoService.class)) {
+            bindToService();
         }
-
-        // Guardar lista de velocidades
-        outState.putSerializable("speedList", new ArrayList<>(speedList));
+        if (isRunning) {
+            startUIUpdates();
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         mapView.onResume();
+        isActivityVisible = true;
         if (isRunning) {
-            handler.post(timerRunnable);
+            startUIUpdates();
         }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        isActivityVisible = false;
+        handler.removeCallbacks(updateUIRunnable);
         mapView.onPause();
-        handler.removeCallbacks(timerRunnable);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        isActivityVisible = false;
+        mapView.onStop();
     }
 
     @Override
@@ -455,7 +495,7 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         if (countDownTimer != null) {
             countDownTimer.cancel();
         }
-        if (isBound) {
+        if (isBound && !isChangingConfigurations()) {
             unbindService(serviceConnection);
         }
     }

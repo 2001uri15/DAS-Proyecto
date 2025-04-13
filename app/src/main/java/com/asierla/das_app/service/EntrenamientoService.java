@@ -19,7 +19,6 @@ import android.util.Log;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
-
 import android.Manifest;
 import com.asierla.das_app.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -30,6 +29,9 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class EntrenamientoService extends Service {
     private static final String CHANNEL_ID = "EntrenamientoChannel";
@@ -41,14 +43,16 @@ public class EntrenamientoService extends Service {
     private Location lastLocation;
     private List<LatLng> routePoints = new ArrayList<>();
     private PowerManager.WakeLock wakeLock;
+    private long lastNotificationUpdate = 0;
 
     // Location
     private FusedLocationProviderClient fusedLocationClient;
     private LocationCallback locationCallback;
     private LocationRequest locationRequest;
 
-    // Broadcast
-    private BroadcastReceiver airplaneModeReceiver;
+    // Notificación
+    private NotificationManager notificationManager;
+    private ScheduledExecutorService notificationUpdater;
 
     // Binder
     private final IBinder binder = new LocalBinder();
@@ -66,7 +70,7 @@ public class EntrenamientoService extends Service {
         // Mantener el dispositivo despierto
         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-                "MyApp::TrainingWakeLock");
+                "MyApp::EntrenamientoService");
         wakeLock.acquire();
 
         // Configurar ubicación
@@ -74,35 +78,64 @@ public class EntrenamientoService extends Service {
         createLocationRequest();
         createLocationCallback();
 
-        // Registrar BroadcastReceiver para modo avión
-        registerAirplaneModeReceiver();
+        // Iniciar actualizaciones de ubicación
+        startLocationUpdates();
+        startTime = System.currentTimeMillis();
 
-        // Canal de notificación
+        // Configurar notificación
+        notificationManager = getSystemService(NotificationManager.class);
         createNotificationChannel();
+        startNotificationUpdates();
+    }
+
+    private void startNotificationUpdates() {
+        notificationUpdater = Executors.newSingleThreadScheduledExecutor();
+        notificationUpdater.scheduleAtFixedRate(() -> {
+            if (System.currentTimeMillis() - lastNotificationUpdate >= 1000) {
+                updateNotification();
+            }
+        }, 0, 1, TimeUnit.SECONDS);
+    }
+
+    private void updateNotification() {
+        long elapsedSeconds = (System.currentTimeMillis() - startTime) / 1000;
+        String notificationText = String.format("Distancia: %.2f km - Tiempo: %s",
+                totalDistance / 1000, formatTime(elapsedSeconds));
+
+        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("Entrenamiento en curso")
+                .setContentText(notificationText)
+                .setSmallIcon(R.drawable.icon_app)
+                .setOnlyAlertOnce(true)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setCategory(NotificationCompat.CATEGORY_SERVICE)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .build();
+
+        notificationManager.notify(NOTIFICATION_ID, notification);
+        lastNotificationUpdate = System.currentTimeMillis();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Notification notification = createNotification("Entrenamiento en curso");
-        startForegroundService(notification);
-
-        startLocationUpdates();
-        startTime = System.currentTimeMillis();
-
+        startForegroundService();
         return START_STICKY;
     }
 
-    private void startForegroundService(Notification notification) {
+    private void startForegroundService() {
+        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("Entrenamiento en curso")
+                .setContentText("Iniciando...")
+                .setSmallIcon(R.drawable.icon_app)
+                .build();
+
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                // Verificamos permisos de ubicación
                 if (ContextCompat.checkSelfPermission(this,
                         Manifest.permission.FOREGROUND_SERVICE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-
                     startForeground(NOTIFICATION_ID, notification,
                             ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
                 } else {
-                    // Fallback sin tipo específico
                     startForeground(NOTIFICATION_ID, notification);
                 }
             } else {
@@ -112,37 +145,6 @@ public class EntrenamientoService extends Service {
             Log.e("EntrenamientoService", "Error en startForeground", e);
             startForeground(NOTIFICATION_ID, notification);
         }
-    }
-
-    private void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    CHANNEL_ID,
-                    "Entrenamiento Service Channel",
-                    NotificationManager.IMPORTANCE_LOW
-            );
-            channel.setDescription("Canal para notificaciones de entrenamiento en curso");
-            NotificationManager manager = getSystemService(NotificationManager.class);
-            manager.createNotificationChannel(channel);
-        }
-    }
-
-    private Notification createNotification(String text) {
-        return new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Entrenamiento en curso")
-                .setContentText(text)
-                .setSmallIcon(R.drawable.icon_app)
-                .setOnlyAlertOnce(true)
-                .setPriority(NotificationCompat.PRIORITY_LOW)
-                .setCategory(NotificationCompat.CATEGORY_SERVICE)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .build();
-    }
-
-    private void updateNotification(String text) {
-        Notification notification = createNotification(text);
-        NotificationManager manager = getSystemService(NotificationManager.class);
-        manager.notify(NOTIFICATION_ID, notification);
     }
 
     private void createLocationRequest() {
@@ -162,27 +164,21 @@ public class EntrenamientoService extends Service {
             public void onLocationResult(LocationResult locationResult) {
                 if (locationResult == null) return;
                 for (Location location : locationResult.getLocations()) {
-                    updateTrainingData(location);
+                    if (location != null) {
+                        updateTrainingData(location);
+                    }
                 }
             }
         };
     }
 
-    private void updateTrainingData(Location location) {
-        if (lastLocation != null) {
+    private synchronized void updateTrainingData(Location location) {
+        if (lastLocation != null && location.distanceTo(lastLocation) > 0) {
             float distance = lastLocation.distanceTo(location);
             totalDistance += distance;
-
-            LatLng newPoint = new LatLng(location.getLatitude(), location.getLongitude());
-            routePoints.add(newPoint);
+            routePoints.add(new LatLng(location.getLatitude(), location.getLongitude()));
         }
         lastLocation = location;
-
-        // Actualizar notificación
-        long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
-        String notificationText = String.format("Distancia: %.2f km - Tiempo: %s",
-                totalDistance / 1000, formatTime(elapsedTime));
-        updateNotification(notificationText);
     }
 
     private String formatTime(long seconds) {
@@ -205,28 +201,6 @@ public class EntrenamientoService extends Service {
         }
     }
 
-    private void stopLocationUpdates() {
-        fusedLocationClient.removeLocationUpdates(locationCallback);
-    }
-
-    private void registerAirplaneModeReceiver() {
-        airplaneModeReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                if (Intent.ACTION_AIRPLANE_MODE_CHANGED.equals(intent.getAction())) {
-                    boolean isAirplaneModeOn = intent.getBooleanExtra("state", false);
-                    String message = isAirplaneModeOn ?
-                            "Modo avión activado - Entrenamiento continúa" :
-                            "Modo avión desactivado";
-                    updateNotification(message);
-                }
-            }
-        };
-
-        IntentFilter filter = new IntentFilter(Intent.ACTION_AIRPLANE_MODE_CHANGED);
-        registerReceiver(airplaneModeReceiver, filter);
-    }
-
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -234,25 +208,44 @@ public class EntrenamientoService extends Service {
         if (wakeLock != null && wakeLock.isHeld()) {
             wakeLock.release();
         }
-        if (airplaneModeReceiver != null) {
-            unregisterReceiver(airplaneModeReceiver);
+        if (notificationUpdater != null) {
+            notificationUpdater.shutdown();
+        }
+        notificationManager.cancel(NOTIFICATION_ID);
+    }
+
+    private void stopLocationUpdates() {
+        if (fusedLocationClient != null && locationCallback != null) {
+            fusedLocationClient.removeLocationUpdates(locationCallback);
+        }
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    CHANNEL_ID,
+                    "Entrenamiento Service Channel",
+                    NotificationManager.IMPORTANCE_LOW
+            );
+            channel.setDescription("Canal para notificaciones de entrenamiento en curso");
+            notificationManager.createNotificationChannel(channel);
         }
     }
 
     // Métodos públicos para la actividad
-    public long getElapsedTime() {
+    public synchronized long getElapsedTime() {
         return (System.currentTimeMillis() - startTime) / 1000;
     }
 
-    public float getTotalDistance() {
+    public synchronized float getTotalDistance() {
         return totalDistance;
     }
 
-    public List<LatLng> getRoutePoints() {
-        return routePoints;
+    public synchronized List<LatLng> getRoutePoints() {
+        return new ArrayList<>(routePoints);
     }
 
-    public Location getLastLocation() {
+    public synchronized Location getLastLocation() {
         return lastLocation;
     }
 
