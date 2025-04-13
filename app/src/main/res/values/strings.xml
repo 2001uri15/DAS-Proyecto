@@ -87,5 +87,8 @@
     <string name="es_hora_de_entrenar" translatable="false">Es hora de tu sesión de entrenamiento diaria</string>
     <string name="recordatorios_entrenamiento" translatable="false">Recordatorios de entrenamiento</string>
     <string name="canal_recordatorios" translatable="false">Notificaciones para recordatorios de entrenamiento</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
+    <string name="app_widget_description">This is an app widget description</string>
 
 </resources>

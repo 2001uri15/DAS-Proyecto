@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <style name="CustomRatingBar" parent="Widget.AppCompat.RatingBar">
         <!-- Color de las estrellas seleccionadas (activas) -->
         <item name="colorControlActivated">#FFD700</item> <!-- Dorado -->
@@ -16,5 +17,15 @@
         <item name="android:windowBackground">@color/white</item>
         <!-- Cambia el color del texto -->
         <item name="android:textColorPrimary">@color/black</item>
+    </style>
+
+    <style name="Widget.DAS_APP.AppWidget.Container" parent="android:Widget">
+        <item name="android:id">@android:id/background</item>
+        <item name="android:background">?android:attr/colorBackground</item>
+    </style>
+
+    <style name="Widget.DAS_APP.AppWidget.InnerView" parent="android:Widget">
+        <item name="android:background">?android:attr/colorBackground</item>
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
     </style>
 </resources>

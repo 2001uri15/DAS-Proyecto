@@ -1,0 +1,108 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/Widget.DAS_APP.AppWidget.Container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:theme="@style/Theme.DAS_APP.AppWidgetContainer">
+
+    <!-- TextView centrado horizontalmente -->
+    <TextView
+        android:id="@+id/ipnombre"
+        android:layout_width="344dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="6dp"
+        android:text="Nombre Apellidos"
+        android:textAlignment="gravity"
+        android:textColor="@color/primaryDark"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <!-- Barra de progreso -->
+    <ProgressBar
+        android:id="@+id/progressBarEntrena"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="29dp"
+        android:layout_below="@+id/ipnombre"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="16dp" />
+
+    <!-- Labels para el tiempo -->
+    <LinearLayout
+        android:id="@+id/linearLayout5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/progressBarEntrena"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginRight="16dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvTiempoTranscurrido"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 min"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" / "
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/tvTiempoTotal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="150 min"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- Contenedor de botones con iconos -->
+    <LinearLayout
+        android:layout_width="395dp"
+        android:layout_height="146dp"
+        android:layout_below="@+id/linearLayout5"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="8dp">
+
+        <ImageView
+            android:id="@+id/btnCorrer"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            android:contentDescription="@string/correr"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/icon_correr"
+            android:tag="open_correr"/>
+
+        <ImageView
+            android:id="@+id/btnBici"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            android:contentDescription="@string/bici"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/icon_bicicleta"
+            android:tag="open_bici"/>
+
+        <ImageView
+            android:id="@+id/btnAndar"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            android:contentDescription="@string/andar"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/icon_andar"
+            android:tag="open_andar"/>
+    </LinearLayout>
+</RelativeLayout>

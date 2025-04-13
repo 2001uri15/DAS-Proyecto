@@ -38,6 +38,14 @@ public class IogIn extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+        SharedPreferences prefs2 = getSharedPreferences("Usuario", MODE_PRIVATE);
+        boolean iniciado = prefs2.getBoolean("iniciado", false);
+        if (iniciado){
+            Intent intent = new Intent(IogIn.this, Home.class);
+            startActivity(intent);
+            finish();
+        }
+
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
                 PackageManager.PERMISSION_GRANTED) {
@@ -84,8 +92,8 @@ public class IogIn extends AppCompatActivity {
 
             Button btnEntrarSinIniciar = findViewById(R.id.btnEntrarSinIniciar);
             btnEntrarSinIniciar.setOnClickListener(v -> {
-                SharedPreferences prefs2 = getSharedPreferences("Usuario", MODE_PRIVATE);
-                SharedPreferences.Editor editor = prefs2.edit();
+                SharedPreferences prefs3 = getSharedPreferences("Usuario", MODE_PRIVATE);
+                SharedPreferences.Editor editor = prefs3.edit();
                 editor.putBoolean("iniciado", true);
                 editor.apply();
                 Intent intent = new Intent(IogIn.this, Home.class);

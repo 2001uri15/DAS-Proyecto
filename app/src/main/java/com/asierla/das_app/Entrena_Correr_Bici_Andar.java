@@ -354,7 +354,7 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
 
         String fecha = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         float distancia = entrenamientoService.getTotalDistance();
-        long tiempoSegundos = entrenamientoService.getElapsedTime();
+        int tiempoSegundos = (int) entrenamientoService.getElapsedTime() * 1000;
         int tipoEntrenamiento = getIntent().getIntExtra("tipo_entrenamiento", 0);
 
         // Calcular velocidad promedio

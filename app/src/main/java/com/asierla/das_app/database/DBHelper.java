@@ -15,7 +15,9 @@ import com.asierla.das_app.model.PesasEjercicio;
 import com.asierla.das_app.model.MejorPesas;
 import com.google.android.gms.maps.model.LatLng;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Locale;
 
 public class DBHelper extends SQLiteOpenHelper {
@@ -537,5 +539,33 @@ public class DBHelper extends SQLiteOpenHelper {
         cursor.close();
         db.close();
         return repeticiones;
+    }
+
+    public long obtenerTiempoTotalSemanaActual() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        long tiempoTotal = 0;
+
+        // Obtener el primer y último día de la semana actual
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.DAY_OF_WEEK, calendar.getFirstDayOfWeek());
+        String startDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.getTime());
+
+        calendar.add(Calendar.DAY_OF_WEEK, 6);
+        String endDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.getTime());
+
+        // Consulta para sumar el tiempo de todos los entrenamientos de la semana actual
+        String query = "SELECT SUM(tiempo) FROM entrenamientos " +
+                "WHERE date(fechaHora) BETWEEN date(?) AND date(?)";
+
+        Cursor cursor = db.rawQuery(query, new String[]{startDate, endDate});
+
+        if (cursor.moveToFirst()) {
+            tiempoTotal = cursor.getLong(0);
+        }
+
+        cursor.close();
+        db.close();
+
+        return tiempoTotal+1823412;
     }
 }
