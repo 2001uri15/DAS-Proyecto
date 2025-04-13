@@ -28,6 +28,8 @@
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application
         android:allowBackup="true"
@@ -40,24 +42,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DAS_APP"
         tools:targetApi="29">
-        <receiver
-            android:name=".HorasEntrenaSemana"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/horas_entrena_semana_info" />
-        </receiver>
-
         <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -96,7 +85,7 @@
             android:exported="false" />
         <activity
             android:name=".IogIn"
-            android:exported="false"></activity> <!-- API de Google Maps -->
+            android:exported="false" /> <!-- API de Google Maps -->
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="AIzaSyBwSROT6QsxrNzDeEJ5XqD5xC-5oJvhSDY" /> <!-- Notificaciones PUSH (FCM) -->
@@ -122,13 +111,35 @@
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
                 <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
             </intent-filter>
-        </receiver> <!-- Servicio para que los entrenamientos se hagan en segundo plano -->
+        </receiver>
+        <receiver
+            android:name=".BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+        <!-- Servicio para que los entrenamientos se hagan en segundo plano -->
         <service
             android:name=".service.EntrenamientoService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="location"
             tools:targetApi="q" />
+        <receiver
+            android:name=".HorasEntrenaSemana"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/horas_entrena_semana_info" />
+        </receiver>
     </application>
 
 </manifest>

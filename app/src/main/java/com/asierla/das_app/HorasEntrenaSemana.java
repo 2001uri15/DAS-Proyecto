@@ -91,7 +91,7 @@ public class HorasEntrenaSemana extends AppWidgetProvider {
         }else {
             views.setTextViewText(R.id.ipnombre, "Usuario anonimo");
         }
-        
+
         DBHelper dbHelper = new DBHelper(context);
         try {
             for (int appWidgetId : appWidgetIds) {

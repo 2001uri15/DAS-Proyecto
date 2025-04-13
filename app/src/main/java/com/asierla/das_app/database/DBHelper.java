@@ -566,6 +566,6 @@ public class DBHelper extends SQLiteOpenHelper {
         cursor.close();
         db.close();
 
-        return tiempoTotal+1823412;
+        return tiempoTotal;
     }
 }

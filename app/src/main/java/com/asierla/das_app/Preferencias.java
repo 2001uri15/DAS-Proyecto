@@ -11,6 +11,7 @@ import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -184,8 +185,6 @@ public class Preferencias extends AppCompatActivity {
             Toast.makeText(this, R.string.no_disponible, Toast.LENGTH_SHORT).show();
         });
 
-        // Inicializar SharedPreferences
-        prefs2 = getSharedPreferences("Ajustes", MODE_PRIVATE);
 
         // Configurar el botón de alarma
         btnAlarma = findViewById(R.id.btnAlarma);
@@ -219,21 +218,27 @@ public class Preferencias extends AppCompatActivity {
         TimePickerDialog timePicker = new TimePickerDialog(
                 this,
                 (view, horaSeleccionada, minutoSeleccionado) -> {
-                    programarAlarma(horaSeleccionada, minutoSeleccionado);
+                    programarAlarmaDiaria(horaSeleccionada, minutoSeleccionado);
                     guardarHoraAlarma(horaSeleccionada, minutoSeleccionado);
                     actualizarTextoBotonAlarma();
-                    Toast.makeText(this, "Alarma programada", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this,
+                            "Recordatorio programado para " +
+                                    String.format("%02d:%02d", horaSeleccionada, minutoSeleccionado),
+                            Toast.LENGTH_SHORT).show();
                 },
                 horaActual,
                 minutoActual,
                 true
         );
+
         timePicker.show();
     }
 
-    private void programarAlarma(int hora, int minuto) {
+    private void programarAlarmaDiaria(int hora, int minuto) {
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
         Intent intent = new Intent(this, AlarmaReceiver.class);
+        intent.putExtra("mensaje_notificacion", "¡Hora de entrenar!");
+
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 this,
                 0,
@@ -245,16 +250,68 @@ public class Preferencias extends AppCompatActivity {
         calendario.set(Calendar.HOUR_OF_DAY, hora);
         calendario.set(Calendar.MINUTE, minuto);
         calendario.set(Calendar.SECOND, 0);
+        calendario.set(Calendar.MILLISECOND, 0);
 
-        // Si la hora ya pasó hoy, programar para mañana
         if (calendario.getTimeInMillis() <= System.currentTimeMillis()) {
             calendario.add(Calendar.DAY_OF_YEAR, 1);
         }
 
-        alarmManager.set(AlarmManager.RTC_WAKEUP, calendario.getTimeInMillis(), pendingIntent);
+        // Para Android 6.0+ (Marshmallow)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    calendario.getTimeInMillis(),
+                    pendingIntent
+            );
+        }
+        // Para Android 4.4+ (KitKat)
+        else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+            alarmManager.setExact(
+                    AlarmManager.RTC_WAKEUP,
+                    calendario.getTimeInMillis(),
+                    pendingIntent
+            );
+        }
+        // Para versiones anteriores
+        else {
+            alarmManager.set(
+                    AlarmManager.RTC_WAKEUP,
+                    calendario.getTimeInMillis(),
+                    pendingIntent
+            );
+        }
+    }
+
+    private void cancelarAlarma() {
+        // 1. Obtener el AlarmManager
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+
+        // 2. Crear Intent idéntico al usado para programar
+        Intent intent = new Intent(this, AlarmaReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                this,
+                0,
+                intent,
+                PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        // 3. Cancelar la alarma si existe
+        if (pendingIntent != null) {
+            alarmManager.cancel(pendingIntent);
+            pendingIntent.cancel();
+
+            // Limpiar preferencias
+            prefs2.edit().clear().apply();
+            actualizarTextoBotonAlarma();
+
+            Toast.makeText(this, "Recordatorio cancelado", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "No hay recordatorio programado", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void guardarHoraAlarma(int hora, int minuto) {
+        Log.d("ALARMA", "Se ha gusradado la hora");
         SharedPreferences.Editor editor = prefs2.edit();
         editor.putInt("alarma_hora", hora);
         editor.putInt("alarma_minuto", minuto);
@@ -267,7 +324,7 @@ public class Preferencias extends AppCompatActivity {
             int minuto = prefs2.getInt("alarma_minuto", 0);
             btnAlarma.setText(String.format("Recordatorio: %02d:%02d", hora, minuto));
         } else {
-            btnAlarma.setText("Configurar recordatorio");
+            btnAlarma.setText("Programar recordatorio");
         }
     }
 
