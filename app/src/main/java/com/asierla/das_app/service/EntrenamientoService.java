@@ -15,6 +15,8 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.telephony.TelephonyManager;
+import android.telephony.TelephonyCallback;
 import android.util.Log;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
@@ -45,10 +47,20 @@ public class EntrenamientoService extends Service {
     private PowerManager.WakeLock wakeLock;
     private long lastNotificationUpdate = 0;
 
+    // Estado de llamada
+    private boolean isCallActive = false;
+    private long callStartTime = 0;
+    private long pausedTime = 0;
+
     // Location
     private FusedLocationProviderClient fusedLocationClient;
     private LocationCallback locationCallback;
     private LocationRequest locationRequest;
+
+    // Llamadas telefónicas
+    private TelephonyManager telephonyManager;
+    private MyTelephonyCallback telephonyCallback;
+    private BroadcastReceiver callStateReceiver;
 
     // Notificación
     private NotificationManager notificationManager;
@@ -63,6 +75,59 @@ public class EntrenamientoService extends Service {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.S)
+    private class MyTelephonyCallback extends TelephonyCallback implements TelephonyCallback.CallStateListener {
+        @Override
+        public void onCallStateChanged(int state) {
+            switch (state) {
+                case TelephonyManager.CALL_STATE_RINGING:
+                    Log.d("EntrenamientoService", "Llamada entrante detectada");
+                    break;
+
+                case TelephonyManager.CALL_STATE_OFFHOOK:
+                    if (!isCallActive) {
+                        isCallActive = true;
+                        callStartTime = System.currentTimeMillis();
+                        stopLocationUpdates();
+                        Log.d("EntrenamientoService", "Llamada iniciada - Pausando entrenamiento");
+                    }
+                    break;
+
+                case TelephonyManager.CALL_STATE_IDLE:
+                    if (isCallActive) {
+                        isCallActive = false;
+                        pausedTime += System.currentTimeMillis() - callStartTime;
+                        startLocationUpdates();
+                        Log.d("EntrenamientoService", "Llamada finalizada - Reanudando entrenamiento");
+                    }
+                    break;
+            }
+        }
+    }
+
+    private class CallStateReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
+
+            if (TelephonyManager.EXTRA_STATE_OFFHOOK.equals(state)) {
+                if (!isCallActive) {
+                    isCallActive = true;
+                    callStartTime = System.currentTimeMillis();
+                    stopLocationUpdates();
+                    Log.d("EntrenamientoService", "Llamada iniciada - Pausando entrenamiento");
+                }
+            } else if (TelephonyManager.EXTRA_STATE_IDLE.equals(state)) {
+                if (isCallActive) {
+                    isCallActive = false;
+                    pausedTime += System.currentTimeMillis() - callStartTime;
+                    startLocationUpdates();
+                    Log.d("EntrenamientoService", "Llamada finalizada - Reanudando entrenamiento");
+                }
+            }
+        }
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -73,13 +138,24 @@ public class EntrenamientoService extends Service {
                 "MyApp::EntrenamientoService");
         wakeLock.acquire();
 
+        // Configurar detección de llamadas
+        telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            telephonyCallback = new MyTelephonyCallback();
+            telephonyManager.registerTelephonyCallback(getMainExecutor(), telephonyCallback);
+        } else {
+            callStateReceiver = new CallStateReceiver();
+            IntentFilter filter = new IntentFilter(TelephonyManager.ACTION_PHONE_STATE_CHANGED);
+            registerReceiver(callStateReceiver, filter);
+        }
+
         // Configurar ubicación
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         createLocationRequest();
         createLocationCallback();
-
-        // Iniciar actualizaciones de ubicación
         startLocationUpdates();
+
         startTime = System.currentTimeMillis();
 
         // Configurar notificación
@@ -98,7 +174,7 @@ public class EntrenamientoService extends Service {
     }
 
     private void updateNotification() {
-        long elapsedSeconds = (System.currentTimeMillis() - startTime) / 1000;
+        long elapsedSeconds = getElapsedTime();
         String notificationText = String.format("Distancia: %.2f km - Tiempo: %s",
                 totalDistance / 1000, formatTime(elapsedSeconds));
 
@@ -162,7 +238,7 @@ public class EntrenamientoService extends Service {
         locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
-                if (locationResult == null) return;
+                if (locationResult == null || isCallActive) return;
                 for (Location location : locationResult.getLocations()) {
                     if (location != null) {
                         updateTrainingData(location);
@@ -201,9 +277,27 @@ public class EntrenamientoService extends Service {
         }
     }
 
+    private void stopLocationUpdates() {
+        if (fusedLocationClient != null && locationCallback != null) {
+            fusedLocationClient.removeLocationUpdates(locationCallback);
+        }
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
+
+        // Desregistrar callbacks de llamadas
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (telephonyManager != null && telephonyCallback != null) {
+                telephonyManager.unregisterTelephonyCallback(telephonyCallback);
+            }
+        } else {
+            if (callStateReceiver != null) {
+                unregisterReceiver(callStateReceiver);
+            }
+        }
+
         stopLocationUpdates();
         if (wakeLock != null && wakeLock.isHeld()) {
             wakeLock.release();
@@ -212,12 +306,6 @@ public class EntrenamientoService extends Service {
             notificationUpdater.shutdown();
         }
         notificationManager.cancel(NOTIFICATION_ID);
-    }
-
-    private void stopLocationUpdates() {
-        if (fusedLocationClient != null && locationCallback != null) {
-            fusedLocationClient.removeLocationUpdates(locationCallback);
-        }
     }
 
     private void createNotificationChannel() {
@@ -234,7 +322,11 @@ public class EntrenamientoService extends Service {
 
     // Métodos públicos para la actividad
     public synchronized long getElapsedTime() {
-        return (System.currentTimeMillis() - startTime) / 1000;
+        long currentTime = System.currentTimeMillis();
+        if (isCallActive) {
+            return ((currentTime - startTime - pausedTime - (currentTime - callStartTime)) / 1000);
+        }
+        return ((currentTime - startTime - pausedTime) / 1000);
     }
 
     public synchronized float getTotalDistance() {

@@ -156,6 +156,12 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
+        }
     }
 
     private void checkBatteryOptimization() {
@@ -349,6 +355,21 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         finish();
     }
 
+    private void finishNotSave() {
+        isRunning = false;
+        handler.removeCallbacks(updateUIRunnable);
+
+        // Detener servicio
+        if (isBound) {
+            unbindService(serviceConnection);
+            isBound = false;
+        }
+        Intent serviceIntent = new Intent(this, EntrenamientoService.class);
+        stopService(serviceIntent);
+
+        finish();
+    }
+
     private void saveTrainingToDB() {
         DBHelper dbHelper = new DBHelper(this);
 
@@ -413,7 +434,7 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         new AlertDialog.Builder(this)
                 .setTitle(R.string.que_quieres_hacer)
                 .setPositiveButton(R.string.guardar_salir, (dialog, which) -> stopTraining())
-                .setNeutralButton(R.string.salir, (dialog, which) -> finish())
+                .setNeutralButton(R.string.salir, (dialog, which) -> finishNotSave())
                 .setNegativeButton(R.string.cancelar, null)
                 .show();
     }
