@@ -36,6 +36,7 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
+import com.asierla.das_app.database.DBImagen;
 import com.asierla.das_app.database.DBServer;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -206,7 +207,20 @@ public class Perfil extends AppCompatActivity {
             String imageBase64 = convertBitmapToBase64(bitmap);
             SharedPreferences prefs = getSharedPreferences("Usuario", MODE_PRIVATE);
             String token = prefs.getString("token", "");
+            Log.d("SUBIR_IMAGEN", "Token: "+token);
             //actualizarImg(token, imageBase64);
+            DBImagen.uploadImageAsBase64(bitmap, token, new DBImagen.UploadCallback() {
+                @Override
+                public void onSuccess(String response) {
+                    Log.d("SUBIR_IMAGEN", "Respuesta del servidor: " + response);
+                    // Aquí puedes procesar la respuesta JSON
+                }
+
+                @Override
+                public void onError(String error) {
+                    Log.e("SUBIR_IMAGEN", "Error al subir imagen: " + error);
+                }
+            });
         } catch (IOException e) {
             Toast.makeText(this, "Error al cargar la imagen", Toast.LENGTH_SHORT).show();
         }

@@ -23,24 +23,11 @@ public class HorasEntrenaSemana extends AppWidgetProvider {
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId, DBHelper dbHelper) {
 
-        SharedPreferences prefs2 = context.getSharedPreferences("Usuario", Context.MODE_PRIVATE);
-        String token = prefs2.getString("token", null);
-        String usuario = prefs2.getString("nombre", "");
-        String apellido = prefs2.getString("apellido", "");
-
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.horas_entrena_semana);
-        if (token != null){
-            views.setTextViewText(R.id.ipnombre, usuario + " " + apellido);
-        }else {
-            views.setTextViewText(R.id.ipnombre, "Usuario anonimo");
-        }
 
         // Obtener tiempo total de entrenamiento
         long tiempoTotal = dbHelper.obtenerTiempoTotalSemanaActual();
         int minutos = (int) (tiempoTotal / (60 * 1000)); // Convertir milisegundos a minutos
-
-        // Calcular porcentaje (no más del 100%)
-        int porcentaje = Math.min(100, (minutos * 100) / META_MINUTOS);
 
         // Actualizar la barra de progreso
         views.setProgressBar(R.id.progressBarEntrena, META_MINUTOS, minutos, false);
@@ -80,18 +67,6 @@ public class HorasEntrenaSemana extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-        SharedPreferences prefs2 = context.getSharedPreferences("Usuario", Context.MODE_PRIVATE);
-        String token = prefs2.getString("token", null);
-        String usuario = prefs2.getString("nombre", "");
-        String apellido = prefs2.getString("apellido", "");
-
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.horas_entrena_semana);
-        if (token != null){
-            views.setTextViewText(R.id.ipnombre, usuario + " " + apellido);
-        }else {
-            views.setTextViewText(R.id.ipnombre, "Usuario anonimo");
-        }
-
         DBHelper dbHelper = new DBHelper(context);
         try {
             for (int appWidgetId : appWidgetIds) {
