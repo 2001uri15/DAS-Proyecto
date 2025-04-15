@@ -60,8 +60,7 @@ import java.util.Objects;
 
 public class Perfil extends AppCompatActivity {
     private static final int REQUEST_CAMERA_PERMISSION = 101;
-
-    private static final int REQUEST_STORAGE_PERMISSION = 102;
+    private static final int REQUEST_STORAGE_PERMISSION = 100;
     private ImageView imgUsuario;
     private ActivityResultLauncher<Intent> takePictureLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -124,15 +123,62 @@ public class Perfil extends AppCompatActivity {
                     });
                 }
             });
-    private ActivityResultLauncher<PickVisualMediaRequest> pickMedia =
-            registerForActivityResult(new
-                    ActivityResultContracts.PickVisualMedia(), uri -> {
+    private final ActivityResultLauncher<PickVisualMediaRequest> pickMedia =
+            registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
                 if (uri != null) {
-                    Log.d("PhotoPicker", "Selected URI: " + uri);
-                    ImageView elImageView = findViewById(R.id.imageView);
-                    elImageView.setImageURI(uri);
+                    Log.d("IMG", "URI seleccionada: " + uri);
+
+                    // Mostrar carga mientras se procesa
+                    runOnUiThread(() ->
+                            Toast.makeText(this, "Procesando imagen...", Toast.LENGTH_SHORT).show());
+
+                    new Thread(() -> {
+                        try {
+                            // 1. Convertir imagen a Base64
+                            InputStream inputStream = getContentResolver().openInputStream(uri);
+                            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+
+                            SharedPreferences prefs = getSharedPreferences("Usuario", MODE_PRIVATE);
+                            String token = prefs.getString("token", "");
+
+                            // 3. Subir al servidor
+                            DBImagen.uploadImageAsBase64(bitmap, token, new DBImagen.UploadCallback() {
+                                @Override
+                                public void onSuccess(String response) {
+                                    runOnUiThread(() -> {
+                                        try {
+                                            // 4. Mostrar imagen solo si se subió correctamente
+                                            ImageView imageView = findViewById(R.id.profileImage);
+                                            imageView.setImageURI(uri);
+                                            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                                            Toast.makeText(Perfil.this, "Imagen actualizada!", Toast.LENGTH_SHORT).show();
+                                        } catch (Exception e) {
+                                            Log.e("IMG_VIEW", "Error al mostrar imagen", e);
+                                        }
+                                    });
+                                }
+
+                                @Override
+                                public void onError(String error) {
+                                    runOnUiThread(() -> {
+                                        Toast.makeText(Perfil.this, "Error al subir: " + error, Toast.LENGTH_SHORT).show();
+                                        Log.e("UPLOAD_ERR", error);
+                                    });
+                                }
+                            });
+
+                        } catch (Exception e) {
+                            runOnUiThread(() -> {
+                                Toast.makeText(Perfil.this, "Error al procesar imagen", Toast.LENGTH_SHORT).show();
+                                Log.e("IMG_PROCESS", e.getMessage());
+                            });
+                        }
+                    }).start();
+
                 } else {
-                    Log.d("PhotoPicker", "No media selected");
+                    Log.d("IMG", "No se seleccionó imagen");
+                    runOnUiThread(() ->
+                            Toast.makeText(this, "No se seleccionó imagen", Toast.LENGTH_SHORT).show());
                 }
             });
 
@@ -185,6 +231,7 @@ public class Perfil extends AppCompatActivity {
                             checkCameraPermission();
                             break;
                         case 1:
+                            Log.d("IMG", "Dialogo");
                             checkStoragePermission();
                             break;
                         case 2:
@@ -207,12 +254,15 @@ public class Perfil extends AppCompatActivity {
     }
 
     private void checkStoragePermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+        Log.d("IMG", "Permisos");
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)
                 != PackageManager.PERMISSION_GRANTED) {
+            Log.d("IMG", "Permisos: if");
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    new String[]{Manifest.permission.READ_MEDIA_IMAGES},
                     REQUEST_STORAGE_PERMISSION);
         } else {
+            Log.d("IMG", "Permisos: else");
             openGallery();  // Si ya tiene permiso, abre la galería
         }
     }
