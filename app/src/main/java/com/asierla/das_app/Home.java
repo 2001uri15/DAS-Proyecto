@@ -421,5 +421,11 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
     private void showError(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
-    
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Actualizar la imagen del perfil y los datos del header
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        setupNavHeader(navigationView);
+    }
 }

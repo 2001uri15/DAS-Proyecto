@@ -22,6 +22,7 @@ import android.widget.Toast;
 import android.Manifest;
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -59,6 +60,8 @@ import java.util.Objects;
 
 public class Perfil extends AppCompatActivity {
     private static final int REQUEST_CAMERA_PERMISSION = 101;
+
+    private static final int REQUEST_STORAGE_PERMISSION = 102;
     private ImageView imgUsuario;
     private ActivityResultLauncher<Intent> takePictureLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -121,6 +124,17 @@ public class Perfil extends AppCompatActivity {
                     });
                 }
             });
+    private ActivityResultLauncher<PickVisualMediaRequest> pickMedia =
+            registerForActivityResult(new
+                    ActivityResultContracts.PickVisualMedia(), uri -> {
+                if (uri != null) {
+                    Log.d("PhotoPicker", "Selected URI: " + uri);
+                    ImageView elImageView = findViewById(R.id.imageView);
+                    elImageView.setImageURI(uri);
+                } else {
+                    Log.d("PhotoPicker", "No media selected");
+                }
+            });
 
 
     @Override
@@ -171,7 +185,7 @@ public class Perfil extends AppCompatActivity {
                             checkCameraPermission();
                             break;
                         case 1:
-                            //checkStoragePermission();
+                            checkStoragePermission();
                             break;
                         case 2:
                             dialog.dismiss();
@@ -192,6 +206,23 @@ public class Perfil extends AppCompatActivity {
         }
     }
 
+    private void checkStoragePermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    REQUEST_STORAGE_PERMISSION);
+        } else {
+            openGallery();  // Si ya tiene permiso, abre la galería
+        }
+    }
+
+    private void openGallery() {
+        Log.d("IMG", "Galeria");
+        pickMedia.launch(new PickVisualMediaRequest.Builder()
+                .setMediaType(ActivityResultContracts.PickVisualMedia.ImageAndVideo.INSTANCE)
+                .build());
+    }
 
     private void dispatchTakePictureIntent() {
         Intent elIntentFoto= new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
