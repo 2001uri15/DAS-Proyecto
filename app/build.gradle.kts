@@ -62,4 +62,5 @@ dependencies {
     implementation ("com.android.volley:volley:1.2.1")
     androidTestImplementation("androidx.test.ext:junit:1.1.5") // Use the latest version
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    implementation ("com.google.android.material:material:1.6.0") // Para que la foto de perfil salga en el circulo
 }

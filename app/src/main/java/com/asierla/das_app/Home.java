@@ -5,7 +5,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,6 +37,7 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
+import com.asierla.das_app.database.DBImagen;
 import com.asierla.das_app.database.DBServer;
 import com.google.android.material.navigation.NavigationView;
 
@@ -44,6 +49,7 @@ import java.util.Locale;
 public class Home extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private DrawerLayout drawerLayout;
+    private ImageView imgUsuario;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -286,6 +292,50 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         return true;
     }
 
+    private void getFotoPerfilDBImagen() {
+        Log.d("IMAGEN_PERFIL", "Fun obtener Imagen");
+        SharedPreferences prefs = getSharedPreferences("Usuario", MODE_PRIVATE);
+        String token = prefs.getString("token", "");
+        DBImagen.obtenerImagen(token, new DBImagen.UploadCallback() {
+            @Override
+            public void onSuccess(String response) {
+                try {
+                    // Parsear la respuesta JSON
+                    JSONObject jsonResponse = new JSONObject(response);
+                    String status = jsonResponse.getString("status");
+                    String message = jsonResponse.getString("message");
+
+                    if (status.equals("success")) {
+                        String fotoBase64 = jsonResponse.getString("foto");
+                        Log.d("IMAGEN_PERFIL", "Longitud img : " + fotoBase64.length());
+
+                        // Decodificar la imagen base64
+                        byte[] decodedBytes = Base64.decode(fotoBase64, Base64.DEFAULT);
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+
+                        // Mostrar la imagen en el ImageView
+                        if (bitmap != null) {
+                            imgUsuario.setImageBitmap(bitmap);
+                        } else {
+                            Log.e("ImageError", "No se pudo decodificar la imagen");
+                        }
+                    } else {
+                        Log.e("APIError", message);
+                    }
+                } catch (JSONException e) {
+                    Log.e("JSONError", "Error al parsear la respuesta", e);
+                } catch (IllegalArgumentException e) {
+                    Log.e("Base64Error", "Cadena base64 inválida", e);
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e("NetworkError", error);
+            }
+        });
+    }
+
     @Override
     public void onBackPressed() {
         // Cerrar el Navigation Drawer si está abierto
@@ -300,6 +350,8 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         // Obtener la vista del header (puede ser null si no hay header)
         View headerView = navigationView.getHeaderView(0);
         if (headerView == null) return;
+
+
 
         // Obtener referencias a los views
         TextView tvUsername = headerView.findViewById(R.id.username);
@@ -323,6 +375,8 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
 
         if (token!=null) {
             profileItem.setVisible(true);
+            imgUsuario = headerView.findViewById(R.id.userFoto);
+            getFotoPerfilDBImagen();
         }else{
             profileItem.setVisible(false);
         }
@@ -367,4 +421,5 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
     private void showError(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
+    
 }

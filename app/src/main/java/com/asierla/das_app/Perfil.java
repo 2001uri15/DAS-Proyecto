@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -20,6 +21,7 @@ import android.widget.Toast;
 
 import android.Manifest;
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -46,20 +48,79 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
 
 public class Perfil extends AppCompatActivity {
-    private static final int REQUEST_IMAGE_CAPTURE = 1;
-    private static final int REQUEST_IMAGE_PICK = 2;
     private static final int REQUEST_CAMERA_PERMISSION = 101;
-    private static final int REQUEST_STORAGE_PERMISSION = 102;
     private ImageView imgUsuario;
-    private Uri imageUri;
+    private ActivityResultLauncher<Intent> takePictureLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData()!= null) {
+                    Bundle bundle = result.getData().getExtras();
+                    Bitmap laminiatura = (Bitmap) bundle.get("data");
+                    //GUARDAR COMO FICHERO
+                    // Memoria externa
+                    File eldirectorio = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+                    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+                    String nombrefichero = "IMG_" + timeStamp + "_";
+                    File imagenFich = new File(eldirectorio, nombrefichero + ".jpg");
+                    OutputStream os;
+                    try {
+                        os = new FileOutputStream(imagenFich);
+                        laminiatura.compress(Bitmap.CompressFormat.JPEG, 100, os);
+                        os.flush();
+                        os.close();
+                        MediaScannerConnection.scanFile(
+                                this,
+                                new String[]{imagenFich.getAbsolutePath()},
+                                new String[]{"image/jpeg"},
+                                null
+                        );
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    SharedPreferences prefs = getSharedPreferences("Usuario", MODE_PRIVATE);
+                    String token = prefs.getString("token", "");
+
+                    DBImagen.uploadImageAsBase64(laminiatura, token, new DBImagen.UploadCallback() {
+                        @Override
+                        public void onSuccess(String response) {
+                            runOnUiThread(() -> {
+                                try {
+                                    JSONObject jsonResponse = new JSONObject(response);
+                                    String status = jsonResponse.getString("status");
+                                    String message = jsonResponse.getString("message");
+
+                                    if (status.equals("success")) {
+                                        imgUsuario.setImageBitmap(laminiatura);
+                                        Toast.makeText(Perfil.this, "Imagen actualizada", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        Toast.makeText(Perfil.this, message, Toast.LENGTH_SHORT).show();
+                                    }
+                                } catch (JSONException e) {
+                                    onError("Error al procesar respuesta: " + e.getMessage());
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            runOnUiThread(() -> {
+                                Toast.makeText(Perfil.this, "Error subiendo imagen: " + error, Toast.LENGTH_SHORT).show();
+                                Log.e("ImageUpload", "Error: " + error);
+                            });
+                        }
+                    });
+                }
+            });
 
 
     @Override
@@ -92,6 +153,7 @@ public class Perfil extends AppCompatActivity {
             actualizarUsuario();
         });
 
+        getFotoPerfilDBImagen();
 
 
         imgUsuario = findViewById(R.id.profileImage);
@@ -109,7 +171,7 @@ public class Perfil extends AppCompatActivity {
                             checkCameraPermission();
                             break;
                         case 1:
-                            checkStoragePermission();
+                            //checkStoragePermission();
                             break;
                         case 2:
                             dialog.dismiss();
@@ -130,125 +192,54 @@ public class Perfil extends AppCompatActivity {
         }
     }
 
-    private void checkStoragePermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                    REQUEST_STORAGE_PERMISSION);
-        } else {
-            openGallery();
-        }
-    }
 
     private void dispatchTakePictureIntent() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                Toast.makeText(this, "Error al crear el archivo", Toast.LENGTH_SHORT).show();
-            }
-
-            if (photoFile != null) {
-                imageUri = FileProvider.getUriForFile(this,
-                        "com.asierla.das_app.fileprovider",
-                        photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-            }
-        }
+        Intent elIntentFoto= new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        takePictureLauncher.launch(elIntentFoto);
     }
 
-    private File createImageFile() throws IOException {
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-        String imageFileName = "GARATU_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        return File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",        /* suffix */
-                storageDir     /* directory */
-        );
-    }
+    private void getFotoPerfilDBImagen() {
+        Log.d("IMAGEN_PERFIL", "Fun obtener Imagen");
+        SharedPreferences prefs = getSharedPreferences("Usuario", MODE_PRIVATE);
+        String token = prefs.getString("token", "");
+        DBImagen.obtenerImagen(token, new DBImagen.UploadCallback() {
+            @Override
+            public void onSuccess(String response) {
+                try {
+                    // Parsear la respuesta JSON
+                    JSONObject jsonResponse = new JSONObject(response);
+                    String status = jsonResponse.getString("status");
+                    String message = jsonResponse.getString("message");
 
-    private void openGallery() {
-        Intent intent = new Intent(Intent.ACTION_PICK,
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        startActivityForResult(intent, REQUEST_IMAGE_PICK);
-    }
+                    if (status.equals("success")) {
+                        String fotoBase64 = jsonResponse.getString("foto");
+                        Log.d("IMAGEN_PERFIL", "Longitud img : " + fotoBase64.length());
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+                        // Decodificar la imagen base64
+                        byte[] decodedBytes = Base64.decode(fotoBase64, Base64.DEFAULT);
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
 
-        if (resultCode == RESULT_OK) {
-            switch (requestCode) {
-                case REQUEST_IMAGE_CAPTURE:
-                    // La imagen ya se guardó en imageUri
-                    setImageAndUpload(imageUri);
-                    break;
-                case REQUEST_IMAGE_PICK:
-                    if (data != null) {
-                        imageUri = data.getData();
-                        setImageAndUpload(imageUri);
+                        // Mostrar la imagen en el ImageView
+                        if (bitmap != null) {
+                            imgUsuario.setImageBitmap(bitmap);
+                        } else {
+                            Log.e("ImageError", "No se pudo decodificar la imagen");
+                        }
+                    } else {
+                        Log.e("APIError", message);
                     }
-                    break;
-            }
-        }
-    }
-
-    private void setImageAndUpload(Uri uri) {
-        try {
-            Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-            imgUsuario.setImageBitmap(bitmap);
-
-            // Convertir a Base64 y subir al servidor
-            String imageBase64 = convertBitmapToBase64(bitmap);
-            SharedPreferences prefs = getSharedPreferences("Usuario", MODE_PRIVATE);
-            String token = prefs.getString("token", "");
-            Log.d("SUBIR_IMAGEN", "Token: "+token);
-            //actualizarImg(token, imageBase64);
-            DBImagen.uploadImageAsBase64(bitmap, token, new DBImagen.UploadCallback() {
-                @Override
-                public void onSuccess(String response) {
-                    Log.d("SUBIR_IMAGEN", "Respuesta del servidor: " + response);
-                    // Aquí puedes procesar la respuesta JSON
+                } catch (JSONException e) {
+                    Log.e("JSONError", "Error al parsear la respuesta", e);
+                } catch (IllegalArgumentException e) {
+                    Log.e("Base64Error", "Cadena base64 inválida", e);
                 }
-
-                @Override
-                public void onError(String error) {
-                    Log.e("SUBIR_IMAGEN", "Error al subir imagen: " + error);
-                }
-            });
-        } catch (IOException e) {
-            Toast.makeText(this, "Error al cargar la imagen", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private String convertBitmapToBase64(Bitmap bitmap) {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, byteArrayOutputStream);
-        byte[] byteArray = byteArrayOutputStream.toByteArray();
-        return Base64.encodeToString(byteArray, Base64.DEFAULT);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            switch (requestCode) {
-                case REQUEST_CAMERA_PERMISSION:
-                    dispatchTakePictureIntent();
-                    break;
-                case REQUEST_STORAGE_PERMISSION:
-                    openGallery();
-                    break;
             }
-        } else {
-            Toast.makeText(this, "Permiso denegado", Toast.LENGTH_SHORT).show();
-        }
+
+            @Override
+            public void onError(String error) {
+                Log.e("NetworkError", error);
+            }
+        });
     }
 
     private void asignarDatosUsuario() {
@@ -340,55 +331,6 @@ public class Perfil extends AppCompatActivity {
                                     editor.apply();
 
                                     // Redirigir al main activity
-                                    startActivity(new Intent(this, Perfil.class));
-                                    finish();
-                                } else {
-                                    showError(response.getString("message"));
-                                }
-                            } catch (JSONException e) {
-                                showError("Error al procesar la respuesta");
-                            }
-                        } else {
-                            showError(workInfo.getOutputData().getString("result"));
-                        }
-                    }
-                });
-
-        WorkManager.getInstance(this).enqueue(loginRequest);
-    }
-
-    private void actualizarImg(String token, String img) {
-
-        Data.Builder dataBuilder = new Data.Builder()
-                .putString("action", "actualizarImg")
-                .putString("token", token)
-                .putString("foto", img);
-        Data inputData = dataBuilder.build();
-
-        OneTimeWorkRequest loginRequest = new OneTimeWorkRequest.Builder(DBServer.class)
-                .setInputData(inputData)
-                .build();
-
-        WorkManager.getInstance(this).getWorkInfoByIdLiveData(loginRequest.getId())
-                .observe(this, workInfo -> {
-                    if (workInfo != null && workInfo.getState().isFinished()) {
-                        if (workInfo.getState() == WorkInfo.State.SUCCEEDED) {
-                            try {
-                                JSONObject response = new JSONObject(Objects.requireNonNull(workInfo.getOutputData().getString("result")));
-
-                                if (response.getString("status").equals("success")) {
-                                    String fotoBase64 = response.getString("img");
-
-                                    // Decodificar Base64 a Bitmap
-                                    if (fotoBase64 != null && !fotoBase64.isEmpty()) {
-                                        byte[] decodedBytes = Base64.decode(fotoBase64, Base64.DEFAULT);
-                                        Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
-
-                                        // Asignar el Bitmap al ImageView
-                                        imgUsuario.setImageBitmap(bitmap);
-                                    }
-
-                                    // Redirigir al MainActivity (o Perfil)
                                     startActivity(new Intent(this, Perfil.class));
                                     finish();
                                 } else {

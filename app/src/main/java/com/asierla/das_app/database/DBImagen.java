@@ -14,7 +14,8 @@ import java.util.concurrent.Executors;
 
 public class DBImagen {
     private static final String TAG = "SUBIR_IMAGEN";
-    private static final String URL_API = "https://das.egunero.eus/actFoto.php";
+    private static final String URL_API_UPDATE = "https://das.egunero.eus/actFoto.php";
+    private static final String URL_API_POST = "https://das.egunero.eus/obtFoto.php";
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
     private static final int MAX_IMAGE_WIDTH = 1024;
     private static final int MAX_IMAGE_HEIGHT = 1024;
@@ -35,6 +36,7 @@ public class DBImagen {
                 Bitmap resizedBitmap = resizeBitmap(image);
                 String imageBase64 = bitmapToBase64(resizedBitmap);
 
+
                 // 2. Preparar los parámetros en formato x-www-form-urlencoded
                 String postData = "token=" + URLEncoder.encode(token, "UTF-8") +
                         "&img=" + URLEncoder.encode(imageBase64, "UTF-8");
@@ -42,7 +44,52 @@ public class DBImagen {
                 Log.d("SUBIR_IMAGEN", "datos : " + postData);
 
                 // 3. Configurar la conexión HTTP
-                URL url = new URL(URL_API);
+                URL url = new URL(URL_API_UPDATE);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("POST");
+                connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                connection.setDoOutput(true);
+
+                // 4. Escribir los datos
+                outputStream = connection.getOutputStream();
+                byte[] input = postData.getBytes("utf-8");
+                outputStream.write(input, 0, input.length);
+                outputStream.flush();
+
+                // 5. Procesar la respuesta
+                int responseCode = connection.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    java.util.Scanner scanner = new java.util.Scanner(connection.getInputStream()).useDelimiter("\\A");
+                    String response = scanner.hasNext() ? scanner.next() : "";
+                    callback.onSuccess(response);
+                } else {
+                    callback.onError("HTTP error code: " + responseCode);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error al subir la imagen", e);
+                callback.onError(e.getMessage());
+            } finally {
+                if (outputStream != null) {
+                    try { outputStream.close(); } catch (Exception e) { Log.e(TAG, "Error al cerrar stream", e); }
+                }
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+        });
+    }
+
+    public static void obtenerImagen(String token, UploadCallback callback) {
+        executor.execute(() -> {
+            HttpURLConnection connection = null;
+            OutputStream outputStream = null;
+
+            try {
+                // 2. Preparar los parámetros en formato x-www-form-urlencoded
+                String postData = "token=" + URLEncoder.encode(token, "UTF-8");
+
+                // 3. Configurar la conexión HTTP
+                URL url = new URL(URL_API_POST);
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
                 connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
