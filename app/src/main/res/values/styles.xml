@@ -32,4 +32,11 @@
     <style name="ShapeAppearanceOverlay.Circle" parent="">
         <item name="cornerSize">50%</item>
     </style>
+
+    <style name="MyCircularProgressBar" parent="Widget.AppCompat.ProgressBar">
+        <item name="android:indeterminateDrawable">@drawable/custom_circular_progress</item>
+        <!-- Tamaño del ProgressBar -->
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">48dp</item>
+    </style>
 </resources>
