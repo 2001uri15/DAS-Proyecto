@@ -31,7 +31,13 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
+
 import com.asierla.das_app.database.DBHelper;
+import com.asierla.das_app.database.DBServer;
 import com.asierla.das_app.service.EntrenamientoService;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -41,6 +47,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.snackbar.Snackbar;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -387,6 +398,9 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         long idEntrena = dbHelper.guardarEntrenamientoAuto(tipoEntrenamiento, fecha,
                 distancia, tiempoSegundos, averageSpeed);
 
+        guardarEnServer(idEntrena, fecha, distancia, tiempoSegundos, tipoEntrenamiento, averageSpeed);
+
+
         // Guardar puntos de ruta
         if (entrenamientoService != null) {
             for (LatLng punto : entrenamientoService.getRoutePoints()) {
@@ -519,5 +533,44 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         if (isBound && !isChangingConfigurations()) {
             unbindService(serviceConnection);
         }
+    }
+
+    public void guardarEnServer(long idEntrena, String fecha, float distancia,
+                                int tiempo, int tipoEntrenamiento, float averageSpeed) {
+        int[] list = new DBHelper(this).obtTodosLosId();
+
+        SharedPreferences prefs = getSharedPreferences("Usuario", MODE_PRIVATE);
+        String token = prefs.getString("token", null);
+
+        Data inputData = new Data.Builder()
+                .putString("action", "postEntrena")
+                .putString("token", token)
+                .putInt("idEntrena", (int) idEntrena)
+                .putString("fecha", fecha)
+                .putDouble("distancia", distancia)
+                .putInt("tiempo", tiempo)
+                .putDouble("velocidad", averageSpeed)
+                .putInt("tipoEntrena", tipoEntrenamiento)
+                .build();
+
+        OneTimeWorkRequest loginRequest = new OneTimeWorkRequest.Builder(DBServer.class)
+                .setInputData(inputData)
+                .build();
+
+        WorkManager.getInstance(this).getWorkInfoByIdLiveData(loginRequest.getId())
+                .observe(this, workInfo -> {
+                    if (workInfo != null && workInfo.getState().isFinished()) {
+                        if (workInfo.getState() == WorkInfo.State.SUCCEEDED) {
+                            Toast.makeText(entrenamientoService, "Se ha guardado correctamente.", Toast.LENGTH_SHORT).show();
+                        } else {
+                            showError(workInfo.getOutputData().getString("result"));
+                        }
+                    }
+                });
+
+        WorkManager.getInstance(this).enqueue(loginRequest);
+    }
+    private void showError(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }

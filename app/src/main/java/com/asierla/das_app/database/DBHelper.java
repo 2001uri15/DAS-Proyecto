@@ -18,6 +18,7 @@ import com.google.android.gms.maps.model.LatLng;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 public class DBHelper extends SQLiteOpenHelper {
@@ -148,6 +149,34 @@ public class DBHelper extends SQLiteOpenHelper {
             Log.e("DB_ERROR", "Error al insertar el entrenamiento");
         } else {
             Log.d("DB_SUCCESS", "Entrenamiento insertado con ID: " + result);
+        }
+
+        db.close();
+
+        return result;
+    }
+
+    public long guardarEntrenamientoConID(int id, int idActividad, String fechaHora, double distancia,
+                                          long tiempo, double velocidad, int valoracion,
+                                          String comentarios) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("id", id);  // ID especificado manualmente
+        values.put("idActividad", idActividad);
+        values.put("fechaHora", fechaHora);
+        values.put("distancia", distancia);
+        values.put("tiempo", tiempo);
+        values.put("velocidad", velocidad);
+        values.put("valoracion", valoracion);
+        values.put("comentarios", comentarios);
+
+        // Insertar los datos en la base de datos
+        long result = db.insert("entrenamientos", null, values);
+
+        if (result == -1) {
+            Log.e("DB_ERROR", "Error al insertar el entrenamiento con ID: " + id);
+        } else {
+            Log.d("DB_SUCCESS", "Entrenamiento insertado con ID especificado: " + id);
         }
 
         db.close();
@@ -567,5 +596,28 @@ public class DBHelper extends SQLiteOpenHelper {
         db.close();
 
         return tiempoTotal;
+    }
+
+    public int[] obtTodosLosId() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT id FROM entrenamientos", null);
+
+        List<Integer> idList = new ArrayList<>();
+
+        if (cursor.moveToFirst()) {
+            do {
+                idList.add(cursor.getInt(0));
+            } while (cursor.moveToNext());
+        }
+
+        // Convertir List<Integer> a int[]
+        int[] idEntrena = new int[idList.size()];
+        for (int i = 0; i < idList.size(); i++) {
+            idEntrena[i] = idList.get(i);
+        }
+
+        cursor.close();
+        db.close();
+        return idEntrena;
     }
 }

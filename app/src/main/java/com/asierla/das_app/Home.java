@@ -37,13 +37,17 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
+import com.asierla.das_app.database.DBHelper;
 import com.asierla.das_app.database.DBImagen;
 import com.asierla.das_app.database.DBServer;
 import com.google.android.material.navigation.NavigationView;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 public class Home extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -248,6 +252,8 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
             // Mostrar el diálogo
             dialog.show();
         });
+
+        actualizarDatos();
     }
 
     @Override
@@ -427,5 +433,81 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         // Actualizar la imagen del perfil y los datos del header
         NavigationView navigationView = findViewById(R.id.nav_view);
         setupNavHeader(navigationView);
+    }
+
+    public void actualizarDatos() {
+        int[] list = new DBHelper(this).obtTodosLosId();
+        Log.d("ENTRE", Arrays.toString(list));
+
+        SharedPreferences prefs = getSharedPreferences("Usuario", MODE_PRIVATE);
+        String token = prefs.getString("token", null);
+
+        Data inputData = new Data.Builder()
+                .putString("action", "actDatos")
+                .putString("token", token)
+                .putIntArray("ids_locales", list)
+                .build();
+
+        OneTimeWorkRequest loginRequest = new OneTimeWorkRequest.Builder(DBServer.class)
+                .setInputData(inputData)
+                .build();
+
+        WorkManager.getInstance(this).getWorkInfoByIdLiveData(loginRequest.getId())
+                .observe(this, workInfo -> {
+                    if (workInfo != null && workInfo.getState().isFinished()) {
+                        if (workInfo.getState() == WorkInfo.State.SUCCEEDED) {
+                            try {
+                                JSONObject response = new JSONObject(workInfo.getOutputData().getString("result"));
+                                if (response.getString("status").equals("success")) {
+                                    // Process the training data
+                                    JSONArray entrenamientos = response.getJSONArray("data");
+                                    DBHelper dbHelper = new DBHelper(this);
+
+                                    for (int i = 0; i < entrenamientos.length(); i++) {
+                                        JSONObject entrenamiento = entrenamientos.getJSONObject(i);
+
+                                        // Save the training
+                                        long entrenamientoId = dbHelper.guardarEntrenamientoConID(
+                                                entrenamiento.getInt("id_local"),
+                                                entrenamiento.getInt("idActividad"),
+                                                entrenamiento.getString("fechaHora"),
+                                                entrenamiento.getDouble("distancia"),
+                                                entrenamiento.getLong("tiempo"),
+                                                entrenamiento.isNull("velocidad") ? 0 : entrenamiento.getDouble("velocidad"),
+                                                entrenamiento.isNull("valoracion") ? 0 : entrenamiento.getInt("valoracion"),
+                                                entrenamiento.isNull("comentarios") ? null : entrenamiento.getString("comentarios")
+                                        );
+
+                                        // Save the routes if they exist
+                                        if (entrenamiento.has("rutas")) {
+                                            JSONArray rutas = entrenamiento.getJSONArray("rutas");
+                                            for (int j = 0; j < rutas.length(); j++) {
+                                                JSONObject ruta = rutas.getJSONObject(j);
+                                                dbHelper.guardarPuntoRuta(
+                                                        entrenamientoId,
+                                                        ruta.getDouble("latitud"),
+                                                        ruta.getDouble("longitud")
+                                                );
+                                            }
+                                        }
+                                    }
+
+                                    // Show success message or update UI
+                                    Toast.makeText(this, "Datos actualizados correctamente", Toast.LENGTH_SHORT).show();
+
+                                } else {
+                                    showError(response.getString("message"));
+                                }
+                            } catch (JSONException e) {
+                                showError("Error al procesar la respuesta");
+                                e.printStackTrace();
+                            }
+                        } else {
+                            showError(workInfo.getOutputData().getString("result"));
+                        }
+                    }
+                });
+
+        WorkManager.getInstance(this).enqueue(loginRequest);
     }
 }

@@ -8,6 +8,7 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
@@ -111,6 +112,7 @@ public class VerEntrenamiento extends AppCompatActivity {
         relaMapa = findViewById(R.id.relaMapa);
 
         int idEntreno = getIntent().getIntExtra("idEntrena", 0);
+        Log.d("ENTRE", String.valueOf(idEntreno));
         DBHelper db = new DBHelper(this);
         Entrenamiento entrena = db.obtenerEntrenaById(idEntreno);
 

@@ -22,9 +22,11 @@ import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.net.ssl.SSLHandshakeException;
 
@@ -49,6 +51,13 @@ public class DBServer extends Worker {
         String tokenFCM = getInputData().getString("tokenFCM");
         String foto = getInputData().getString("foto");
         int privacidad = getInputData().getInt("privacidad", 1);
+        int[] idsLocales = getInputData().getIntArray("ids_locales");
+        String idEntrena = String.valueOf(getInputData().getInt("idEntrena", 0));
+        String fecha = getInputData().getString("fecha");
+        double distancia = Double.parseDouble(String.valueOf(getInputData().getDouble("distancia", 0)));
+        int tiempo = Integer.parseInt(String.valueOf(getInputData().getInt("tiempo", 0)));
+        String velocidad = String.valueOf(getInputData().getDouble("velocidad", 0));
+        int tipoEntrena = getInputData().getInt("tipoEntrena", 0);
 
         try {
             String result;
@@ -71,6 +80,12 @@ public class DBServer extends Worker {
                 case "actualizarImg":
                     result = actualizarFoto(token, foto);
                     Log.e(TAG, "Error inesperado: Entra foto");
+                    break;
+                case "actDatos":
+                    result = actDatos(token, idsLocales);
+                    break;
+                case "postDatos":
+                    result = postEntrena(token, idEntrena, fecha, distancia, tiempo, Double.parseDouble(velocidad), tipoEntrena);
                     break;
                 default:
                     return Result.failure(createOutputData("Error: Acción no válida"));
@@ -276,4 +291,38 @@ public class DBServer extends Worker {
 
         return hacerPeticion(recurso, params);
     }
+
+    private String actDatos(String token, int[] idsLocales) throws IOException {
+        String recurso = "obtEntrNoLocal.php";
+
+        // Convertir el array de IDs a una cadena separada por comas
+        String idsStr = Arrays.stream(idsLocales)
+                .mapToObj(String::valueOf)
+                .collect(Collectors.joining(","));
+
+        Map<String, String> params = new HashMap<>();
+        params.put("token", token);
+        params.put("ids_locales", idsStr);
+
+        return hacerPeticion(recurso, params);
+    }
+
+    private String postEntrena(String token, String idEntrena, String fecha, double distancia,
+                               int tiempo, double velocidad, int tipoEntrena) throws IOException {
+        String recurso = "postEntrena.php";
+
+        Map<String, String> params = new HashMap<>();
+        params.put("token", token);
+        params.put("idEntrena", idEntrena);
+        params.put("fecha", fecha);
+        params.put("distancia", String.valueOf(distancia));
+        params.put("tiempo", String.valueOf(tiempo));
+        params.put("velocidad", String.valueOf(velocidad));
+        params.put("tipoEntrena", String.valueOf(tipoEntrena));
+
+        return hacerPeticion(recurso, params);
+    }
+
+
+
 }
