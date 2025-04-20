@@ -252,9 +252,13 @@ public class Preferencias extends AppCompatActivity {
         calendario.set(Calendar.SECOND, 0);
         calendario.set(Calendar.MILLISECOND, 0);
 
+        // Si la hora ya pasó hoy, programar para mañana
         if (calendario.getTimeInMillis() <= System.currentTimeMillis()) {
             calendario.add(Calendar.DAY_OF_YEAR, 1);
         }
+
+        // Intervalo de 24 horas en milisegundos
+        long intervalo = AlarmManager.INTERVAL_DAY;
 
         // Para Android 6.0+ (Marshmallow)
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
@@ -264,19 +268,13 @@ public class Preferencias extends AppCompatActivity {
                     pendingIntent
             );
         }
-        // Para Android 4.4+ (KitKat)
-        else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
-            alarmManager.setExact(
-                    AlarmManager.RTC_WAKEUP,
-                    calendario.getTimeInMillis(),
-                    pendingIntent
-            );
-        }
         // Para versiones anteriores
         else {
-            alarmManager.set(
+            // Usar setRepeating para versiones anteriores
+            alarmManager.setRepeating(
                     AlarmManager.RTC_WAKEUP,
                     calendario.getTimeInMillis(),
+                    intervalo,
                     pendingIntent
             );
         }

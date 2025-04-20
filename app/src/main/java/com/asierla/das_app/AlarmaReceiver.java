@@ -1,13 +1,18 @@
 package com.asierla.das_app;
 
+import android.app.AlarmManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
+
+import java.util.Calendar;
 
 public class AlarmaReceiver extends BroadcastReceiver {
 
@@ -21,6 +26,48 @@ public class AlarmaReceiver extends BroadcastReceiver {
         }
 
         mostrarNotificacion(context, mensaje);
+
+        // Reprogramar la alarma para el próximo día
+        reprogramarAlarma(context);
+    }
+
+    private void reprogramarAlarma(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("Ajustes", Context.MODE_PRIVATE);
+        if (prefs.contains("alarma_hora")) {
+            int hora = prefs.getInt("alarma_hora", 8);
+            int minuto = prefs.getInt("alarma_minuto", 0);
+
+            AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            Intent intent = new Intent(context, AlarmaReceiver.class);
+            intent.putExtra("mensaje_notificacion", "¡Hora de entrenar!");
+
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                    context,
+                    0,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+            );
+
+            Calendar calendario = Calendar.getInstance();
+            calendario.set(Calendar.HOUR_OF_DAY, hora);
+            calendario.set(Calendar.MINUTE, minuto);
+            calendario.set(Calendar.SECOND, 0);
+            calendario.add(Calendar.DAY_OF_YEAR, 1); // Siempre programar para mañana
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(
+                        AlarmManager.RTC_WAKEUP,
+                        calendario.getTimeInMillis(),
+                        pendingIntent
+                );
+            } else {
+                alarmManager.setExact(
+                        AlarmManager.RTC_WAKEUP,
+                        calendario.getTimeInMillis(),
+                        pendingIntent
+                );
+            }
+        }
     }
 
     private void mostrarNotificacion(Context context, String mensaje) {
