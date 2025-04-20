@@ -28,8 +28,13 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
 
 import com.asierla.das_app.database.DBHelper;
+import com.asierla.das_app.database.DBServer;
 import com.asierla.das_app.model.Entrenamiento;
 import com.asierla.das_app.model.EntrenamientoInterval;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -256,6 +261,7 @@ public class VerEntrenamiento extends AppCompatActivity {
     public void borrarEntrena(int id){
         DBHelper db = new DBHelper(this);
         db.eliminarEntrenamiento(id);
+        eliminarEntrenaServer(id);
         finish();
     }
 
@@ -371,5 +377,49 @@ public class VerEntrenamiento extends AppCompatActivity {
         googleMap.setOnMapLoadedCallback(() -> {
             googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 150));
         });
+    }
+
+    public void eliminarEntrenaServer(int idEntrena) {
+        SharedPreferences prefs = getSharedPreferences("Usuario", MODE_PRIVATE);
+        String token = prefs.getString("token", null);
+
+        // Añade logs para verificar los valores
+        Log.d("VerEntrenamiento", "Token: " + token);
+        Log.d("VerEntrenamiento", "ID Entrenamiento: " + idEntrena);
+
+        if (token == null) {
+            Toast.makeText(this, "No se encontró token de sesión", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Data inputData = new Data.Builder()
+                .putString("action", "deleteEntrena")
+                .putString("token", token)
+                .putInt("idEntrena", idEntrena)
+                .build();
+
+        OneTimeWorkRequest loginRequest = new OneTimeWorkRequest.Builder(DBServer.class)
+                .setInputData(inputData)
+                .build();
+
+        WorkManager.getInstance(this).getWorkInfoByIdLiveData(loginRequest.getId())
+                .observe(this, workInfo -> {
+                    if (workInfo != null && workInfo.getState().isFinished()) {
+                        if (workInfo.getState() == WorkInfo.State.SUCCEEDED) {
+                            String result = workInfo.getOutputData().getString("result");
+                            Log.d("VerEntrenamiento", "Respuesta del servidor: " + result);
+                            Toast.makeText(this, "Se ha eliminado correctamente.", Toast.LENGTH_SHORT).show();
+                        } else {
+                            String error = workInfo.getOutputData().getString("result");
+                            Log.e("VerEntrenamiento", "Error al eliminar: " + error);
+                            showError(error);
+                        }
+                    }
+                });
+
+        WorkManager.getInstance(this).enqueue(loginRequest);
+    }
+    private void showError(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }

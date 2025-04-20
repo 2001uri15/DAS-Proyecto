@@ -405,9 +405,11 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         if (entrenamientoService != null) {
             for (LatLng punto : entrenamientoService.getRoutePoints()) {
                 dbHelper.guardarPuntoRuta(idEntrena, punto.latitude, punto.longitude);
+                guardarRutaServer(idEntrena, punto.latitude, punto.longitude);
             }
         }
     }
+
 
     private void openMusicApp() {
         Snackbar.make(findViewById(android.R.id.content),
@@ -543,7 +545,7 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         String token = prefs.getString("token", null);
 
         Data inputData = new Data.Builder()
-                .putString("action", "postEntrena")
+                .putString("action", "postDatos")
                 .putString("token", token)
                 .putInt("idEntrena", (int) idEntrena)
                 .putString("fecha", fecha)
@@ -551,6 +553,37 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
                 .putInt("tiempo", tiempo)
                 .putDouble("velocidad", averageSpeed)
                 .putInt("tipoEntrena", tipoEntrenamiento)
+                .build();
+
+        OneTimeWorkRequest loginRequest = new OneTimeWorkRequest.Builder(DBServer.class)
+                .setInputData(inputData)
+                .build();
+
+        WorkManager.getInstance(this).getWorkInfoByIdLiveData(loginRequest.getId())
+                .observe(this, workInfo -> {
+                    if (workInfo != null && workInfo.getState().isFinished()) {
+                        if (workInfo.getState() == WorkInfo.State.SUCCEEDED) {
+                            Toast.makeText(entrenamientoService, "Se ha guardado correctamente.", Toast.LENGTH_SHORT).show();
+                        } else {
+                            showError(workInfo.getOutputData().getString("result"));
+                        }
+                    }
+                });
+
+        WorkManager.getInstance(this).enqueue(loginRequest);
+    }
+
+    public void guardarRutaServer(long idEntrena, double latitud, double longitud) {
+
+        SharedPreferences prefs = getSharedPreferences("Usuario", MODE_PRIVATE);
+        String token = prefs.getString("token", null);
+
+        Data inputData = new Data.Builder()
+                .putString("action", "postRuta")
+                .putString("token", token)
+                .putInt("idEntrena", (int) idEntrena)
+                .putDouble("latitud", latitud)
+                .putDouble("longitud", longitud)
                 .build();
 
         OneTimeWorkRequest loginRequest = new OneTimeWorkRequest.Builder(DBServer.class)

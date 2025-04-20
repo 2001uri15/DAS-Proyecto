@@ -253,7 +253,11 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
             dialog.show();
         });
 
-        actualizarDatos();
+        SharedPreferences prefs2 = getSharedPreferences("Usuario", MODE_PRIVATE);
+        String token = prefs2.getString("token", null);
+        if (token!=null){
+            actualizarDatos();
+        }
     }
 
     @Override

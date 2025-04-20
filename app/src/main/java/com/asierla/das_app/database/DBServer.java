@@ -58,6 +58,8 @@ public class DBServer extends Worker {
         int tiempo = Integer.parseInt(String.valueOf(getInputData().getInt("tiempo", 0)));
         String velocidad = String.valueOf(getInputData().getDouble("velocidad", 0));
         int tipoEntrena = getInputData().getInt("tipoEntrena", 0);
+        double latitud = getInputData().getDouble("latitud", 0);
+        double longitud = getInputData().getDouble("longitud", 0);
 
         try {
             String result;
@@ -86,6 +88,12 @@ public class DBServer extends Worker {
                     break;
                 case "postDatos":
                     result = postEntrena(token, idEntrena, fecha, distancia, tiempo, Double.parseDouble(velocidad), tipoEntrena);
+                    break;
+                case "postRuta":
+                    result = postRuta(token, idEntrena, latitud, longitud);
+                    break;
+                case "deleteEntrena":
+                    result = deleteEntrena(token, idEntrena);
                     break;
                 default:
                     return Result.failure(createOutputData("Error: Acción no válida"));
@@ -319,6 +327,28 @@ public class DBServer extends Worker {
         params.put("tiempo", String.valueOf(tiempo));
         params.put("velocidad", String.valueOf(velocidad));
         params.put("tipoEntrena", String.valueOf(tipoEntrena));
+
+        return hacerPeticion(recurso, params);
+    }
+
+    private String postRuta(String token, String idEntrena, double latitud, double longitud) throws IOException {
+        String recurso = "postRuta.php";
+
+        Map<String, String> params = new HashMap<>();
+        params.put("token", token);
+        params.put("idEntrena", idEntrena);
+        params.put("latitud", String.valueOf(latitud));
+        params.put("longitud", String.valueOf(longitud));
+
+        return hacerPeticion(recurso, params);
+    }
+
+    private String deleteEntrena(String token, String idEntrena) throws IOException {
+        String recurso = "deleteEntrena.php";
+
+        Map<String, String> params = new HashMap<>();
+        params.put("token", token);
+        params.put("idEntrena", idEntrena);
 
         return hacerPeticion(recurso, params);
     }
