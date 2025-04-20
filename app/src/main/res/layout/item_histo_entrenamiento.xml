@@ -10,7 +10,7 @@
     <RelativeLayout
         android:id="@+id/itemHis"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:padding="12dp">
 
         <!-- Imagen de la actividad -->
@@ -26,7 +26,7 @@
         <LinearLayout
             android:id="@+id/linearLayout2"
             android:layout_width="121dp"
-            android:layout_height="63dp"
+            android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_toEndOf="@id/iconoActividad"
             android:gravity="center|left"
@@ -59,7 +59,7 @@
         <LinearLayout
             android:id="@+id/linearLayout3"
             android:layout_width="125dp"
-            android:layout_height="59dp"
+            android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
             android:layout_marginTop="1dp"
@@ -87,7 +87,7 @@
             <TextView
                 android:id="@+id/textFecha"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:text="2023-10-01"
                 android:textSize="14sp" />
         </LinearLayout>

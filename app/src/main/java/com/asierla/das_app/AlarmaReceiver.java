@@ -22,7 +22,7 @@ public class AlarmaReceiver extends BroadcastReceiver {
 
         String mensaje = intent.getStringExtra("mensaje_notificacion");
         if (mensaje == null) {
-            mensaje = "¡Hora de entrenar!";
+            mensaje = "No olvides completar tu rutina diaria.";
         }
 
         mostrarNotificacion(context, mensaje);
@@ -88,7 +88,7 @@ public class AlarmaReceiver extends BroadcastReceiver {
         // Construir la notificación
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, canalId)
                 .setSmallIcon(R.drawable.icon_app)
-                .setContentTitle("Recordatorio de entrenamiento")
+                .setContentTitle("¡Hora de entrenar!")
                 .setContentText(mensaje)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setAutoCancel(true);
