@@ -202,7 +202,7 @@ public class EntrenamientoService extends Service {
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Entrenamiento en curso")
                 .setContentText("Iniciando...")
-                .setSmallIcon(R.drawable.icon_app)
+                .setSmallIcon(R.drawable.notificaciones)
                 .build();
 
         try {

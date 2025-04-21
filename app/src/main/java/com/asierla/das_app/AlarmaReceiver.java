@@ -87,7 +87,7 @@ public class AlarmaReceiver extends BroadcastReceiver {
 
         // Construir la notificación
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, canalId)
-                .setSmallIcon(R.drawable.icon_app)
+                .setSmallIcon(R.drawable.notificaciones)
                 .setContentTitle("¡Hora de entrenar!")
                 .setContentText(mensaje)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)

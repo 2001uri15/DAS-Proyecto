@@ -17,7 +17,7 @@
         android:contentDescription="@string/profile_image"
         android:elevation="4dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/perfil" />
+        android:src="@drawable/perfil_icon" />
 
 
     <TextView

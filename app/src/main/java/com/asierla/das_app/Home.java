@@ -1,9 +1,11 @@
 package com.asierla.das_app;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -27,6 +29,8 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
@@ -37,6 +41,7 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
+import com.asierla.das_app.database.DBDatos;
 import com.asierla.das_app.database.DBHelper;
 import com.asierla.das_app.database.DBImagen;
 import com.asierla.das_app.database.DBServer;
@@ -46,6 +51,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -253,6 +262,12 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
             dialog.show();
         });
 
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_PHONE_STATE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
+        }
+
         SharedPreferences prefs2 = getSharedPreferences("Usuario", MODE_PRIVATE);
         String token = prefs2.getString("token", null);
         if (token!=null){
@@ -441,7 +456,16 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         setupNavHeader(navigationView);
     }
 
-    public void actualizarDatos() {
+    public void actualizarDatos(){
+        int[] list = new DBHelper(this).obtTodosLosId();
+        Log.d("ENTRE", Arrays.toString(list));
+        SharedPreferences prefs = getSharedPreferences("Usuario", MODE_PRIVATE);
+        String token = prefs.getString("token", null);
+
+
+    }
+
+    public void actualizarDatosViejo() {
         int[] list = new DBHelper(this).obtTodosLosId();
         Log.d("ENTRE", Arrays.toString(list));
 

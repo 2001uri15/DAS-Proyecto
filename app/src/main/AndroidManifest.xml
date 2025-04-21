@@ -103,7 +103,7 @@
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@drawable/icon_app" /> <!-- Almarma de Recordatorio de entrenamiento -->
+            android:resource="@drawable/notificaciones" /> <!-- Almarma de Recordatorio de entrenamiento -->
         <receiver
             android:name=".AlarmaReceiver"
             android:enabled="true"

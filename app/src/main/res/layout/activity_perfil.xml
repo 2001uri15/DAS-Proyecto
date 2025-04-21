@@ -28,7 +28,7 @@
                 android:id="@+id/profileImage"
                 android:layout_width="120dp"
                 android:layout_height="120dp"
-                android:src="@drawable/perfil"
+                android:src="@drawable/perfil_icon"
                 android:contentDescription="@string/profile_image"
                 android:elevation="4dp"
                 app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Circle"
