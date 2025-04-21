@@ -43,8 +43,6 @@ public class EntrenamientoService extends Service {
     private long startTime;
     private float totalDistance = 0;
     private Location lastLocation;
-    private float currentSpeed = 0;
-    private float currentPace = 0;
     private float velocidadActual = 0;
     private float ritmoActual = 0;
     private float distanciaTotal = 0; // Cambiamos totalDistance por distanciaTotal para mantener consistencia
@@ -186,7 +184,7 @@ public class EntrenamientoService extends Service {
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Entrenamiento en curso")
                 .setContentText(notificationText)
-                .setSmallIcon(R.drawable.icon_app)
+                .setSmallIcon(R.drawable.notificaciones)
                 .setOnlyAlertOnce(true)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setCategory(NotificationCompat.CATEGORY_SERVICE)
@@ -375,14 +373,5 @@ public class EntrenamientoService extends Service {
 
     public synchronized float getRitmoActual() {
         return ritmoActual;
-    }
-
-    public synchronized String getRitmoFormateado() {
-        if (ritmoActual > 0) {
-            int minutos = (int) ritmoActual;
-            int segundos = (int) ((ritmoActual - minutos) * 60);
-            return String.format("%02d:%02d /km", minutos, segundos);
-        }
-        return "--:-- /km";
     }
 }

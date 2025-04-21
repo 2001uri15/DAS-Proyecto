@@ -128,7 +128,7 @@ public class VerEntrenamiento extends AppCompatActivity {
         ipDuracion.setText(entrena.getTiempo());
         ipImagenEntre.setImageResource(entrena.getIcono());
         ipValoracion.setRating((float) entrena.getValoracion());
-        ipComentarios.setText(entrena.getComentarios());
+        ipComentarios.setText(entrena.getComentarios().toString());
 
         if(entrena.getIdEntrenamiento()>=0 && entrena.getIdEntrenamiento()<=2){
             // Carrera, Bici, Andar

@@ -266,7 +266,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public Entrenamiento obtenerEntrenaById(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT id, idActividad, tiempo, distancia, fechaHora, valoracion, velocidad FROM entrenamientos WHERE id = ?", new String[]{String.valueOf(id)});
+        Cursor cursor = db.rawQuery("SELECT id, idActividad, tiempo, distancia, fechaHora, valoracion, velocidad, comentarios FROM entrenamientos WHERE id = ?", new String[]{String.valueOf(id)});
 
         Entrenamiento entrenamiento = null;
 
@@ -278,12 +278,13 @@ public class DBHelper extends SQLiteOpenHelper {
             String fecha = cursor.getString(4);
             int valoracion = cursor.getInt(5);
             double velocidad = cursor.getDouble(6);
+            String comen = cursor.getString(7);
 
             int icono = obtenerIconoActividad(idActividad);
             int nombreActividadId = obtenerNombreActividad(idActividad);
             String tiempoFormateado = formatearTiempo(tiempo);
 
-            entrenamiento = new Entrenamiento(id2, idActividad, nombreActividadId, icono, tiempoFormateado, distancia, fecha, velocidad, valoracion, "");
+            entrenamiento = new Entrenamiento(id2, idActividad, nombreActividadId, icono, tiempoFormateado, distancia, fecha, velocidad, valoracion, comen);
         }
 
         cursor.close();
