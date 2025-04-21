@@ -12,6 +12,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -33,6 +35,8 @@ import javax.net.ssl.SSLHandshakeException;
 public class DBServer extends Worker {
     private static final String BASE_URL = "https://das.egunero.eus/";
     private static final String TAG = "DBServer";
+    private static final int BUFFER_SIZE = 8192; // 8KB buffer
+    private static final long LARGE_RESPONSE_THRESHOLD = 100000; // 100KB
 
     public DBServer(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
@@ -54,68 +58,152 @@ public class DBServer extends Worker {
         int[] idsLocales = getInputData().getIntArray("ids_locales");
         String idEntrena = String.valueOf(getInputData().getInt("idEntrena", 0));
         String fecha = getInputData().getString("fecha");
-        double distancia = Double.parseDouble(String.valueOf(getInputData().getDouble("distancia", 0)));
-        int tiempo = Integer.parseInt(String.valueOf(getInputData().getInt("tiempo", 0)));
-        String velocidad = String.valueOf(getInputData().getDouble("velocidad", 0));
+        double distancia = getInputData().getDouble("distancia", 0);
+        int tiempo = getInputData().getInt("tiempo", 0);
+        double velocidad = getInputData().getDouble("velocidad", 0);
         int tipoEntrena = getInputData().getInt("tipoEntrena", 0);
         double latitud = getInputData().getDouble("latitud", 0);
         double longitud = getInputData().getDouble("longitud", 0);
 
         try {
-            String result;
+            Data resultData;
             switch (Objects.requireNonNull(action)) {
                 case "login":
-                    result = loginUser(username, password, tokenFCM);
+                    resultData = handleStandardRequest("login", loginUser(username, password, tokenFCM));
                     break;
                 case "validate_token":
-                    result = validateToken(token, tokenFCM);
+                    resultData = handleStandardRequest("validate_token", validateToken(token, tokenFCM));
                     break;
                 case "registrar":
-                    result = registrar(username, nombre, apellido, password, mail, String.valueOf(privacidad), tokenFCM);
+                    resultData = handleStandardRequest("registrar", registrar(username, nombre, apellido, password, mail, String.valueOf(privacidad), tokenFCM));
                     break;
                 case "borrarSesion":
-                    result = borrarSesion(token);
+                    resultData = handleStandardRequest("borrarSesion", borrarSesion(token));
                     break;
                 case "actualizarUsar":
-                    result = actualizarUsuario(token, nombre, apellido, mail, password);
+                    resultData = handleStandardRequest("actualizarUsar", actualizarUsuario(token, nombre, apellido, mail, password));
                     break;
                 case "actualizarImg":
-                    result = actualizarFoto(token, foto);
-                    Log.e(TAG, "Error inesperado: Entra foto");
+                    resultData = handleStandardRequest("actualizarImg", actualizarFoto(token, foto));
                     break;
                 case "actDatos":
-                    result = actDatos(token, idsLocales);
+                    resultData = handleLargeDataRequest(actDatos(token, idsLocales));
                     break;
                 case "postDatos":
-                    result = postEntrena(token, idEntrena, fecha, distancia, tiempo, Double.parseDouble(velocidad), tipoEntrena);
+                    resultData = handleStandardRequest("postDatos", postEntrena(token, idEntrena, fecha, distancia, tiempo, velocidad, tipoEntrena));
                     break;
                 case "postRuta":
-                    result = postRuta(token, idEntrena, latitud, longitud);
+                    resultData = handleStandardRequest("postRuta", postRuta(token, idEntrena, latitud, longitud));
                     break;
                 case "deleteEntrena":
-                    result = deleteEntrena(token, idEntrena);
+                    resultData = handleStandardRequest("deleteEntrena", deleteEntrena(token, idEntrena));
                     break;
                 default:
-                    return Result.failure(createOutputData("Error: Acción no válida"));
+                    return Result.failure(createErrorOutput("Acción no válida"));
             }
 
-            JSONObject jsonResponse = new JSONObject(result);
-            String status = jsonResponse.getString("status");
-
-            if (status.equals("error")) {
-                return Result.failure(createOutputData(jsonResponse.getString("message")));
-            }
-
-            return Result.success(createOutputData(result));
+            return Result.success(resultData);
         } catch (IOException e) {
             Log.e(TAG, "Error de conexión: " + e.getMessage());
-            return Result.failure(createOutputData("Error de conexión"));
+            return Result.failure(createErrorOutput("Error de conexión: " + e.getMessage()));
         } catch (JSONException e) {
             Log.e(TAG, "Error al parsear JSON: " + e.getMessage());
-            return Result.failure(createOutputData("Error al procesar la respuesta"));
+            return Result.failure(createErrorOutput("Error al procesar la respuesta"));
         } catch (Exception e) {
             Log.e(TAG, "Error inesperado: " + e.getMessage());
-            return Result.failure(createOutputData("Error inesperado"));
+            return Result.failure(createErrorOutput("Error inesperado: " + e.getMessage()));
+        }
+    }
+
+    private Data handleStandardRequest(String action, String response) throws JSONException {
+        JSONObject jsonResponse = new JSONObject(response);
+        String status = jsonResponse.getString("status");
+
+        if (status.equals("error")) {
+            return createErrorOutput(jsonResponse.getString("message"));
+        }
+
+        return new Data.Builder()
+                .putString("action", action)
+                .putString("result", response)
+                .putBoolean("is_file", false)
+                .build();
+    }
+
+    private Data handleLargeDataRequest(File dataFile) throws IOException {
+        // Para respuestas muy grandes, devolvemos la ruta del archivo
+        return new Data.Builder()
+                .putString("action", "actDatos")
+                .putString("file_path", dataFile.getAbsolutePath())
+                .putBoolean("is_file", true)
+                .build();
+    }
+
+    private Data createErrorOutput(String message) {
+        return new Data.Builder()
+                .putString("error", message)
+                .build();
+    }
+
+    private File hacerPeticionLargeData(String endpoint, Map<String, String> params) throws IOException {
+        HttpURLConnection urlConnection = null;
+        File tempFile = null;
+
+        try {
+            String fullUrl = BASE_URL + (endpoint.startsWith("/") ? endpoint.substring(1) : endpoint);
+            URL url = new URL(fullUrl);
+            Log.d(TAG, "Conectando a: " + fullUrl);
+
+            urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setRequestMethod("POST");
+            urlConnection.setDoOutput(true);
+            urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            urlConnection.setConnectTimeout(15000);
+            urlConnection.setReadTimeout(30000); // Mayor timeout para datos grandes
+
+            // Construir parámetros POST
+            StringBuilder postData = new StringBuilder();
+            for (Map.Entry<String, String> param : params.entrySet()) {
+                if (param.getKey() == null || param.getValue() == null) {
+                    continue;
+                }
+                if (postData.length() != 0) postData.append('&');
+                postData.append(URLEncoder.encode(param.getKey(), "UTF-8"))
+                        .append('=')
+                        .append(URLEncoder.encode(param.getValue(), "UTF-8"));
+            }
+
+            // Enviar datos
+            try (OutputStream os = urlConnection.getOutputStream()) {
+                byte[] input = postData.toString().getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
+            }
+
+            // Crear archivo temporal
+            tempFile = File.createTempFile("large_resp_", ".json", getApplicationContext().getCacheDir());
+
+            // Stream directo de red a archivo
+            try (InputStream input = urlConnection.getInputStream();
+                 OutputStream output = new FileOutputStream(tempFile)) {
+
+                byte[] buffer = new byte[BUFFER_SIZE];
+                int bytesRead;
+                while ((bytesRead = input.read(buffer)) != -1) {
+                    output.write(buffer, 0, bytesRead);
+                }
+            }
+
+            return tempFile;
+
+        } catch (Exception e) {
+            if (tempFile != null && tempFile.exists()) {
+                tempFile.delete();
+            }
+            throw e;
+        } finally {
+            if (urlConnection != null) {
+                urlConnection.disconnect();
+            }
         }
     }
 
@@ -300,10 +388,8 @@ public class DBServer extends Worker {
         return hacerPeticion(recurso, params);
     }
 
-    private String actDatos(String token, int[] idsLocales) throws IOException {
+    private File actDatos(String token, int[] idsLocales) throws IOException {
         String recurso = "obtEntrNoLocal.php";
-
-        // Convertir el array de IDs a una cadena separada por comas
         String idsStr = Arrays.stream(idsLocales)
                 .mapToObj(String::valueOf)
                 .collect(Collectors.joining(","));
@@ -312,7 +398,7 @@ public class DBServer extends Worker {
         params.put("token", token);
         params.put("ids_locales", idsStr);
 
-        return hacerPeticion(recurso, params);
+        return hacerPeticionLargeData(recurso, params);
     }
 
     private String postEntrena(String token, String idEntrena, String fecha, double distancia,

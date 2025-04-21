@@ -46,6 +46,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -428,9 +432,6 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         WorkManager.getInstance(this).enqueue(loginRequest);
     }
 
-    private void showError(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-    }
     @Override
     protected void onResume() {
         super.onResume();
@@ -460,58 +461,108 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
                 .observe(this, workInfo -> {
                     if (workInfo != null && workInfo.getState().isFinished()) {
                         if (workInfo.getState() == WorkInfo.State.SUCCEEDED) {
-                            try {
-                                JSONObject response = new JSONObject(workInfo.getOutputData().getString("result"));
-                                if (response.getString("status").equals("success")) {
-                                    // Process the training data
-                                    JSONArray entrenamientos = response.getJSONArray("data");
-                                    DBHelper dbHelper = new DBHelper(this);
+                            Data outputData = workInfo.getOutputData();
 
-                                    for (int i = 0; i < entrenamientos.length(); i++) {
-                                        JSONObject entrenamiento = entrenamientos.getJSONObject(i);
-
-                                        // Save the training
-                                        long entrenamientoId = dbHelper.guardarEntrenamientoConID(
-                                                entrenamiento.getInt("id_local"),
-                                                entrenamiento.getInt("idActividad"),
-                                                entrenamiento.getString("fechaHora"),
-                                                entrenamiento.getDouble("distancia"),
-                                                entrenamiento.getLong("tiempo"),
-                                                entrenamiento.isNull("velocidad") ? 0 : entrenamiento.getDouble("velocidad"),
-                                                entrenamiento.isNull("valoracion") ? 0 : entrenamiento.getInt("valoracion"),
-                                                entrenamiento.isNull("comentarios") ? null : entrenamiento.getString("comentarios")
-                                        );
-
-                                        // Save the routes if they exist
-                                        if (entrenamiento.has("rutas")) {
-                                            JSONArray rutas = entrenamiento.getJSONArray("rutas");
-                                            for (int j = 0; j < rutas.length(); j++) {
-                                                JSONObject ruta = rutas.getJSONObject(j);
-                                                dbHelper.guardarPuntoRuta(
-                                                        entrenamientoId,
-                                                        ruta.getDouble("latitud"),
-                                                        ruta.getDouble("longitud")
-                                                );
-                                            }
-                                        }
-                                    }
-
-                                    // Show success message or update UI
-                                    Toast.makeText(this, "Datos actualizados correctamente", Toast.LENGTH_SHORT).show();
-
+                            if (outputData.getBoolean("is_file", false)) {
+                                // Manejar respuesta grande (archivo)
+                                String filePath = outputData.getString("file_path");
+                                if (filePath != null) {
+                                    processLargeResponseFile(filePath);
                                 } else {
-                                    showError(response.getString("message"));
+                                    showError("No se recibió la ruta del archivo");
                                 }
-                            } catch (JSONException e) {
-                                showError("Error al procesar la respuesta");
-                                e.printStackTrace();
+                            } else {
+                                // Manejar respuesta pequeña (normal)
+                                try {
+                                    JSONObject response = new JSONObject(outputData.getString("result"));
+                                    processJsonResponse(response);
+                                } catch (JSONException e) {
+                                    showError("Error al procesar la respuesta");
+                                    e.printStackTrace();
+                                }
                             }
                         } else {
-                            showError(workInfo.getOutputData().getString("result"));
+                            showError(getString(Integer.parseInt("error")));
                         }
                     }
                 });
 
         WorkManager.getInstance(this).enqueue(loginRequest);
+    }
+
+    private void processLargeResponseFile(String filePath) {
+        File dataFile = new File(filePath);
+        try (BufferedReader reader = new BufferedReader(new FileReader(dataFile))) {
+            StringBuilder contentBuilder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                contentBuilder.append(line);
+            }
+
+            JSONObject response = new JSONObject(contentBuilder.toString());
+            processJsonResponse(response);
+
+        } catch (IOException | JSONException e) {
+            showError("Error al procesar los datos");
+            e.printStackTrace();
+        } finally {
+            // Eliminar el archivo temporal después de usarlo
+            if (dataFile.exists()) {
+                dataFile.delete();
+            }
+        }
+    }
+
+    private void processJsonResponse(JSONObject response) throws JSONException {
+        if (response.getString("status").equals("success")) {
+            // Process the training data
+            JSONArray entrenamientos = response.getJSONArray("data");
+            DBHelper dbHelper = new DBHelper(this);
+
+            for (int i = 0; i < entrenamientos.length(); i++) {
+                JSONObject entrenamiento = entrenamientos.getJSONObject(i);
+
+                // Save the training
+                long entrenamientoId = dbHelper.guardarEntrenamientoConID(
+                        entrenamiento.getInt("id_local"),
+                        entrenamiento.getInt("idActividad"),
+                        entrenamiento.getString("fechaHora"),
+                        entrenamiento.getDouble("distancia"),
+                        entrenamiento.getLong("tiempo"),
+                        entrenamiento.isNull("velocidad") ? 0 : entrenamiento.getDouble("velocidad"),
+                        entrenamiento.isNull("valoracion") ? 0 : entrenamiento.getInt("valoracion"),
+                        entrenamiento.isNull("comentarios") ? null : entrenamiento.getString("comentarios")
+                );
+
+                // Save the routes if they exist
+                if (entrenamiento.has("rutas")) {
+                    JSONArray rutas = entrenamiento.getJSONArray("rutas");
+                    for (int j = 0; j < rutas.length(); j++) {
+                        JSONObject ruta = rutas.getJSONObject(j);
+                        dbHelper.guardarPuntoRuta(
+                                entrenamientoId,
+                                ruta.getDouble("latitud"),
+                                ruta.getDouble("longitud")
+                        );
+                    }
+                }
+            }
+
+            // Show success message or update UI
+            Toast.makeText(this, "Datos actualizados correctamente", Toast.LENGTH_SHORT).show();
+
+        } else {
+            showError(response.getString("message"));
+        }
+    }
+
+    private void showError(String message) {
+        Toast.makeText(this, "Error: " + message, Toast.LENGTH_SHORT).show();
+        Log.e("actualizarDatos", message);
+    }
+
+    private class getString {
+        public getString(String error) {
+        }
     }
 }
