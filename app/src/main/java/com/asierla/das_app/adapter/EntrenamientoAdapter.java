@@ -17,7 +17,10 @@ import com.asierla.das_app.R;
 import com.asierla.das_app.VerEntrenamiento;
 import com.asierla.das_app.database.DBHelper;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class EntrenamientoAdapter extends RecyclerView.Adapter<EntrenamientoAdapter.EntrenamientoViewHolder> {
 
@@ -43,7 +46,9 @@ public class EntrenamientoAdapter extends RecyclerView.Adapter<EntrenamientoAdap
         holder.iconoActividad.setImageResource(entrenamiento.getIcono());
         holder.textActividad.setText(holder.itemView.getContext().getString(entrenamiento.getNombreActividadId()));
         holder.textTiempo.setText(entrenamiento.getTiempo());
-        holder.textFecha.setText(entrenamiento.getFecha());
+        String fechaOriginal = entrenamiento.getFecha();
+        String soloFecha = fechaOriginal.substring(0, 10); // "yyyy-MM-dd"
+        holder.textFecha.setText(soloFecha);
 
         if(entrenamiento.getIdEntrenamiento()>=0 && entrenamiento.getIdEntrenamiento()<=2){
             // Carrera, Bici, Andar

@@ -51,13 +51,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class Home extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -170,7 +168,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
                     .setTitle(R.string.tipo_entrena)
                     .create();
 
-            dialog.getWindow().setBackgroundDrawableResource(R.drawable.rounded_background);
+            Objects.requireNonNull(dialog.getWindow()).setBackgroundDrawableResource(R.drawable.rounded_background);
             dialog.show();
 
             // Obtener referencias a las vistas
@@ -271,7 +269,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         SharedPreferences prefs2 = getSharedPreferences("Usuario", MODE_PRIVATE);
         String token = prefs2.getString("token", null);
         if (token!=null){
-            //actualizarDatos();
+            actualizarDatos();
         }
     }
 
@@ -430,6 +428,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
                                 if (response.getString("status").equals("success")) {
                                     // Cogemos la info de JSON de la respuesta
                                     String status = response.getString("status");
+                                    new DBHelper(Home.this).borrarTodosLosDatosDB();
                                 } else {
                                     showError(response.getString("message"));
                                 }
@@ -456,88 +455,87 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         setupNavHeader(navigationView);
     }
 
-    public void actualizarDatos(){
+    public void actualizarDatos() {
         int[] list = new DBHelper(this).obtTodosLosId();
+        String idsStr = Arrays.stream(list)
+                .mapToObj(String::valueOf)
+                .collect(Collectors.joining(","));
         Log.d("ENTRE", Arrays.toString(list));
         SharedPreferences prefs = getSharedPreferences("Usuario", MODE_PRIVATE);
         String token = prefs.getString("token", null);
 
+        DBDatos dbDatos = new DBDatos(this);
+        dbDatos.actualizarDatos(token, idsStr, new DBDatos.ApiCallback() {
+            @Override
+            public void onSuccess(JSONObject responseJson) {
+                // Usamos runOnUiThread para asegurarnos que el código se ejecute en el hilo principal
+                runOnUiThread(() -> {
+                    try {
+                        String status = responseJson.getString("status");
+                        Log.e("DBDatos", "JSON " + status);
+                        if (responseJson.getString("status").equals("success")) {
+                            JSONArray entrenamientos = responseJson.getJSONArray("data");
+                            DBHelper dbHelper = new DBHelper(Home.this);
 
-    }
+                            for (int i = 0; i < entrenamientos.length(); i++) {
+                                JSONObject entrenamiento = entrenamientos.getJSONObject(i);
 
-    public void actualizarDatosViejo() {
-        int[] list = new DBHelper(this).obtTodosLosId();
-        Log.d("ENTRE", Arrays.toString(list));
+                                // Guardar el entrenamiento
+                                long entrenamientoId = dbHelper.guardarEntrenamientoConID(
+                                        entrenamiento.getInt("id_local"),
+                                        entrenamiento.getInt("idActividad"),
+                                        entrenamiento.getString("fechaHora"),
+                                        entrenamiento.getDouble("distancia"),
+                                        entrenamiento.getLong("tiempo"),
+                                        entrenamiento.isNull("velocidad") ? 0 : entrenamiento.getDouble("velocidad"),
+                                        entrenamiento.isNull("valoracion") ? 0 : entrenamiento.getInt("valoracion"),
+                                        entrenamiento.isNull("comentarios") ? null : entrenamiento.getString("comentarios")
+                                );
 
-        SharedPreferences prefs = getSharedPreferences("Usuario", MODE_PRIVATE);
-        String token = prefs.getString("token", null);
-
-        Data inputData = new Data.Builder()
-                .putString("action", "actDatos")
-                .putString("token", token)
-                .putIntArray("ids_locales", list)
-                .build();
-
-        OneTimeWorkRequest loginRequest = new OneTimeWorkRequest.Builder(DBServer.class)
-                .setInputData(inputData)
-                .build();
-
-        WorkManager.getInstance(this).getWorkInfoByIdLiveData(loginRequest.getId())
-                .observe(this, workInfo -> {
-                    if (workInfo != null && workInfo.getState().isFinished()) {
-                        if (workInfo.getState() == WorkInfo.State.SUCCEEDED) {
-                            try {
-                                JSONObject response = new JSONObject(workInfo.getOutputData().getString("result"));
-                                if (response.getString("status").equals("success")) {
-                                    // Process the training data
-                                    JSONArray entrenamientos = response.getJSONArray("data");
-                                    DBHelper dbHelper = new DBHelper(this);
-
-                                    for (int i = 0; i < entrenamientos.length(); i++) {
-                                        JSONObject entrenamiento = entrenamientos.getJSONObject(i);
-
-                                        // Save the training
-                                        long entrenamientoId = dbHelper.guardarEntrenamientoConID(
-                                                entrenamiento.getInt("id_local"),
-                                                entrenamiento.getInt("idActividad"),
-                                                entrenamiento.getString("fechaHora"),
-                                                entrenamiento.getDouble("distancia"),
-                                                entrenamiento.getLong("tiempo"),
-                                                entrenamiento.isNull("velocidad") ? 0 : entrenamiento.getDouble("velocidad"),
-                                                entrenamiento.isNull("valoracion") ? 0 : entrenamiento.getInt("valoracion"),
-                                                entrenamiento.isNull("comentarios") ? null : entrenamiento.getString("comentarios")
+                                // Guardar las rutas si existen
+                                if (entrenamiento.has("rutas")) {
+                                    JSONArray rutas = entrenamiento.getJSONArray("rutas");
+                                    for (int j = 0; j < rutas.length(); j++) {
+                                        JSONObject ruta = rutas.getJSONObject(j);
+                                        dbHelper.guardarPuntoRuta(
+                                                entrenamientoId,
+                                                ruta.getDouble("latitud"),
+                                                ruta.getDouble("longitud")
                                         );
-
-                                        // Save the routes if they exist
-                                        if (entrenamiento.has("rutas")) {
-                                            JSONArray rutas = entrenamiento.getJSONArray("rutas");
-                                            for (int j = 0; j < rutas.length(); j++) {
-                                                JSONObject ruta = rutas.getJSONObject(j);
-                                                dbHelper.guardarPuntoRuta(
-                                                        entrenamientoId,
-                                                        ruta.getDouble("latitud"),
-                                                        ruta.getDouble("longitud")
-                                                );
-                                            }
-                                        }
                                     }
-
-                                    // Show success message or update UI
-                                    Toast.makeText(this, "Datos actualizados correctamente", Toast.LENGTH_SHORT).show();
-
-                                } else {
-                                    showError(response.getString("message"));
                                 }
-                            } catch (JSONException e) {
-                                showError("Error al procesar la respuesta");
-                                e.printStackTrace();
                             }
+                            Toast.makeText(Home.this, "Datos actualizados correctamente", Toast.LENGTH_SHORT).show();
                         } else {
-                            showError(workInfo.getOutputData().getString("result"));
+                            Toast.makeText(Home.this, "ERROR: " + responseJson.getString("status"), Toast.LENGTH_SHORT).show();
                         }
+                    } catch (JSONException e) {
+                        Log.e("DBDatos", "Error al parsear JSON", e);
+                        Toast.makeText(Home.this, "Error al procesar los datos", Toast.LENGTH_SHORT).show();
                     }
                 });
+            }
 
-        WorkManager.getInstance(this).enqueue(loginRequest);
+            @Override
+            public void onSuccess(File responseFile) {
+                runOnUiThread(() -> {
+                    try {
+                        Log.e("DBDatos", "FILE");
+                        // Aquí puedes procesar el archivo si es necesario
+                    } finally {
+                        boolean rel = responseFile.delete();
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                runOnUiThread(() -> {
+                    Log.e("DBDatos", "Error en la petición: " + errorMessage);
+                    Toast.makeText(Home.this, "Error al cargar los datos: " + errorMessage, Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
     }
+
 }

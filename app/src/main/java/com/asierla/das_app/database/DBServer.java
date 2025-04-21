@@ -135,7 +135,7 @@ public class DBServer extends Worker {
         }
 
         HttpURLConnection urlConnection = null;
-        String response = null;
+        String response;
 
         try {
             // Construir URL con validación
@@ -172,7 +172,7 @@ public class DBServer extends Worker {
                 throw new IOException("No se proporcionaron parámetros válidos para la solicitud");
             }
 
-            Log.d(TAG, "Enviando parámetros: " + postData.toString());
+            Log.d(TAG, "Enviando parámetros: " + postData);
 
             // Enviar datos
             try (OutputStream os = urlConnection.getOutputStream()) {
