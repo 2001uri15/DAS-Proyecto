@@ -341,6 +341,7 @@ public class VerEntrenamiento extends AppCompatActivity {
             // Guardar los cambios en la base de datos
             //guardarCambios();
             db.actualizarEntrena(getIntent().getIntExtra("idEntrena", 0), (int) ratingBar.getRating(), editTextComentarios.getText().toString());
+            updateEntrenaServer(getIntent().getIntExtra("idEntrena", 0), (int) ratingBar.getRating(), editTextComentarios.getText().toString());
             Intent intent = new Intent(this, VerEntrenamiento.class);
             intent.putExtra("idEntrena", getIntent().getIntExtra("idEntrena", 0)); // Pasar el ID del entrenamiento
             startActivity(intent);
@@ -412,6 +413,49 @@ public class VerEntrenamiento extends AppCompatActivity {
                         } else {
                             String error = workInfo.getOutputData().getString("result");
                             Log.e("VerEntrenamiento", "Error al eliminar: " + error);
+                            showError(error);
+                        }
+                    }
+                });
+
+        WorkManager.getInstance(this).enqueue(loginRequest);
+    }
+
+    public void updateEntrenaServer(int idEntrena, int valoracion, String comen) {
+        SharedPreferences prefs = getSharedPreferences("Usuario", MODE_PRIVATE);
+        String token = prefs.getString("token", null);
+
+        // Añade logs para verificar los valores
+        Log.d("VerEntrenamiento", "Token: " + token);
+        Log.d("VerEntrenamiento", "ID Entrenamiento: " + idEntrena);
+
+        if (token == null) {
+            Toast.makeText(this, "No se encontró token de sesión", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Data inputData = new Data.Builder()
+                .putString("action", "updateEntrena")
+                .putString("token", token)
+                .putInt("idEntrena", idEntrena)
+                .putInt("valoracion", valoracion)
+                .putString("comen", comen)
+                .build();
+
+        OneTimeWorkRequest loginRequest = new OneTimeWorkRequest.Builder(DBServer.class)
+                .setInputData(inputData)
+                .build();
+
+        WorkManager.getInstance(this).getWorkInfoByIdLiveData(loginRequest.getId())
+                .observe(this, workInfo -> {
+                    if (workInfo != null && workInfo.getState().isFinished()) {
+                        if (workInfo.getState() == WorkInfo.State.SUCCEEDED) {
+                            String result = workInfo.getOutputData().getString("result");
+                            Log.d("VerEntrenamiento", "Respuesta del servidor: " + result);
+                            Toast.makeText(this, "Se ha actualizado correctamente.", Toast.LENGTH_SHORT).show();
+                        } else {
+                            String error = workInfo.getOutputData().getString("result");
+                            Log.e("VerEntrenamiento", "Error al actualizar: " + error);
                             showError(error);
                         }
                     }

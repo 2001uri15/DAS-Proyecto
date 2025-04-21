@@ -304,11 +304,10 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
             // Calcular velocidad y ritmo
             if (elapsedTime > 0 && totalDistance > 0) {
                 float speed = (totalDistance / elapsedTime) * 3.6f; // m/s a km/h
-                tvVelocidad.setText(String.format("%.1f km/h", speed));
+                tvVelocidad.setText(String.format("%.1f km/h", entrenamientoService.getVelocidadActual()));
 
                 if (speed > 0) {
-                    float pace = 16.6667f / speed; // min/km
-                    tvRitmo.setText(String.format("%.1f min/km", pace));
+                    tvRitmo.setText(String.format("%.1f min/km", entrenamientoService.getRitmoActual()));
                 }
             }
 

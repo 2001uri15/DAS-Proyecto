@@ -60,6 +60,8 @@ public class DBServer extends Worker {
         int tipoEntrena = getInputData().getInt("tipoEntrena", 0);
         double latitud = getInputData().getDouble("latitud", 0);
         double longitud = getInputData().getDouble("longitud", 0);
+        int valora = getInputData().getInt("valoracion", 0);
+        String comen = getInputData().getString("comen");
 
         try {
             String result;
@@ -94,6 +96,9 @@ public class DBServer extends Worker {
                     break;
                 case "deleteEntrena":
                     result = deleteEntrena(token, idEntrena);
+                    break;
+                case "updateEntrena":
+                    result = updateEntrena(token, idEntrena, valora, comen);
                     break;
                 default:
                     return Result.failure(createOutputData("Error: Acción no válida"));
@@ -353,6 +358,17 @@ public class DBServer extends Worker {
         return hacerPeticion(recurso, params);
     }
 
+    private String updateEntrena(String token, String idEntrena, int valora, String comen) throws IOException {
+        String recurso = "updateEntrena.php";
+
+        Map<String, String> params = new HashMap<>();
+        params.put("token", token);
+        params.put("idEntrena", idEntrena);
+        params.put("valoracion", String.valueOf(valora));
+        params.put("comentario", comen);
+
+        return hacerPeticion(recurso, params);
+    }
 
 
 }

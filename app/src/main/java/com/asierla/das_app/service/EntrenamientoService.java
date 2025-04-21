@@ -43,6 +43,11 @@ public class EntrenamientoService extends Service {
     private long startTime;
     private float totalDistance = 0;
     private Location lastLocation;
+    private float currentSpeed = 0;
+    private float currentPace = 0;
+    private float velocidadActual = 0;
+    private float ritmoActual = 0;
+    private float distanciaTotal = 0; // Cambiamos totalDistance por distanciaTotal para mantener consistencia
     private List<LatLng> routePoints = new ArrayList<>();
     private PowerManager.WakeLock wakeLock;
     private long lastNotificationUpdate = 0;
@@ -252,6 +257,24 @@ public class EntrenamientoService extends Service {
         if (lastLocation != null && location.distanceTo(lastLocation) > 0) {
             float distance = lastLocation.distanceTo(location);
             totalDistance += distance;
+            // Calcular diferencia de tiempo entre ubicaciones (en segundos)
+            long diferenciaTiempoMillis = location.getTime() - lastLocation.getTime();
+            float diferenciaTiempoSegundos = diferenciaTiempoMillis / 1000f;
+            float diferenciaTiempoHoras = diferenciaTiempoSegundos / 3600f;
+
+            // Convertir distancias a kilómetros
+            float distanciaKm = distance / 1000f;
+            float distanciaTotalKm = distanciaTotal / 1000f;
+
+            // Calcular velocidad en km/h (si hay diferencia de tiempo)
+            velocidadActual = (diferenciaTiempoSegundos > 0) ? (distanciaKm / diferenciaTiempoHoras) : 0;
+
+            // Calcular ritmo (min/km)
+            if (distanciaKm > 0 && diferenciaTiempoSegundos > 0) {
+                ritmoActual = (diferenciaTiempoSegundos / 60f) / distanciaKm;
+            } else {
+                ritmoActual = 0;
+            }
             routePoints.add(new LatLng(location.getLatitude(), location.getLongitude()));
         }
         lastLocation = location;
@@ -344,5 +367,22 @@ public class EntrenamientoService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return binder;
+    }
+
+    public synchronized float getVelocidadActual() {
+        return velocidadActual;
+    }
+
+    public synchronized float getRitmoActual() {
+        return ritmoActual;
+    }
+
+    public synchronized String getRitmoFormateado() {
+        if (ritmoActual > 0) {
+            int minutos = (int) ritmoActual;
+            int segundos = (int) ((ritmoActual - minutos) * 60);
+            return String.format("%02d:%02d /km", minutos, segundos);
+        }
+        return "--:-- /km";
     }
 }
