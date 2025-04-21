@@ -9,6 +9,16 @@
     android:background="@color/white"
     tools:context=".Entrena_Correr_Bici_Andar">
 
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/layoutBotones"/>
+
     <!-- Barra superior con botón de retroceso y música -->
     <RelativeLayout
         android:id="@+id/topBar"

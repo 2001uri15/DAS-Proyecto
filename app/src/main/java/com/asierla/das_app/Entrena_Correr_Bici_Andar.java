@@ -22,6 +22,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.Manifest;
@@ -354,6 +355,12 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         isRunning = false;
         handler.removeCallbacks(updateUIRunnable);
 
+        ProgressBar progressBar = findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.VISIBLE);
+        btnFinalizar.setEnabled(false);
+        btnReanudar.setEnabled(false);
+        btnParar.setEnabled(false);
+
         // Detener servicio
         if (isBound) {
             unbindService(serviceConnection);
@@ -362,8 +369,10 @@ public class Entrena_Correr_Bici_Andar extends AppCompatActivity implements OnMa
         Intent serviceIntent = new Intent(this, EntrenamientoService.class);
         stopService(serviceIntent);
 
-        saveTrainingToDB();
-        finish();
+        new Handler().postDelayed(() -> {
+            saveTrainingToDB();
+            finish();
+        }, 500); // Pequeño retraso para que se vea el spinner
     }
 
     private void finishNotSave() {
