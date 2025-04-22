@@ -51,7 +51,7 @@ public class NotificacionesPUSH extends FirebaseMessagingService {
         }
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, channelId)
-                .setSmallIcon(R.drawable.icon_app) // Icono IMPORTANTE
+                .setSmallIcon(R.drawable.notificaciones) // Icono IMPORTANTE
                 .setContentTitle(title)
                 .setContentText(body)
                 .setAutoCancel(true)
